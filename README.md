@@ -92,14 +92,22 @@ python installer\launcher.py
 ## La pantalla inicial: ¿de dónde leer tus sesiones?
 
 La primera vez que abres el panel te preguntará **de dónde leer los ficheros de
-sesión** (los `.jsonl` de Claude Code). Verás la pantalla *"¿Dónde están tus
-sesiones de Claude Code?"* con tres opciones:
+sesión** (los `.jsonl` de Claude Code):
 
-- **Carpeta por defecto**: lee la carpeta estándar de Claude Code
-  (`~/.claude/projects/`). Lo normal si usas Claude Code en este mismo equipo.
-- **Carpeta personalizada**: eliges tú la carpeta donde tienes los `.jsonl`.
-- **Arrastrar / subir mis ficheros .jsonl**: arrastras o subes ficheros sueltos,
-  útil si te han pasado las sesiones desde otro equipo.
+<table>
+  <tr>
+    <td><img src="pantalla-inicial.png" alt="Pantalla inicial: ¿Dónde están tus sesiones de Claude Code?" width="520"></td>
+  </tr>
+</table>
+
+Tienes tres opciones:
+
+- **Usar la carpeta por defecto de Claude Code**: lee `~/.claude/projects/` en
+  sólo-lectura. Lo normal si usas Claude Code en este mismo equipo.
+- **Mi histórico está en otra carpeta**: abres un diálogo y eliges la carpeta
+  donde tienes los `.jsonl`.
+- **Arrastrar / subir mis ficheros .jsonl**: se copian dentro del panel y se
+  usan como fuente local; útil si te han pasado las sesiones desde otro equipo.
 
 Puedes cambiar la opción cuando quieras desde la cabecera. El panel **solo lee**
 esos ficheros, nunca los modifica.
