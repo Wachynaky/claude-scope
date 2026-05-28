@@ -25,16 +25,16 @@ navegador solo.
 
 Descarga el código del repositorio de una de estas dos formas:
 
-- **Con git** (recomendado):
+- Desde esta misma página, pulsa el botón verde **Code →
+  Download ZIP** y descomprime el archivo.
+
+  ![Botón Code → Download ZIP en la página del repositorio de GitHub](claude-code-panel.png)
+
+- **Con git:**
 
 ```bash
 git clone https://github.com/Wachynaky/claude-scope.git
 ```
-
-- **Sin git:** en la página del repositorio, pulsa el botón verde **Code →
-  Download ZIP** y descomprime el archivo.
-
-  ![Botón Code → Download ZIP en la página del repositorio de GitHub](claude-code-panel.png)
 
 Abre una terminal **dentro de la carpeta** descargada (la que contiene
 `installer/` y `claude-scope/`). Después:
