@@ -10,13 +10,9 @@ Funcionalidades:
 
 - **Trazas y observaciones** por sesión, turno y "trace" (turnos agrupados).
 - **Coste real facturable** por modelo: input, output, cache R/W 5m + 1h y
-  server tools, ajustado por service tier. Coste deduplicado por `requestId`
-  (coincide al céntimo con Langfuse).
-- **Detalle por sesión** con tarjetas (coste total, tokens, cache), mapa SVG
-  del flujo opcional, agrupación visual `comando ↔ resultado`, transcripción
-  en tema claro.
-- **Filtros**: rango temporal con presets (1h / 6h / 1d / 7d / 30d / custom),
-  proyecto, modelo, herramienta.
+  server tools, ajustado por service tier. Coste deduplicado por `requestId`.
+- **Detalle por sesión**.
+- **Filtros**: fecha, proyecto, modelo, herramienta.
 - Pantalla de bienvenida si todavía no hay sesiones de Claude Code.
 
 ## Cómo ejecutarlo
@@ -25,7 +21,7 @@ Sólo necesitas **Python 3.8 o superior**. El propio panel descarga
 `clickhouse-local` automáticamente la primera vez (~150 MB) y abre el
 navegador solo.
 
-Descarga el código del repositorio. Tienes **dos opciones** — con cualquiera
+Descarga el código del repositorio. Tienes **dos opciones**, con cualquiera
 obtienes los mismos ficheros:
 
 ### Opción 1 · Descargar el ZIP (la más sencilla)
@@ -74,7 +70,7 @@ ClickHouse no tiene versión nativa para Windows, así que el panel lo ejecuta
 a través de **WSL** (Windows Subsystem for Linux). Sólo se activa una vez:
 
 ```powershell
-# PowerShell como Administrador — sólo la primera vez
+# PowerShell como Administrador, sólo la primera vez
 wsl --install
 # Reinicia el equipo cuando lo pida.
 ```
@@ -121,4 +117,4 @@ python3 claude-scope/local_server.py
 
 ## Licencia
 
-Apache 2.0 — ver `LICENSE`.
+Apache 2.0, ver `LICENSE`.
