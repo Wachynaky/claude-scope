@@ -4,6 +4,8 @@ Dashboard local de observabilidad para sesiones de Claude Code. Lee tus
 JSONL en `~/.claude/projects/` con `clickhouse-local` y los explora en un
 navegador. **Nada sale de tu equipo.**
 
+![Ejemplo del dashboard de Claude Scope](claude-scope.png)
+
 Funcionalidades:
 
 - **Trazas y observaciones** por sesión, turno y "trace" (turnos agrupados).
