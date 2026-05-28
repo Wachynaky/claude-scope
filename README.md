@@ -13,7 +13,6 @@ Funcionalidades:
   server tools, ajustado por service tier. Coste deduplicado por `requestId`.
 - **Detalle por sesión**.
 - **Filtros**: fecha, proyecto, modelo, herramienta.
-- Pantalla de bienvenida si todavía no hay sesiones de Claude Code.
 
 ## Cómo ejecutarlo
 
@@ -89,6 +88,21 @@ python installer\launcher.py
   funciona sin conexión.
 - Para **parar** el panel: pulsa `Ctrl + C` en la terminal (o usa el botón de
   apagado dentro del propio panel).
+
+## La pantalla inicial: ¿de dónde leer tus sesiones?
+
+La primera vez que abres el panel te preguntará **de dónde leer los ficheros de
+sesión** (los `.jsonl` de Claude Code). Verás la pantalla *"¿Dónde están tus
+sesiones de Claude Code?"* con tres opciones:
+
+- **Carpeta por defecto**: lee la carpeta estándar de Claude Code
+  (`~/.claude/projects/`). Lo normal si usas Claude Code en este mismo equipo.
+- **Carpeta personalizada**: eliges tú la carpeta donde tienes los `.jsonl`.
+- **Arrastrar / subir mis ficheros .jsonl**: arrastras o subes ficheros sueltos,
+  útil si te han pasado las sesiones desde otro equipo.
+
+Puedes cambiar la opción cuando quieras desde la cabecera. El panel **solo lee**
+esos ficheros, nunca los modifica.
 
 ## Qué contiene la carpeta
 
