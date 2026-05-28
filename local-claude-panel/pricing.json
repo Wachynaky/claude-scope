@@ -1,0 +1,42 @@
+{
+  "note": "Estimated Anthropic API pricing. Token rates are USD per million tokens. Server-tool rates are USD per 1000 requests. service_tier_multipliers apply on top of token rates (priority ~ 2x, batch ~ 0.5x). Adjust if your plan, region, discount, or Claude Code billing differs.",
+  "tiers": {
+    "opus-4.5+": {
+      "input": 5,
+      "output": 25,
+      "cache_read": 0.50,
+      "cache_creation_5m": 6.25,
+      "cache_creation_1h": 10.00
+    },
+    "opus-4.0": {
+      "input": 15,
+      "output": 75,
+      "cache_read": 1.50,
+      "cache_creation_5m": 18.75,
+      "cache_creation_1h": 30.00
+    },
+    "sonnet": {
+      "input": 3,
+      "output": 15,
+      "cache_read": 0.30,
+      "cache_creation_5m": 3.75,
+      "cache_creation_1h": 6.00
+    },
+    "haiku": {
+      "input": 1,
+      "output": 5,
+      "cache_read": 0.10,
+      "cache_creation_5m": 1.25,
+      "cache_creation_1h": 2.00
+    }
+  },
+  "server_tools": {
+    "web_search_per_1k": 10.0,
+    "web_fetch_per_1k": 0.0
+  },
+  "service_tier_multipliers": {
+    "standard": 1.0,
+    "priority": 2.0,
+    "batch": 0.5
+  }
+}
