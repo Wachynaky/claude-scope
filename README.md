@@ -23,21 +23,29 @@ Sólo necesitas **Python 3.8 o superior**. El propio panel descarga
 `clickhouse-local` automáticamente la primera vez (~150 MB) y abre el
 navegador solo.
 
-Descarga el código del repositorio de una de estas dos formas:
+Descarga el código del repositorio. Tienes **dos opciones** — con cualquiera
+obtienes los mismos ficheros:
 
-- Desde esta misma página, pulsa el botón verde **Code →
-  Download ZIP** y descomprime el archivo.
+### Opción 1 · Descargar el ZIP (la más sencilla)
 
-  ![Botón Code → Download ZIP en la página del repositorio de GitHub](claude-code-panel.png)
+Desde esta misma página, pulsa el botón verde **Code** y luego **Download ZIP**.
+Después descomprime el archivo.
 
-- **Con git:**
+<table>
+  <tr>
+    <td><img src="claude-code-panel.png" alt="Menú Code → Download ZIP en GitHub" width="460"></td>
+  </tr>
+</table>
+
+### Opción 2 · Clonar con git (si ya lo tienes instalado)
 
 ```bash
 git clone https://github.com/Wachynaky/claude-scope.git
 ```
 
-Abre una terminal **dentro de la carpeta** descargada (la que contiene
-`installer/` y `claude-scope/`). Después:
+Con cualquiera de las dos, al terminar abre una terminal **dentro de la
+carpeta** descargada (la que contiene `installer/` y `claude-scope/`).
+Después, según tu sistema:
 
 ### Linux
 
