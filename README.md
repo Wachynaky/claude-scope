@@ -24,7 +24,7 @@ Sólo necesitas **Python 3.8 o superior**. El propio panel descarga
 navegador solo.
 
 Descomprime la carpeta que te han pasado y abre una terminal **dentro de
-ella** (la que contiene `installer/` y `local-claude-panel/`). Después:
+ella** (la que contiene `installer/` y `claude-scope/`). Después:
 
 ### Linux
 
@@ -79,7 +79,7 @@ Estos son los únicos ficheros necesarios para ejecutar el panel:
 installer/
 └─ launcher.py           # Arranca el panel (descarga ClickHouse + abre navegador)
 
-local-claude-panel/      # El panel propiamente dicho
+claude-scope/            # El panel propiamente dicho
 ├─ index.html            # SPA single-page
 ├─ local_server.py       # Bridge HTTP → clickhouse-local
 ├─ pricing.json          # Tarifas Anthropic
@@ -92,7 +92,7 @@ Si ya tienes `clickhouse-local` en el `PATH` y prefieres arrancar el servidor a
 mano (no abre el navegador solo):
 
 ```bash
-python3 local-claude-panel/local_server.py
+python3 claude-scope/local_server.py
 # luego abre http://127.0.0.1:8765
 ```
 

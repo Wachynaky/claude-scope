@@ -295,7 +295,7 @@ def resolve_assets_dir() -> Path:
             return bundled
     here = Path(__file__).resolve().parent
     candidates = [
-        here.parent / "local-claude-panel",
+        here.parent / "claude-scope",
     ]
     for c in candidates:
         if (c / "index.html").exists():
@@ -390,7 +390,7 @@ def main() -> int:
         if (assets / "local_server.py").exists():
             import local_server  # type: ignore
         else:
-            repo_local = Path(__file__).resolve().parent.parent / "local-claude-panel"
+            repo_local = Path(__file__).resolve().parent.parent / "claude-scope"
             sys.path.insert(0, str(repo_local))
             import local_server  # type: ignore
 
