@@ -1,4 +1,4 @@
-# Claude Code Panel
+# Claude Scope
 
 Dashboard local de observabilidad para sesiones de Claude Code. Lee tus
 JSONL en `~/.claude/projects/` con `clickhouse-local` y los explora en un
@@ -23,8 +23,19 @@ Sólo necesitas **Python 3.8 o superior**. El propio panel descarga
 `clickhouse-local` automáticamente la primera vez (~150 MB) y abre el
 navegador solo.
 
-Descomprime la carpeta que te han pasado y abre una terminal **dentro de
-ella** (la que contiene `installer/` y `claude-scope/`). Después:
+Descarga el código del repositorio de una de estas dos formas:
+
+- **Con git** (recomendado):
+
+```bash
+git clone https://github.com/Wachynaky/claude-scope.git
+```
+
+- **Sin git:** en la página del repositorio, pulsa el botón verde **Code →
+  Download ZIP** y descomprime el archivo.
+
+Abre una terminal **dentro de la carpeta** descargada (la que contiene
+`installer/` y `claude-scope/`). Después:
 
 ### Linux
 
