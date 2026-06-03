@@ -11,8 +11,11 @@ Funcionalidades:
 - **Trazas y observaciones** por sesión, turno y "trace" (turnos agrupados).
 - **Coste real facturable** por modelo: input, output, cache R/W 5m + 1h y
   server tools, ajustado por service tier. Coste deduplicado por `requestId`.
-- **Detalle por sesión**.
+- **Detalle por turno y sesión**: prompt, respuesta, llamadas a herramientas
+  (entrada/salida) y tokens de cada paso.
 - **Filtros**: fecha, proyecto, modelo, herramienta.
+
+![Observabilidad sobre cada ejecución](Claude-Code-Scope.png)
 
 ## Cómo ejecutarlo
 
