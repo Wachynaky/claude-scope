@@ -3143,16 +3143,85 @@ tbody td + td { border-left: 1px solid var(--line); }
 .trace-title { color: #1f2937; }
 .trace-tools, .trace-num, .execution-meta { color: #64748b; }
 
+/* Grupo trace + turnos: cada bloque (la fila del trace + las filas de sus
+   turnos) se acota con una barra de acento a la izquierda y un borde superior
+   marcado, y se separa del siguiente grupo con una fila-espaciador. Así la
+   barra queda contenida en UN trace y no parece englobar a todos. */
+.trace-group-row > td:first-child {
+    border-left: 3px solid var(--accent);
+}
+/* La primera fila del bloque (la fila del trace) se presenta como una cabecera:
+   banda con degradado, texto reforzado y una sombra interior que la separa de
+   los turnos. Especificidad reforzada para que el rayado par/impar no la pinte. */
+#trace-group-tbody .trace-group-row {
+    background: linear-gradient(180deg, #eef3fb 0%, #e4ecf7 100%);
+}
+#trace-group-tbody .trace-group-row > td { font-weight: 600; }
+#trace-group-tbody .trace-group-row .col-summary-inner { font-weight: 700; }
+/* Sin borde inferior: la fila del trace se funde con la cabecera de sus turnos.
+   No se ponen bordes superiores por celda (chocaban con la píldora de Project);
+   la separación entre grupos la da la fila-espaciador. */
+.trace-group-row > td { border-bottom: none; }
+
 .trace-turns-cell {
     padding: 0 !important;
     background: #f8fafc;
+    border-left: 3px solid var(--accent);
 }
+
+/* Espaciador entre grupos: separa visualmente un trace del siguiente y cierra
+   el grupo anterior con una línea de acento a todo lo ancho (sin chocar con
+   ninguna celda). */
+.trace-group-gap > td {
+    padding: 0 !important;
+    height: 12px;
+    background: #fff;
+    border: none !important;
+    border-top: 2px solid var(--accent-line) !important;
+}
+.trace-group-gap { cursor: default; }
+.trace-group-gap:hover > td { background: #fff; }
+
+/* Resaltado de grupo: al pasar el ratón por la fila del trace o por cualquiera
+   de sus turnos se ilumina todo el bloque, reforzando que están unidos. */
+#trace-group-tbody .trace-group-row.group-hover { background: var(--accent-soft); }
+.trace-group-row.group-hover > td:first-child { border-left-color: var(--accent-strong); }
+.trace-group-detail.group-hover .trace-turns-cell {
+    background: #eef4ff;
+    border-left-color: var(--accent-strong);
+}
+.trace-group-detail.group-hover .nested-group-caption { background: rgba(232, 42, 107, 0.16); }
 
 .nested-turns {
     display: grid;
     grid-template-columns: 56px minmax(280px, 1fr) 120px 120px 120px 120px 110px;
     gap: 0;
-    border-top: 1px solid #e5ebf2;
+}
+
+/* Cabecera del grupo de turnos: rótulo a ancho completo que conecta los turnos
+   con su trace ("↳ Turnos de esta sesión"). */
+.nested-group-caption {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    background: var(--accent-soft);
+    color: var(--accent-dim);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--accent-line);
+}
+.nested-group-caption .nested-group-title {
+    color: #475569;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .nested-turn-detail {
@@ -3176,12 +3245,13 @@ tbody td + td { border-left: 1px solid var(--line); }
 }
 
 .nested-turns .nested-head {
-    background: #f1f5f9;
-    color: #64748b;
+    background: #eef2f8;
+    color: #475569;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
+    border-bottom: 1px solid #d8e0ea;
 }
 
 .nested-turn-prompt {
@@ -3663,16 +3733,16 @@ tbody td + td { border-left: 1px solid var(--line); }
             <table id="trace-group-table">
                 <thead>
                     <tr>
-                        <th>Trace / Session · Total cost</th>
-                        <th>Project</th>
-                        <th>Started</th>
-                        <th class="align-right">Turns</th>
-                        <th class="align-right">Generations</th>
-                        <th class="align-right">Tokens</th>
-                        <th class="align-right">Cache read $</th>
-                        <th class="align-right">Cache write $</th>
-                        <th class="align-right">Cost</th>
-                        <th>Model</th>
+                        <th data-trace-sort="summary">Trace / Session · Total cost</th>
+                        <th data-trace-sort="project">Project</th>
+                        <th data-trace-sort="started">Started</th>
+                        <th data-trace-sort="turns" class="align-right">Turns</th>
+                        <th data-trace-sort="generations" class="align-right">Generations</th>
+                        <th data-trace-sort="tokens" class="align-right">Tokens</th>
+                        <th data-trace-sort="cacheRead" class="align-right">Cache read $</th>
+                        <th data-trace-sort="cacheWrite" class="align-right">Cache write $</th>
+                        <th data-trace-sort="cost" class="align-right">Cost</th>
+                        <th data-trace-sort="model">Model</th>
                     </tr>
                 </thead>
                 <tbody id="trace-group-tbody"></tbody>
@@ -3908,6 +3978,9 @@ let sessions = [];
 let sortCol = 'started';
 let sortDir = 'desc';
 let sortByUser = false; // true when user clicked a column header during search
+// Orden de la tabla "Traces grouped with turns" (independiente del de sesiones).
+let traceSortCol = 'started';
+let traceSortDir = 'desc';
 let searchText = '';
 let fullTextSessionIds = null; // null = no full-text filter; Map session_id -> relevance rank (lower = better)
 let transcriptData = null;
@@ -5566,7 +5639,9 @@ function renderTraceGroupList() {
         });
     }
 
-    const rows = groups.sort((a, b) => String(b.started).localeCompare(String(a.started)));
+    const dir = traceSortDir === 'asc' ? 1 : -1;
+    const rows = groups.sort((a, b) => dir * traceGroupCompare(a, b, traceSortCol));
+    updateTraceSortIndicators();
     const allTraceCost = rows.reduce((s, g) => s + g.cost, 0);
     const allTraceTokens = rows.reduce((s, g) => s + displayTotalTokens(g.session), 0);
     const allTraceTokensReal = rows.reduce((s, g) => s + (Number(g.session.total_tokens) || 0), 0);
@@ -5635,9 +5710,10 @@ function renderTraceGroupList() {
                 <td class="col-cost" title="${escapeHtml(turnsTitle)}">${formatCost(g.cost)}</td>
                 <td class="col-model" title="${escapeHtml([...g.serviceTiers].join(', ') || 'standard')}">${escapeHtml([...g.models].slice(0, 3).join(', '))}</td>
             </tr>
-            <tr>
+            <tr class="trace-group-detail" data-session="${escapeHtml(g.session_id)}">
                 <td colspan="10" class="trace-turns-cell">
                     <div class="nested-turns">
+                        <div class="nested-group-caption">↳ Turnos de esta sesión<span class="nested-group-title" title="${escapeHtml(summary)}">${escapeHtml(summary)}</span></div>
                         <div class="nested-head">Turn</div>
                         <div class="nested-head">Prompt · session total ${formatCost(g.cost)}</div>
                         <div class="nested-head">Started</div>
@@ -5649,7 +5725,8 @@ function renderTraceGroupList() {
                         ${otherHtml}
                     </div>
                 </td>
-            </tr>`;
+            </tr>
+            <tr class="trace-group-gap" aria-hidden="true"><td colspan="10"></td></tr>`;
     }).join('');
 }
 
@@ -5792,6 +5869,53 @@ document.getElementById('turn-tbody').addEventListener('click', e => {
     }
 });
 
+// Comparador de grupos para ordenar la tabla "Traces grouped with turns".
+// Devuelve siempre en sentido ascendente; renderTraceGroupList aplica la
+// dirección (asc/desc) según traceSortDir.
+function traceGroupCompare(a, b, col) {
+    switch (col) {
+        case 'summary':
+            return getSummaryText(a.session || {}).localeCompare(getSummaryText(b.session || {}));
+        case 'project': return String(a.project).localeCompare(String(b.project));
+        case 'started': return String(a.started).localeCompare(String(b.started));
+        case 'turns': return a.turns.length - b.turns.length;
+        case 'generations': return (a.generations || 0) - (b.generations || 0);
+        case 'tokens': return displayTotalTokens(a.session) - displayTotalTokens(b.session);
+        case 'cacheRead': return (a.cacheReadCost || 0) - (b.cacheReadCost || 0);
+        case 'cacheWrite':
+            return (a.cacheCreation5mCost + a.cacheCreation1hCost) - (b.cacheCreation5mCost + b.cacheCreation1hCost);
+        case 'cost': return (a.cost || 0) - (b.cost || 0);
+        case 'model':
+            return String([...a.models][0] || '').localeCompare(String([...b.models][0] || ''));
+        default: return 0;
+    }
+}
+
+// Marca la columna activa con la flecha asc/desc (reutiliza .sorted-asc/.sorted-desc).
+function updateTraceSortIndicators() {
+    document.querySelectorAll('#trace-group-table thead th').forEach(th => {
+        th.classList.remove('sorted-asc', 'sorted-desc');
+        if (th.dataset.traceSort === traceSortCol) {
+            th.classList.add(traceSortDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+        }
+    });
+}
+
+// Clic en una cabecera: alterna asc/desc si ya está activa, o pasa a esa columna.
+// Las columnas de texto empiezan en asc; las numéricas y la fecha, en desc.
+document.querySelector('#trace-group-table thead').addEventListener('click', e => {
+    const th = e.target.closest('th[data-trace-sort]');
+    if (!th) return;
+    const col = th.dataset.traceSort;
+    if (traceSortCol === col) {
+        traceSortDir = traceSortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+        traceSortCol = col;
+        traceSortDir = (col === 'project' || col === 'model') ? 'asc' : 'desc';
+    }
+    renderTraceGroupList();
+});
+
 document.getElementById('trace-group-tbody').addEventListener('click', e => {
     const openBtn = e.target.closest('.open-turn-session');
     if (openBtn) {
@@ -5809,6 +5933,31 @@ document.getElementById('trace-group-tbody').addEventListener('click', e => {
     if (!tr) return;
     navigateTo('session/' + tr.dataset.session);
 });
+
+// Resaltado de grupo al pasar el ratón: ilumina la fila del trace y todas las
+// filas de sus turnos a la vez (comparten data-session), dejando claro que
+// forman un único bloque. La fila-espaciador no tiene data-session, así que al
+// pasar por ella se limpia el resaltado.
+(function setupTraceGroupHover() {
+    const tbody = document.getElementById('trace-group-tbody');
+    if (!tbody) return;
+    let hoveredSid = null;
+    const clear = () => {
+        tbody.querySelectorAll('tr.group-hover').forEach(r => r.classList.remove('group-hover'));
+        hoveredSid = null;
+    };
+    tbody.addEventListener('mouseover', e => {
+        const tr = e.target.closest('tr[data-session]');
+        const sid = tr && tr.dataset.session;
+        if (sid === hoveredSid) return;
+        clear();
+        if (!sid) return;
+        hoveredSid = sid;
+        tbody.querySelectorAll(`tr[data-session="${CSS.escape(sid)}"]`)
+            .forEach(r => r.classList.add('group-hover'));
+    });
+    tbody.addEventListener('mouseleave', clear);
+})();
 
 // Search — always queries ClickHouse for full-text search
 let searchTimeout = null;
