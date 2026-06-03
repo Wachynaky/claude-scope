@@ -145,6 +145,189 @@ header h1 {
 .shutdown-btn:hover { background: #fecaca; border-color: #ef4444; }
 .shutdown-btn:active { transform: translateY(1px); }
 
+/* ============================================================
+   Cabecera principal rediseñada (.app-header)
+   Mismos elementos, barra-herramienta pulida: marca con logotipo,
+   búsqueda tipo pastilla, toggle de tokens, métricas en vivo y apagado.
+   ============================================================ */
+.app-header {
+    position: relative;
+    align-items: center;
+    gap: 16px;
+    padding: 13px 18px;
+    margin-bottom: 18px;
+    border: 1px solid rgba(216, 224, 234, 0.92);
+    border-bottom-color: rgba(216, 224, 234, 0.92);
+    border-radius: 16px;
+    background:
+        radial-gradient(130% 150% at 0% -10%, rgba(232, 42, 107, 0.07), transparent 42%),
+        linear-gradient(180deg, #ffffff, #fcfcfd);
+    box-shadow: var(--shadow-card);
+}
+.app-header::before {
+    content: '';
+    position: absolute;
+    left: 16px; right: 16px; top: 0;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent), #ff7aa8 55%, rgba(255, 122, 168, 0));
+    opacity: 0.9;
+}
+
+/* --- Marca / logotipo --- */
+.brand { display: flex; align-items: center; gap: 11px; flex: 0 0 auto; }
+.brand-mark {
+    display: grid;
+    place-items: center;
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    color: #fff;
+    background: linear-gradient(150deg, var(--accent-strong), var(--accent) 55%, var(--accent-dim));
+    box-shadow: 0 5px 14px rgba(232, 42, 107, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+.brand-text { display: flex; flex-direction: column; line-height: 1.06; }
+.brand-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.2px;
+}
+.brand-sub {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent-dim);
+    text-transform: uppercase;
+    letter-spacing: 1.4px;
+}
+
+/* --- Búsqueda tipo pastilla --- */
+.app-header .search-box { flex: 1 1 220px; max-width: 440px; min-width: 180px; }
+.app-header .search-box input {
+    width: 100%;
+    height: 38px;
+    padding: 0 14px 0 38px;
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: 11px;
+    font-size: 13px;
+    color: var(--text);
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+    transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.app-header .search-box input::placeholder { color: var(--muted); }
+.app-header .search-box input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.app-header .search-box::before {
+    content: '\1F50D';
+    left: 13px;
+    opacity: 0.4;
+    font-size: 13px;
+}
+
+/* --- Toggle de tokens: ancla el grupo derecho --- */
+.app-header .token-mode-switcher-header {
+    margin: 0 0 0 auto;
+    align-self: center;
+}
+
+/* --- Métricas en vivo (rellenadas por JS dentro de #stats-bar) --- */
+.app-header .stats-bar {
+    align-items: center;
+    gap: 0;
+    margin-left: 0;
+    flex: 0 0 auto;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    padding: 4px 2px;
+}
+.app-header .stats-bar > span:not(#data-source-chip) {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    padding: 2px 13px;
+    border-left: 1px solid var(--line);
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+.app-header .stats-bar > span:not(#data-source-chip):first-child { border-left: none; }
+.app-header .stats-bar .value {
+    color: var(--text);
+    font-weight: 700;
+    font-size: 13.5px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.2px;
+}
+/* El chip de carpeta se renderiza dentro de #stats-bar: que rompa a su propia
+   línea para no estrechar las métricas */
+.app-header .stats-bar #data-source-chip { margin-left: 8px; }
+
+/* --- Botón de apagado refinado --- */
+.app-header .shutdown-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 11px;
+    font-size: 12.5px;
+    font-weight: 650;
+    margin-left: 2px;
+    flex: 0 0 auto;
+    transition: background 0.12s ease, border-color 0.12s ease, transform 0.06s ease, box-shadow 0.12s ease;
+}
+.app-header .shutdown-btn:hover { box-shadow: 0 4px 12px rgba(239, 68, 68, 0.20); }
+.app-header .shutdown-glyph { font-size: 14px; line-height: 1; }
+
+/* Control de zoom del texto del panel (sustituye a las métricas duplicadas) */
+.zoom-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    flex: 0 0 auto;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 3px;
+}
+.zoom-btn {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    color: var(--text);
+    border-radius: 7px;
+    cursor: pointer;
+    font: 700 15px/1 -apple-system, "Segoe UI", Roboto, sans-serif;
+    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+.zoom-btn:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-dim); }
+.zoom-btn:active { transform: translateY(1px); }
+.zoom-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.zoom-level {
+    min-width: 36px;
+    text-align: center;
+    color: var(--muted);
+    font: 600 11px/1 -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    border-radius: 5px;
+    padding: 3px 2px;
+}
+.zoom-level:hover { color: var(--accent-dim); background: var(--accent-soft); }
+
+@media (max-width: 720px) {
+    .app-header .search-box { order: 5; flex-basis: 100%; max-width: none; }
+    .app-header .shutdown-text { display: none; }
+    .app-header .shutdown-btn { padding: 0 11px; }
+}
+
 /* Stat-strip: una sola fila horizontal, denso, separadores verticales */
 .stat-strip {
     display: flex;
@@ -244,6 +427,59 @@ header h1 {
     text-overflow: ellipsis;
     line-height: 1.3;
 }
+.token-mode-note {
+    color: var(--muted);
+    font-size: 0.82em;
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+/* Responsive: la barra de stats y la de filtros se desdoblan en grupos
+   coherentes cuando no hay ancho suficiente. */
+@media (max-width: 900px) {
+    /* Los grupos pasan a ser bloques flex que se desdoblan como unidades */
+    .filter-group {
+        display: flex;
+        align-items: flex-end;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .filter-group-actions {
+        margin-left: auto;
+        align-items: center;
+    }
+    .filter-group-actions > :first-child { margin-left: 0; }
+}
+@media (max-width: 820px) {
+    .stat-strip {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .stat-cell {
+        border-right: 1px solid rgba(0, 0, 0, 0.10);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.10);
+    }
+    .stat-cell:nth-child(3n) { border-right: none; }
+    .stat-cell:last-child { border-right: none; }
+}
+@media (max-width: 540px) {
+    .stat-strip { grid-template-columns: repeat(2, 1fr); }
+    .stat-cell:nth-child(3n) { border-right: 1px solid rgba(0, 0, 0, 0.10); }
+    .stat-cell:nth-child(2n) { border-right: none; }
+    .filter-strip > .view-switcher {
+        width: 100%;
+        margin-right: 0;
+        padding-right: 0;
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 10px;
+    }
+    .filter-group-controls,
+    .filter-group-actions { width: 100%; }
+}
+/* Valor de tokens recalculado «estilo Claude Code»: color distintivo + tooltip nativo
+   (discreto) con el valor real de «All & Real data». */
+.cc-token { color: #3bb0ca; cursor: help; }
 
 /* Volume + Tokens per turn: fila principal compacta con jerarquía clara */
 .dashboard-wide {
@@ -254,7 +490,7 @@ header h1 {
     align-items: stretch;
 }
 .dashboard-wide .chart-panel {
-    min-height: 0;
+    min-height: 210px;
     display: flex;
     flex-direction: column;
 }
@@ -306,9 +542,12 @@ header h1 {
 
 .chart-canvas-tall { height: 140px; }
 
-.dashboard-wide .chart-canvas { height: 150px; }
-.dashboard-wide [data-chart-id="volume"] .chart-canvas { height: 158px; }
-.dashboard-wide [data-chart-id="tokens-per-turn"] .chart-canvas { height: 132px; }
+/* La card mantiene una altura cómoda (min-height del panel) y el canvas la
+   rellena por completo con flex, de modo que las barras ocupan todo el alto
+   disponible de la tarjeta sin huecos. IMPORTANTE: la altura base debe ser
+   definida (no «auto»); con «auto» el canvas toma su alto del ratio del bitmap
+   y se dispara. */
+.dashboard-wide .chart-canvas { flex: 1 1 auto; height: 120px; min-height: 0; }
 
 /* Botón × ocultar en cada chart */
 .chart-hide-btn {
@@ -549,6 +788,19 @@ header h1 {
 
 .legend-inline { font-size: 10.5px; }
 
+/* Leyenda integrada en la cabecera de la gráfica, a la altura del título.
+   Fila inline compacta; deja todo el alto restante de la card para el canvas. */
+.chart-head-legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 4px 0 4px;
+    min-width: 0;
+    overflow: hidden;
+    font-weight: 500;
+}
+.chart-head-legend .legend-item { font-size: 10.5px; flex: 0 0 auto; }
+
 /* Mini-tabla densa: una línea por item con barra inline */
 .bar-list {
     display: flex;
@@ -637,6 +889,12 @@ header h1 {
     border: 1px solid rgba(216,224,234,0.92);
     border-radius: var(--radius-panel);
     box-shadow: var(--shadow-card);
+    /* Se mantiene visible al hacer scroll del dashboard */
+    position: sticky;
+    top: 6px;
+    z-index: 30;
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: blur(8px);
 }
 
 .filter-strip > .view-switcher {
@@ -645,6 +903,79 @@ header h1 {
     padding-right: 12px;
     border-right: 1px solid var(--line);
     align-self: stretch;
+}
+
+/* Grupos coherentes dentro de la barra de filtros. En pantallas anchas usamos
+   display:contents para que los chips fluyan de forma natural en una sola fila
+   (sin bloques rígidos que provoquen saltos feos). El grupo de acciones se
+   empuja al extremo derecho. En pantallas estrechas (media query más abajo)
+   cada grupo pasa a ser un bloque flex que se desdobla de forma coherente. */
+.filter-group { display: contents; }
+.filter-group-actions > :first-child { margin-left: auto; }
+
+/* Selector de modo de cálculo de tokens: opción de ayuda, deliberadamente
+   discreta y separada del agrupador principal. Etiqueta encima, empujado
+   al final de la barra. */
+.token-mode-switcher {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    align-self: flex-end;
+    padding-left: 12px;
+    border-left: 1px solid var(--line);
+}
+
+/* Variante para el header: horizontal, compacta y centrada entre la búsqueda
+   y las estadísticas. */
+header .token-mode-switcher-header {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    align-self: center;
+    margin: 0 auto;
+    padding: 3px 4px 3px 10px;
+    border-left: 1px solid var(--line);
+}
+header .token-mode-switcher-header .token-mode-label {
+    opacity: 0.6;
+}
+header .stats-bar { margin-left: 0; }
+.token-mode-label {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1;
+    opacity: 0.7;
+}
+/* Control segmentado: pista gris con pastilla activa elevada, claramente un
+   toggle de dos opciones. */
+.token-mode-options {
+    display: inline-flex;
+    gap: 0;
+    background: var(--surface-sunk);
+    border: 1px solid var(--line-strong);
+    border-radius: 9px;
+    padding: 2px;
+}
+.token-mode-switcher button {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    border-radius: 7px;
+    padding: 5px 12px;
+    cursor: pointer;
+    font: 600 11.5px/1 -apple-system, "Segoe UI", Roboto, sans-serif;
+    white-space: nowrap;
+    transition: color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+}
+.token-mode-switcher button:hover { color: var(--text); }
+.token-mode-switcher button.active {
+    color: var(--accent-dim);
+    background: var(--surface);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.02);
 }
 
 /* Chip: label arriba + control debajo */
@@ -1414,6 +1745,8 @@ mark.search-hit.current { background: #facc15; color: #422006; }
 /* Visual grouping of every user prompt + its assistant responses + tool I/O. */
 .turn-group {
     border: 1px solid #cbd5e1;
+    /* Banda de acento a la izquierda: marca todo el turno como una unidad. */
+    border-left: 3px solid var(--accent);
     border-radius: 12px;
     background: #ffffff;
     padding: 0;
@@ -1492,8 +1825,12 @@ mark.search-hit.current { background: #facc15; color: #422006; }
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding: 12px 14px;
-    background: #ffffff;
+    padding: 12px 14px 14px 18px;
+    /* Fondo hundido + raíl de acento: la cabecera funciona como barra de título
+       y los mensajes quedan claramente contenidos "dentro" del turno, colgando
+       de ella. NO usar position:relative aquí: cambiaría el offsetParent de los
+       bloques [data-nav=user] y rompería el prompt fijo (#sticky-prompt). */
+    background: #eef2f7;
 }
 
 /* Botón de plegado por turno */
@@ -1524,12 +1861,41 @@ mark.search-hit.current { background: #facc15; color: #422006; }
 .turn-group.collapsed .turn-toggle { transform: rotate(-90deg); }
 
 /* Botones bulk en la barra de filtros */
+/* Fila de la traza: pestañas a la izquierda y controles de plegado a la
+   derecha, en la misma línea, para que no desdoblen la fila de filtros. */
+.trace-controls-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.turn-bulk-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    margin-left: auto;
+}
 .turn-bulk-controls {
     display: inline-flex;
+    align-items: center;
     gap: 4px;
     margin-left: 6px;
     padding-left: 8px;
     border-left: 1px solid var(--line);
+}
+.turn-bulk-label {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+    margin-right: 2px;
+}
+.turn-bulk-group > .turn-bulk-controls:first-child {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: none;
 }
 .turn-bulk-btn {
     background: #ffffff;
@@ -1981,17 +2347,20 @@ mark.search-hit.current { background: #facc15; color: #422006; }
     z-index: 10;
     background: #f1f5f9;
     color: #0f172a;
-    font-size: 120%;
+    font-size: 90%;
     padding: 0 0.5em;
     border-bottom: 1px solid #cbd5e1;
     display: none;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    line-height: 1.5;
+    line-height: 1.4;
 }
 
 #sticky-prompt .term-prefix { color: var(--accent-dim); font-weight: bold; }
-#sticky-prompt .term-content { color: #0f172a; font-weight: bold; max-height: 4.5em; overflow: hidden; cursor: pointer; padding: 0 0.5rem; }
-#sticky-prompt .term-content.expanded { max-height: none !important; overflow-y: auto !important; }
+/* Fijo y compacto: como máximo ~2 líneas y peso medio, para que el prompt no
+   ocupe demasiada altura ni tape el contenido al hacer scroll. Click para
+   desplegarlo completo. */
+#sticky-prompt .term-content { color: #0f172a; font-weight: 500; max-height: 2.8em; overflow: hidden; cursor: pointer; padding: 2px 0.5rem; }
+#sticky-prompt .term-content.expanded { max-height: 42vh !important; overflow-y: auto !important; }
 #sticky-prompt .term-nav { display: flex; justify-content: flex-end; gap: 12px; padding: 2px 0.5rem; font-size: 11px; }
 #sticky-prompt .term-nav span { color: #94a3b8; cursor: pointer; user-select: none; }
 #sticky-prompt .term-nav span:hover { color: var(--accent-dim); }
@@ -2266,7 +2635,10 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.28); }
 html { scrollbar-color: rgba(0,0,0,0.18) var(--surface-sunk); }
 
-.container { padding: 20px; max-width: 1800px; }
+/* El panel (y por tanto la tabla, que es width:100%) ocupa todo el ancho de la
+   pantalla, con márgenes laterales que crecen en pantallas grandes mediante un
+   padding fluido. Sin tope rígido de ancho. */
+.container { max-width: 100%; padding: 20px clamp(20px, 5vw, 180px); }
 
 header {
     background: rgba(255,255,255,0.90);
@@ -2501,6 +2873,86 @@ tbody td + td { border-left: 1px solid var(--line); }
     border-radius: 6px;
     border: 1px solid var(--line);
     display: inline-block;
+}
+
+/* Tabla "Group by turn": pares maestro-detalle. El zebra genérico no sirve
+   aquí porque las filas de detalle van intercaladas; en su lugar separamos
+   visualmente cada turno con zebra por clase y un divisor claro entre turnos. */
+#turn-table tbody tr:nth-child(even) { background: transparent; }
+
+/* Celdas: contenido alineado arriba para que las filas de varias líneas no
+   descoloquen al resto; padding uniforme y altura mínima consistente. */
+#turn-table tbody td {
+    vertical-align: top;
+    padding: 12px 14px;
+    border-left: 1px solid var(--line);
+    color: var(--text-soft);
+}
+#turn-table tbody tr[data-turn-row] td { border-bottom: 1px solid var(--line-strong); }
+#turn-table tbody tr[data-turn-row] td:first-child { border-left: none; }
+
+/* Fila maestra: blanca / zebra, hover y estado expandido bien diferenciados */
+#turn-table tbody tr[data-turn-row] {
+    background: var(--surface);
+    transition: background 0.12s ease;
+}
+#turn-table tbody tr.turn-row-alt { background: var(--surface-2); }
+#turn-table tbody tr[data-turn-row]:hover { background: var(--accent-soft); }
+#turn-table tbody tr[data-turn-row]:hover td { color: var(--text); }
+#turn-table tbody tr[data-turn-row].is-expanded { background: var(--accent-soft); }
+#turn-table tbody tr[data-turn-row].is-expanded td {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+}
+
+/* col-model en la tabla de turnos: la caja monospace pesada por defecto domina
+   y ensucia la rejilla. Aquí lo dejamos como texto discreto, sin fondo ni
+   borde de pill, conservando solo el divisor de columna. */
+#turn-table tbody td.col-model {
+    display: table-cell;
+    background: none;
+    border: none;
+    border-left: 1px solid var(--line);
+    border-radius: 0;
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: top;
+}
+/* Columna Project: acotada y truncada para que no empuje el resto */
+#turn-table tbody td:nth-child(2) { max-width: 220px; }
+/* Modelo: ligero realce para distinguirlo del resto del texto */
+#turn-table tbody td:nth-child(6) { color: var(--text-soft); font-weight: 500; }
+
+/* Indicador de despliegue en la celda del prompt */
+#turn-table tbody tr[data-turn-row] td:first-child { position: relative; padding-left: 32px; }
+#turn-table tbody tr[data-turn-row] td:first-child::before {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: 15px;
+    width: 6px;
+    height: 6px;
+    border-right: 1.6px solid var(--muted);
+    border-bottom: 1.6px solid var(--muted);
+    transform: rotate(-45deg);
+    transition: transform 0.15s ease, border-color 0.12s ease;
+}
+#turn-table tbody tr[data-turn-row]:hover td:first-child::before { border-color: var(--accent-dim); }
+#turn-table tbody tr[data-turn-row].is-expanded td:first-child::before {
+    transform: rotate(45deg);
+    border-color: var(--accent);
+}
+
+/* Fila de detalle: claramente diferenciada de la fila visible (fondo hundido,
+   barra de acento a la izquierda y sombra interior superior) */
+#turn-table .turn-detail-row td {
+    background: var(--surface-sunk);
+    border-left: 3px solid var(--accent);
+    box-shadow: inset 0 7px 9px -9px rgba(15, 23, 42, 0.30);
 }
 
 /* Tabla principal de sesiones: densa, escaneable y aislada de las tablas desplegadas */
@@ -2755,8 +3207,8 @@ tbody td + td { border-left: 1px solid var(--line); }
     margin: 0;
     padding: 14px;
     border-top: 1px solid #e5ebf2;
-    display: grid;
-    grid-template-columns: minmax(320px, 1fr) 360px;
+    display: flex;
+    flex-direction: column;
     gap: 14px;
 }
 
@@ -2781,7 +3233,7 @@ tbody td + td { border-left: 1px solid var(--line); }
 
 .turn-detail-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 8px;
 }
 
@@ -2816,7 +3268,7 @@ tbody td + td { border-left: 1px solid var(--line); }
 
 .turn-detail-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-start;
     grid-column: 1 / -1;
 }
 
@@ -3003,22 +3455,45 @@ tbody td + td { border-left: 1px solid var(--line); }
 <body>
 <button type="button" id="scroll-top-btn" class="scroll-top-btn" title="Subir arriba" aria-label="Subir arriba">↑</button>
 <div class="container">
-    <header>
-        <h1>Claude Code Local Panel</h1>
+    <header class="app-header">
+        <div class="brand">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 17l5-5-5-5"/><path d="M12 19h8"/>
+                </svg>
+            </span>
+            <span class="brand-text">
+                <span class="brand-title">Claude Code</span>
+                <span class="brand-sub">Local Panel</span>
+            </span>
+        </div>
         <div class="search-box">
             <input type="text" id="search-input" placeholder="Search all message content...">
         </div>
+        <div class="token-mode-switcher token-mode-switcher-header" id="token-mode-switcher" title="Cómo se calcula el «total de tokens» de las estadísticas. «All & Real data»: input + output + cache, deduplicado por petición (lo que de verdad consumes). «Same as Claude Code»: solo input + output en crudo, igual que el «Total tokens» de /config Stats (suele dar más porque no deduplica).">
+            <span class="token-mode-label">Tokens</span>
+            <div class="token-mode-options">
+                <button data-token-mode="real" class="active">All &amp; Real data</button>
+                <button data-token-mode="cc">Same as Claude Code</button>
+            </div>
+        </div>
         <div class="stats-bar" id="stats-bar"></div>
-        <button id="shutdown-btn" class="shutdown-btn" title="Cerrar el panel (apaga el servidor local)">⏻ Apagar</button>
+        <div class="zoom-control" id="zoom-control" title="Tamaño del texto del panel">
+            <button type="button" id="zoom-out" class="zoom-btn" title="Reducir el tamaño del texto" aria-label="Reducir tamaño">−</button>
+            <span class="zoom-level" id="zoom-level" title="Restablecer el tamaño (clic)" role="button" tabindex="0">16px</span>
+            <button type="button" id="zoom-in" class="zoom-btn" title="Aumentar el tamaño del texto" aria-label="Aumentar tamaño">+</button>
+        </div>
+        <button id="shutdown-btn" class="shutdown-btn" title="Cerrar el panel (apaga el servidor local)"><span class="shutdown-glyph">⏻</span><span class="shutdown-text">Apagar</span></button>
     </header>
 
     <div id="session-list-view">
         <div class="filter-strip">
             <div class="view-switcher" id="home-view-switcher">
-                <button data-home-view="sessions" class="active">Group by session</button>
-                <button data-home-view="turns">Group by turn</button>
+                <button data-home-view="turns" class="active">Group by turn</button>
                 <button data-home-view="traces">Group by trace</button>
+                <button data-home-view="sessions">Group by session</button>
             </div>
+            <div class="filter-group filter-group-controls">
             <label class="filter-chip"><span class="filter-chip-label">Project</span><select id="filter-project-select"><option value="">All</option></select></label>
             <label class="filter-chip"><span class="filter-chip-label">Model</span><select id="filter-model-select"><option value="">All</option></select></label>
             <label class="filter-chip"><span class="filter-chip-label">Tool</span><select id="filter-tool-select"><option value="">All</option></select></label>
@@ -3026,7 +3501,7 @@ tbody td + td { border-left: 1px solid var(--line); }
                 <span class="filter-chip-label">Time range</span>
                 <button type="button" id="range-picker-btn" class="range-picker-btn">
                     <span class="range-picker-icon" aria-hidden="true">🕒</span>
-                    <span id="range-picker-label">All time</span>
+                    <span id="range-picker-label">Last 7 days</span>
                     <span class="range-picker-caret">▾</span>
                 </button>
                 <div id="range-picker-popover" class="range-picker-popover hidden" role="dialog" aria-label="Time range">
@@ -3049,8 +3524,11 @@ tbody td + td { border-left: 1px solid var(--line); }
                     </div>
                 </div>
             </div>
+            </div>
+            <div class="filter-group filter-group-actions">
             <span class="filter-chip"><button id="clear-session-filters">Clear filters</button></span>
             <span class="filter-chip"><button type="button" id="dashboard-charts-toggle" class="charts-toggle-btn" title="Ocultar todas las gráficas del dashboard">Ocultar todas</button></span>
+            </div>
         </div>
         <section class="stat-strip" id="stat-strip">
             <div class="stat-cell">
@@ -3059,7 +3537,7 @@ tbody td + td { border-left: 1px solid var(--line); }
                 <div class="stat-sub" id="metric-sessions-sub">sessions</div>
             </div>
             <div class="stat-cell">
-                <div class="stat-label">Usage</div>
+                <div class="stat-label" id="metric-tokens-label">Usage</div>
                 <div class="stat-value" id="metric-tokens">-</div>
                 <div class="stat-sub" id="metric-tokens-sub">tokens</div>
             </div>
@@ -3086,18 +3564,17 @@ tbody td + td { border-left: 1px solid var(--line); }
             <button type="button" id="hidden-charts-show-all" class="hidden-charts-show-all">Mostrar todas</button>
         </div>
         <section class="dashboard-wide" id="dashboard-wide">
-            <div class="chart-panel" data-chart-id="volume" data-chart-name="Volume">
-                <div class="chart-head"><span>Volume</span><span class="muted" id="daily-chart-meta"></span><button type="button" class="chart-hide-btn" title="Ocultar gráfica">×</button></div>
+            <div class="chart-panel" data-chart-id="volume" data-chart-name="Tokens Daily">
+                <div class="chart-head"><span>Tokens Daily</span><div class="chart-head-legend" id="daily-chart-legend"></div><span class="muted" id="daily-chart-meta"></span><button type="button" class="chart-hide-btn" title="Ocultar gráfica">×</button></div>
                 <canvas class="chart-canvas" id="daily-chart"></canvas>
             </div>
-            <div class="chart-panel" data-chart-id="tokens-per-turn" data-chart-name="Tokens per turn">
+            <div class="chart-panel" data-chart-id="tokens-per-turn" data-chart-name="Tokens by Tool">
                 <div class="chart-head">
-                    <span>Tokens per turn</span>
-                    <span class="muted" id="turn-tokens-meta">last turns · stacked by type</span>
+                    <span>Tokens by Tool</span>
+                    <span class="muted" id="tool-tokens-meta">tokens de turnos que usan cada herramienta · todo el periodo</span>
                     <button type="button" class="chart-hide-btn" title="Ocultar gráfica">×</button>
                 </div>
-                <canvas class="chart-canvas" id="turn-tokens-chart"></canvas>
-                <div class="legend-grid legend-inline" id="turn-tokens-legend"></div>
+                <canvas class="chart-canvas" id="tool-tokens-chart"></canvas>
             </div>
         </section>
         <section class="dashboard" id="dashboard">
@@ -3126,7 +3603,6 @@ tbody td + td { border-left: 1px solid var(--line); }
                 <div class="bar-list" id="project-cost-chart"></div>
             </div>
         </section>
-        <section class="insight-strip" id="insight-strip"></section>
         <div class="section-title" id="session-table-title">
             <h2>Sessions table</h2>
             <span>One row per Claude Code session</span>
@@ -3233,24 +3709,30 @@ tbody td + td { border-left: 1px solid var(--line); }
                 <label title="Entrada en modo plan"><input type="checkbox" id="filter-plan" checked> 📋 Plan</label>
                 <label title="Mensajes [Request interrupted by user]"><input type="checkbox" id="filter-interrupt" checked> ⏹ Pausar</label>
                 <label title="Mensajes de continuación de sesión previa"><input type="checkbox" id="filter-continuation"> ↻ Cont.</label>
-                <span class="turn-bulk-controls" title="Plegar/desplegar todos los turnos del transcript">
-                    <button type="button" id="turns-collapse-all" class="turn-bulk-btn" title="Plegar todos los turnos">▸ Plegar turnos</button>
-                    <button type="button" id="turns-expand-all" class="turn-bulk-btn" title="Desplegar todos los turnos">▾ Desplegar turnos</button>
-                </span>
-                <span class="turn-bulk-controls" title="Plegar/desplegar Input · Output · Metadata de TODOS los tool-steps">
-                    <button type="button" id="ts-collapse-all" class="turn-bulk-btn" title="Plegar Input/Output/Metadata de todos los tool-steps">▸ Plegar I/O/M</button>
-                    <button type="button" id="ts-expand-all" class="turn-bulk-btn" title="Desplegar Input/Output/Metadata de todos los tool-steps">▾ Desplegar I/O/M</button>
-                </span>
             </div>
             <div id="scroll-metrics"></div>
-            <div class="view-switcher" id="trace-view-switcher">
-                <button data-trace-view="all" class="active">📦 Todo</button>
-                <button data-trace-view="transcript">💬 Conversación</button>
-                <button data-trace-view="map">🗺 Mapa</button>
-                <button data-trace-view="turns">📋 Turnos</button>
-                <button data-trace-view="observations">📊 Observaciones</button>
-                <button data-trace-view="flow">🌳 Flujo</button>
-                <button data-trace-view="timeline">⏱ Timeline</button>
+            <div class="trace-controls-row">
+                <div class="view-switcher" id="trace-view-switcher">
+                    <button data-trace-view="all" class="active">📦 Todo</button>
+                    <button data-trace-view="transcript">💬 Conversación</button>
+                    <button data-trace-view="map">🗺 Mapa</button>
+                    <button data-trace-view="turns">📋 Turnos</button>
+                    <button data-trace-view="observations">📊 Observaciones</button>
+                    <button data-trace-view="flow">🌳 Flujo</button>
+                    <button data-trace-view="timeline">⏱ Timeline</button>
+                </div>
+                <div class="turn-bulk-group">
+                    <span class="turn-bulk-controls" title="Plegar/desplegar todos los turnos del transcript">
+                        <span class="turn-bulk-label">Turns</span>
+                        <button type="button" id="turns-expand-all" class="turn-bulk-btn" title="Desplegar todos los turnos">Show</button>
+                        <button type="button" id="turns-collapse-all" class="turn-bulk-btn" title="Plegar todos los turnos">Hide</button>
+                    </span>
+                    <span class="turn-bulk-controls" title="Plegar/desplegar Input · Output · Metadata de TODOS los tool-steps">
+                        <span class="turn-bulk-label">Input / Output data</span>
+                        <button type="button" id="ts-expand-all" class="turn-bulk-btn" title="Desplegar Input/Output/Metadata de todos los tool-steps">Show</button>
+                        <button type="button" id="ts-collapse-all" class="turn-bulk-btn" title="Plegar Input/Output/Metadata de todos los tool-steps">Hide</button>
+                    </span>
+                </div>
             </div>
         </div>
         <div id="flow-overview" class="flow-overview"></div>
@@ -3431,11 +3913,14 @@ let fullTextSessionIds = null; // null = no full-text filter; Map session_id -> 
 let transcriptData = null;
 let toolStats = [];
 let sessionToolRows = [];
-let sessionFilters = { project: '', model: '', tool: '', range: '', rangeFrom: null, rangeTo: null };
+let sessionFilters = { project: '', model: '', tool: '', range: '7d', rangeFrom: null, rangeTo: null };
 let turns = [];
 let turnsLoaded = false;
 let turnByKey = new Map();
-let homeViewMode = 'sessions';
+let homeViewMode = 'turns';
+// Modo de cálculo del total de tokens: 'real' (in+out+cache, deduplicado) o
+// 'cc' (in+out crudos, como /config Stats de Claude Code).
+let tokenMode = (() => { try { return localStorage.getItem('ccpanel-token-mode') || 'real'; } catch (e) { return 'real'; } })();
 let traceViewMode = 'all';
 let currentFlowNodes = [];
 let modalMessageIdx = null;
@@ -3621,6 +4106,7 @@ function mergePlanSessions() {
         const numFields = ['user_msgs', 'assistant_msgs', 'all_msgs',
             'input_tokens', 'output_tokens', 'cache_read_tokens', 'cache_creation_tokens',
             'cache_creation_5m_tokens', 'cache_creation_1h_tokens',
+            'cc_input_raw', 'cc_output_raw',
             'web_search_requests', 'web_fetch_requests',
             'api_duration_ms', 'api_error_count', 'permission_events', 'sidechain_assistant_msgs',
             'plan_count', 'compaction_count', 'approved_count', 'rejected_count',
@@ -3652,6 +4138,7 @@ function mergePlanSessions() {
         // Recalculate cost and total tokens
         s.cost = computeCost(s);
         s.total_tokens = (Number(s.input_tokens) || 0) + (Number(s.output_tokens) || 0) + (Number(s.cache_read_tokens) || 0) + (Number(s.cache_creation_tokens) || 0);
+        s.cc_tokens = (Number(s.cc_input_raw) || 0) + (Number(s.cc_output_raw) || 0);
 
         planIds.add(planId);
     }
@@ -3803,6 +4290,10 @@ SELECT
     anyIf(service_tier, type = 'assistant' AND service_tier != '') AS service_tier,
     sumIf(input_tokens, type = 'assistant' AND req_seq = 1) AS input_tokens,
     sumIf(output_tokens, type = 'assistant' AND req_seq = 1) AS output_tokens,
+    -- Crudo sin deduplicar (todas las filas de streaming), igual que /config de Claude Code.
+    -- Cualificamos con marked. para no resolver al alias agregado input_tokens/output_tokens.
+    sumIf(marked.input_tokens, type = 'assistant') AS cc_input_raw,
+    sumIf(marked.output_tokens, type = 'assistant') AS cc_output_raw,
     sumIf(cache_read_tokens, type = 'assistant' AND req_seq = 1) AS cache_read_tokens,
     sumIf(cache_creation_tokens, type = 'assistant' AND req_seq = 1) AS cache_creation_tokens,
     sumIf(cache_creation_5m_tokens, type = 'assistant' AND req_seq = 1) AS cache_creation_5m_tokens,
@@ -3822,6 +4313,7 @@ LIMIT 5000`;
         turns.forEach(t => {
             t.cost = computeCost(t);
             t.total_tokens = (Number(t.input_tokens) || 0) + (Number(t.output_tokens) || 0) + (Number(t.cache_read_tokens) || 0) + (Number(t.cache_creation_tokens) || 0);
+            t.cc_tokens = (Number(t.cc_input_raw) || 0) + (Number(t.cc_output_raw) || 0);
         });
         turnByKey = new Map(turns.map(t => [`${t.session_id}:${t.turn_no}`, t]));
         turnsLoaded = true;
@@ -3900,6 +4392,8 @@ SELECT
     coalesce(su.web_search_requests, 0) AS web_search_requests,
     coalesce(su.web_fetch_requests, 0) AS web_fetch_requests,
     raw_agg.service_tier AS service_tier,
+    raw_agg.cc_input_raw AS cc_input_raw,
+    raw_agg.cc_output_raw AS cc_output_raw,
     raw_agg.api_duration_ms AS api_duration_ms,
     raw_agg.api_error_count AS api_error_count,
     raw_agg.permission_events AS permission_events,
@@ -3932,6 +4426,11 @@ FROM (
         countDistinctIf(data.requestId::String, data.type::String = 'assistant' AND data.requestId::String != '') AS assistant_request_count,
         countIf(data.type::String = 'user') + countDistinctIf(data.requestId::String, data.type::String = 'assistant' AND data.requestId::String != '') AS all_msgs,
         anyIf(data.message.usage.service_tier::String, data.type::String = 'assistant' AND data.message.usage.service_tier::String != '') AS service_tier,
+        -- Claude Code's /config "Total tokens" suma in+out de CADA fila assistant SIN
+        -- deduplicar por requestId (cuenta las filas de streaming repetidas). Lo replicamos
+        -- aquí en crudo para ofrecer la vista "Same as Claude Code".
+        sumIf(data.message.usage.input_tokens::UInt64, data.type::String = 'assistant') AS cc_input_raw,
+        sumIf(data.message.usage.output_tokens::UInt64, data.type::String = 'assistant') AS cc_output_raw,
         sumIf(data.durationMs::UInt32, data.type::String = 'system' AND data.subtype::String = 'turn_duration') AS api_duration_ms,
         countIf(data.type::String = 'system' AND data.subtype::String = 'api_error') AS api_error_count,
         countIf(data.type::String = 'permission-mode') AS permission_events,
@@ -3975,6 +4474,8 @@ ORDER BY raw_agg.started DESC`;
         sessions.forEach(s => {
             s.cost = computeCost(s);
             s.total_tokens = (Number(s.input_tokens) || 0) + (Number(s.output_tokens) || 0) + (Number(s.cache_read_tokens) || 0) + (Number(s.cache_creation_tokens) || 0);
+            // Cifra "estilo Claude Code": in+out crudos (sin dedup, sin cache).
+            s.cc_tokens = (Number(s.cc_input_raw) || 0) + (Number(s.cc_output_raw) || 0);
             const ls = lineMap.get(s.session_id);
             s.lines_added = ls ? Number(ls.lines_added) || 0 : 0;
             s.lines_removed = ls ? Number(ls.lines_removed) || 0 : 0;
@@ -4006,17 +4507,45 @@ ORDER BY raw_agg.started DESC`;
     }
 }
 
+// Valores de tokens a mostrar según el modo elegido en el selector. Afectan SOLO a lo
+// que se enseña (total e input/output); los costes siguen usando los campos reales
+// deduplicados. 'real': in+out+cache deduplicado por petición (consumo real). 'cc':
+// in+out en crudo sin deduplicar, igual que /config Stats de Claude Code (sin cache).
+function displayInput(r) {
+    return tokenMode === 'cc' ? (Number(r.cc_input_raw) || 0) : (Number(r.input_tokens) || 0);
+}
+function displayOutput(r) {
+    return tokenMode === 'cc' ? (Number(r.cc_output_raw) || 0) : (Number(r.output_tokens) || 0);
+}
+function displayTotalTokens(r) {
+    return tokenMode === 'cc' ? (Number(r.cc_tokens) || 0) : (Number(r.total_tokens) || 0);
+}
+function sumDisplayTokens(rows) {
+    return rows.reduce((sum, s) => sum + displayTotalTokens(s), 0);
+}
+// Devuelve el número de tokens ya formateado. En modo 'cc' lo envuelve con el color
+// distintivo y un tooltip discreto que muestra el valor real (All & Real data).
+function tokenView(displayVal, realVal) {
+    const txt = formatNumber(displayVal);
+    if (tokenMode !== 'cc') return txt;
+    return `<span class="cc-token" title="All & Real data: ${formatNumber(realVal)}">${txt}</span>`;
+}
+// Conveniencia para una fila (sesión o turn) y un tipo de valor conmutable.
+function tokenViewRow(r, kind) {
+    if (kind === 'input') return tokenView(displayInput(r), Number(r.input_tokens) || 0);
+    if (kind === 'output') return tokenView(displayOutput(r), Number(r.output_tokens) || 0);
+    return tokenView(displayTotalTokens(r), Number(r.total_tokens) || 0);
+}
+function setHTML(id, html) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+}
+
 function updateStats() {
-    const bar = document.getElementById('stats-bar');
-    const rows = getFilteredSessions();
-    const total = rows.length;
-    const totalCost = rows.reduce((s, r) => s + r.cost, 0);
-    const totalTokens = rows.reduce((s, r) => s + (r.total_tokens || 0), 0);
-    bar.innerHTML = `
-        <span><span class="value">${total}</span> sessions</span>
-        <span><span class="value">${formatNumber(totalTokens)}</span> tokens</span>
-        <span><span class="value">${formatCost(totalCost)}</span> total cost</span>
-    `;
+    // Las métricas de cabecera (sessions / tokens / total cost) se han eliminado
+    // por estar duplicadas en la barra de stats. En #stats-bar solo queda el chip
+    // con la ruta del histórico, que renderDataSourceChip mantiene (idempotente).
+    if (typeof HEALTH !== 'undefined' && HEALTH) renderDataSourceChip(HEALTH);
 }
 
 function setText(id, text) {
@@ -4041,6 +4570,7 @@ function renderDashboard() {
     const cacheRead = rows.reduce((s, r) => s + (Number(r.cache_read_tokens) || 0), 0);
     const cacheCreate = rows.reduce((s, r) => s + (Number(r.cache_creation_tokens) || 0), 0);
     const totalTokens = input + output + cacheRead + cacheCreate;
+    const ccTokens = rows.reduce((s, r) => s + (Number(r.cc_tokens) || 0), 0);
     const totalCost = rows.reduce((s, r) => s + (Number(r.cost) || 0), 0);
     const apiMs = rows.reduce((s, r) => s + (Number(r.api_duration_ms) || 0), 0);
     const userMsgs = rows.reduce((s, r) => s + (Number(r.user_msgs) || 0), 0);
@@ -4056,8 +4586,13 @@ function renderDashboard() {
 
     setText('metric-sessions', formatNumber(total));
     setText('metric-sessions-sub', `${formatNumber(userMsgs)} prompts · ${formatNumber(assistantMsgs)} generations`);
-    setText('metric-tokens', formatNumber(totalTokens));
-    setText('metric-tokens-sub', `in ${formatNumber(input)} · out ${formatNumber(output)} · cache ${formatNumber(cacheRead + cacheCreate)}`);
+    const showCC = tokenMode === 'cc';
+    setHTML('metric-tokens', tokenView(showCC ? ccTokens : totalTokens, totalTokens));
+    setText('metric-tokens-sub', showCC
+        ? `in+out · sin cache · como /config (sin deduplicar)`
+        : `in ${formatNumber(input)} · out ${formatNumber(output)} · cache ${formatNumber(cacheRead + cacheCreate)}`);
+    const tokensLabelEl = document.getElementById('metric-tokens-label');
+    if (tokensLabelEl) tokensLabelEl.textContent = showCC ? 'Usage · Claude Code' : 'Usage';
     setText('metric-cost', formatCost(totalCost));
     const costSub = 'billable · in + out + cache R/W + server tools';
     const serverBits = (webSearch || webFetch) ? ` · web_search ${webSearch} · web_fetch ${webFetch}` : '';
@@ -4097,20 +4632,38 @@ function renderDashboard() {
     }
 }
 
-let turnTokensGeom = null;
+let toolTokensGeom = null;
 
 function renderTokensPerTurn() {
-    const canvas = document.getElementById('turn-tokens-chart');
-    const legend = document.getElementById('turn-tokens-legend');
+    const canvas = document.getElementById('tool-tokens-chart');
     if (!canvas) return;
 
-    // Construye los datos a partir de los turnos cargados, ya filtrados por
-    // los filtros activos cuando estén disponibles.
+    // Datos a partir de los turnos cargados, ya filtrados por los filtros
+    // activos cuando estén disponibles.
     let source = [];
     if (Array.isArray(turns) && turns.length) {
         source = (typeof getFilteredTurns === 'function') ? getFilteredTurns() : turns;
     }
-    const last = source.slice().sort((a, b) => String(a.started || '').localeCompare(String(b.started || ''))).slice(-30);
+
+    // Total de tokens por herramienta sobre todo el periodo: a cada herramienta
+    // usada en un turno se le imputan los tokens de ese turno (co-ocurrencia).
+    const byTool = new Map();
+    for (const t of source) {
+        const tok = Number(t.total_tokens) || 0;
+        if (!tok) continue;
+        const names = String(t.tools || '').split(',').map(s => s.trim()).filter(Boolean);
+        for (const name of new Set(names)) {
+            byTool.set(name, (byTool.get(name) || 0) + tok);
+        }
+    }
+    const rows = [...byTool.entries()]
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 10);
+
+    setText('tool-tokens-meta', rows.length
+        ? `${rows.length} herramientas · ${formatNumber(source.length)} turnos · todo el periodo`
+        : (turns.length ? 'sin herramientas detectadas' : 'turnos no cargados aún'));
 
     const ctx = canvas.getContext('2d');
     const rect = canvas.getBoundingClientRect();
@@ -4122,33 +4675,17 @@ function renderTokensPerTurn() {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
-    turnTokensGeom = null;
-    setText('turn-tokens-meta', last.length ? `last ${last.length} turns · stacked by type` : 'turns not loaded yet');
-    if (legend) {
-        legend.innerHTML = `
-            <div class="legend-item"><span class="legend-swatch" style="background:#f59e0b"></span>Input</div>
-            <div class="legend-item"><span class="legend-swatch" style="background:#059669"></span>Output (Generation)</div>
-            <div class="legend-item"><span class="legend-swatch" style="background:#0542b4"></span>Cache read</div>
-            <div class="legend-item"><span class="legend-swatch" style="background:#a78bfa"></span>Cache write</div>`;
-    }
+    toolTokensGeom = null;
+    if (!rows.length) return;
 
-    if (!last.length) return;
-
-    const pad = { l: 36, r: 10, t: 10, b: 22 };
+    const pad = { l: 44, r: 10, t: 10, b: 40 };
     const innerW = width - pad.l - pad.r;
     const innerH = height - pad.t - pad.b;
-    const slot = innerW / last.length;
-    const barW = Math.max(3, slot - 3);
+    const maxV = Math.max(...rows.map(r => r.value), 1);
+    const slot = innerW / rows.length;
+    const barW = Math.max(6, Math.min(48, slot - 10));
 
-    const totals = last.map(t => {
-        const i = Number(t.input_tokens) || 0;
-        const o = Number(t.output_tokens) || 0;
-        const cr = Number(t.cache_read_tokens) || 0;
-        const cw = Number(t.cache_creation_tokens) || 0;
-        return { t, i, o, cr, cw, total: i + o + cr + cw };
-    });
-    const maxTot = Math.max(...totals.map(r => r.total), 1);
-
+    // Rejilla horizontal.
     ctx.strokeStyle = 'rgba(120,140,150,0.18)';
     ctx.lineWidth = 1;
     for (let i = 0; i < 4; i++) {
@@ -4159,35 +4696,84 @@ function renderTokensPerTurn() {
         ctx.stroke();
     }
 
-    const colors = { input: '#f59e0b', output: '#059669', cacheRead: '#0542b4', cacheWrite: '#a78bfa' };
-    const bars = [];
+    // Cada barra en un tono distinto: degradado del color principal (rosa),
+    // de más intenso (la herramienta con más tokens) a más claro.
+    const shadeOf = (i, n) => `hsl(338, 78%, ${50 + (n > 1 ? i / (n - 1) : 0) * 24}%)`;
 
-    totals.forEach((r, idx) => {
-        const x = pad.l + idx * slot + 1;
-        let yCursor = pad.t + innerH;
-        const segs = [
-            { val: r.i,  color: colors.input },
-            { val: r.o,  color: colors.output },
-            { val: r.cr, color: colors.cacheRead },
-            { val: r.cw, color: colors.cacheWrite },
-        ];
-        for (const seg of segs) {
-            if (seg.val <= 0) continue;
-            const segH = innerH * (seg.val / maxTot);
-            ctx.fillStyle = seg.color;
-            ctx.fillRect(x, yCursor - segH, barW, segH);
-            yCursor -= segH;
-        }
-        bars.push({ ...r, slotX: pad.l + idx * slot, slotW: slot, idx });
+    const bars = [];
+    rows.forEach((r, i) => {
+        const cx = pad.l + i * slot + slot / 2;
+        const x = cx - barW / 2;
+        const h = innerH * (r.value / maxV);
+        const y = pad.t + innerH - h;
+        const col = shadeOf(i, rows.length);
+        ctx.fillStyle = col;
+        const rad = Math.min(4, barW / 2);
+        ctx.beginPath();
+        ctx.moveTo(x, y + rad);
+        ctx.arcTo(x, y, x + rad, y, rad);
+        ctx.lineTo(x + barW - rad, y);
+        ctx.arcTo(x + barW, y, x + barW, y + rad, rad);
+        ctx.lineTo(x + barW, pad.t + innerH);
+        ctx.lineTo(x, pad.t + innerH);
+        ctx.closePath();
+        ctx.fill();
+        bars.push({ name: r.name, value: r.value, color: col, slotX: pad.l + i * slot, slotW: slot });
     });
 
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '10px SF Mono, monospace';
-    ctx.fillText(formatNumber(maxTot), 4, pad.t + 8);
-    ctx.fillText('0', 22, pad.t + innerH);
+    // Etiquetas del eje X (nombre de herramienta, truncado para caber).
+    ctx.fillStyle = '#475569';
+    ctx.font = '600 12.5px -apple-system, "Segoe UI", Roboto, sans-serif';
+    ctx.textAlign = 'center';
+    const maxChars = Math.max(3, Math.floor(slot / 8));
+    rows.forEach((r, i) => {
+        const cx = pad.l + i * slot + slot / 2;
+        const label = r.name.length > maxChars ? r.name.slice(0, maxChars - 1) + '…' : r.name;
+        ctx.fillText(label, cx, pad.t + innerH + 17);
+    });
+    ctx.textAlign = 'left';
 
-    turnTokensGeom = { bars, width, height, pad, innerH };
-    bindTurnTokensTooltip(canvas);
+    // Eje Y.
+    ctx.fillStyle = '#888';
+    ctx.font = '11px SF Mono, monospace';
+    ctx.fillText(formatNumber(maxV), 4, pad.t + 8);
+    ctx.fillText('0', 28, pad.t + innerH);
+
+    toolTokensGeom = { bars, width, height, pad, innerH };
+    bindToolTokensTooltip(canvas);
+}
+
+let toolTokensTooltipBound = false;
+function bindToolTokensTooltip(canvas) {
+    if (toolTokensTooltipBound) return;
+    toolTokensTooltipBound = true;
+    let tip = document.getElementById('tool-tokens-tooltip');
+    if (!tip) {
+        tip = document.createElement('div');
+        tip.id = 'tool-tokens-tooltip';
+        tip.className = 'chart-tooltip hidden';
+        document.body.appendChild(tip);
+    }
+    canvas.addEventListener('mousemove', e => {
+        if (!toolTokensGeom) { tip.classList.add('hidden'); return; }
+        const r = canvas.getBoundingClientRect();
+        const x = e.clientX - r.left;
+        const bar = toolTokensGeom.bars.find(b => x >= b.slotX && x < b.slotX + b.slotW);
+        if (!bar) { tip.classList.add('hidden'); return; }
+        tip.innerHTML = `
+            <div class="chart-tooltip-title">${escapeHtml(bar.name)}</div>
+            <div class="chart-tooltip-row"><span class="dot" style="background:${bar.color}"></span>Tokens <b>${formatNumber(bar.value)}</b></div>`;
+        tip.classList.remove('hidden');
+        const tipW = tip.offsetWidth;
+        const tipH = tip.offsetHeight;
+        let left = e.clientX + 12;
+        let top = e.clientY - tipH - 12;
+        if (left + tipW + 8 > window.innerWidth) left = e.clientX - tipW - 12;
+        if (top < 8) top = e.clientY + 16;
+        tip.style.left = left + 'px';
+        tip.style.top = top + 'px';
+    });
+    canvas.addEventListener('mouseleave', () => tip.classList.add('hidden'));
 }
 
 let turnTokensTooltipBound = false;
@@ -4273,27 +4859,65 @@ function renderDailyChart() {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
-    const byDay = new Map();
+    // Tokens por día y por modelo (barras apiladas, eje X = fecha).
+    const byDay = new Map();        // day  -> Map(model -> tokens)
+    const modelTotals = new Map();  // model -> tokens (para ordenar y colorear)
     for (const s of getFilteredSessions()) {
         if (!s.started) continue;
         const day = String(s.started).slice(0, 10);
-        const row = byDay.get(day) || { day, sessions: 0, cost: 0, tokens: 0 };
-        row.sessions += 1;
-        row.cost += Number(s.cost) || 0;
-        row.tokens += Number(s.total_tokens) || 0;
-        byDay.set(day, row);
+        const model = shortModel(s.model) || 'unknown';
+        const tok = Number(s.total_tokens) || 0;
+        if (!tok) continue;
+        if (!byDay.has(day)) byDay.set(day, new Map());
+        const dm = byDay.get(day);
+        dm.set(model, (dm.get(model) || 0) + tok);
+        modelTotals.set(model, (modelTotals.get(model) || 0) + tok);
     }
-    const rows = [...byDay.values()].sort((a, b) => a.day.localeCompare(b.day)).slice(-30);
-    setText('daily-chart-meta', rows.length ? `${rows[0].day} → ${rows[rows.length - 1].day}` : '');
+    const days = [...byDay.keys()].sort().slice(-30);
+
+    // Orden de modelos por volumen total; el resto se agrupa en "other".
+    const PALETTE = ['#e82a6b', '#f59e0b', '#0ea5e9', '#059669', '#a78bfa', '#ef4444', '#14b8a6'];
+    const ranked = [...modelTotals.entries()].sort((a, b) => b[1] - a[1]).map(e => e[0]);
+    const topModels = ranked.slice(0, PALETTE.length);
+    const hasOther = ranked.length > PALETTE.length;
+    const colorOf = new Map(topModels.map((m, i) => [m, PALETTE[i]]));
+    const OTHER_COLOR = '#cbd5e1';
+    const seriesModels = hasOther ? [...topModels, 'other'] : topModels;
+    const modelColor = m => (m === 'other' ? OTHER_COLOR : (colorOf.get(m) || OTHER_COLOR));
+    const bucketOf = m => (colorOf.has(m) ? m : 'other');
+
+    setText('daily-chart-meta', days.length ? `${days[0]} → ${days[days.length - 1]}` : '');
+
+    const legend = document.getElementById('daily-chart-legend');
+    if (legend) {
+        legend.innerHTML = seriesModels.map(m =>
+            `<div class="legend-item"><span class="legend-swatch" style="background:${modelColor(m)}"></span>${escapeHtml(m)}</div>`
+        ).join('');
+    }
 
     dailyChartGeom = null;
-    if (!rows.length) return;
-    const pad = { l: 34, r: 10, t: 10, b: 24 };
+    if (!days.length) return;
+
+    // Segmentos apilados por día (modelos ya agrupados en sus buckets).
+    const rows = days.map(day => {
+        const dm = byDay.get(day);
+        const segMap = new Map();
+        for (const [model, tok] of dm) {
+            const b = bucketOf(model);
+            segMap.set(b, (segMap.get(b) || 0) + tok);
+        }
+        const segs = seriesModels
+            .filter(m => segMap.has(m))
+            .map(m => ({ model: m, val: segMap.get(m), color: modelColor(m) }));
+        return { day, segs, total: segs.reduce((s, g) => s + g.val, 0) };
+    });
+
+    const pad = { l: 44, r: 10, t: 10, b: 36 };
     const innerW = width - pad.l - pad.r;
     const innerH = height - pad.t - pad.b;
-    const maxSessions = Math.max(...rows.map(r => r.sessions), 1);
-    const maxCost = Math.max(...rows.map(r => r.cost), 0.001);
-    const barW = Math.max(3, innerW / rows.length - 3);
+    const maxTot = Math.max(...rows.map(r => r.total), 1);
+    const slot = innerW / rows.length;
+    const barW = Math.max(3, slot - 3);
 
     ctx.strokeStyle = 'rgba(120,140,150,0.18)';
     ctx.lineWidth = 1;
@@ -4305,31 +4929,40 @@ function renderDailyChart() {
         ctx.stroke();
     }
 
-    const slot = innerW / rows.length;
     const bars = [];
     rows.forEach((r, i) => {
         const x = pad.l + i * slot + 1;
-        const h = innerH * (r.sessions / maxSessions);
-        ctx.fillStyle = 'rgba(232, 42, 107, 0.78)';
-        ctx.fillRect(x, pad.t + innerH - h, barW, h);
-        bars.push({ ...r, x, w: barW, slotX: pad.l + i * slot, slotW: slot });
+        let yCursor = pad.t + innerH;
+        for (const seg of r.segs) {
+            if (seg.val <= 0) continue;
+            const segH = innerH * (seg.val / maxTot);
+            ctx.fillStyle = seg.color;
+            ctx.fillRect(x, yCursor - segH, barW, segH);
+            yCursor -= segH;
+        }
+        bars.push({ ...r, slotX: pad.l + i * slot, slotW: slot });
     });
 
-    ctx.strokeStyle = '#0b0b0e';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
+    // Etiquetas de fecha en el eje X (formato «May 27»). Si no caben todas, se
+    // muestran salteadas, garantizando siempre la primera y la última.
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const fmtDay = d => { const p = d.split('-'); return `${MONTHS[(+p[1]) - 1] || ''} ${+p[2]}`; };
+    ctx.fillStyle = '#475569';
+    ctx.font = '600 11px -apple-system, "Segoe UI", Roboto, sans-serif';
+    ctx.textAlign = 'center';
+    const maxLabels = Math.max(1, Math.floor(innerW / 52));
+    const labelEvery = Math.max(1, Math.ceil(rows.length / maxLabels));
     rows.forEach((r, i) => {
-        const x = pad.l + i * slot + barW / 2;
-        const y = pad.t + innerH - innerH * (r.cost / maxCost);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
+        if (i % labelEvery !== 0 && i !== rows.length - 1) return;
+        const cx = pad.l + i * slot + slot / 2;
+        ctx.fillText(fmtDay(r.day), cx, pad.t + innerH + 16);
     });
-    ctx.stroke();
+    ctx.textAlign = 'left';
 
     ctx.fillStyle = '#888';
     ctx.font = '11px SF Mono, monospace';
-    ctx.fillText(formatNumber(maxSessions), 4, pad.t + 8);
-    ctx.fillText('0', 20, pad.t + innerH);
+    ctx.fillText(formatNumber(maxTot), 4, pad.t + 8);
+    ctx.fillText('0', 28, pad.t + innerH);
 
     dailyChartGeom = { bars, width, height, pad, innerH };
     bindDailyChartTooltip(canvas);
@@ -4352,11 +4985,13 @@ function bindDailyChartTooltip(canvas) {
         const x = e.clientX - r.left;
         const bar = dailyChartGeom.bars.find(b => x >= b.slotX && x < b.slotX + b.slotW);
         if (!bar) { tip.classList.add('hidden'); return; }
+        const segRows = bar.segs.slice().reverse().map(seg =>
+            `<div class="chart-tooltip-row"><span class="dot" style="background:${seg.color}"></span>${escapeHtml(seg.model)} <b>${formatNumber(seg.val)}</b></div>`
+        ).join('');
         tip.innerHTML = `
             <div class="chart-tooltip-title">${escapeHtml(bar.day)}</div>
-            <div class="chart-tooltip-row"><span class="dot" style="background:rgba(232, 42, 107, 0.95)"></span>Sessions <b>${formatNumber(bar.sessions)}</b></div>
-            <div class="chart-tooltip-row"><span class="dot" style="background:#0b0b0e"></span>Cost <b>${formatCost(bar.cost)}</b></div>
-            <div class="chart-tooltip-row"><span class="dot" style="background:#94a3b8"></span>Tokens <b>${formatNumber(bar.tokens)}</b></div>`;
+            ${segRows}
+            <div class="chart-tooltip-row"><span class="dot" style="background:#94a3b8"></span>Total <b>${formatNumber(bar.total)}</b></div>`;
         tip.classList.remove('hidden');
         const tipW = tip.offsetWidth;
         const tipH = tip.offsetHeight;
@@ -4707,13 +5342,13 @@ function renderSessionList() {
     }
 
     tbody.innerHTML = filtered.map(s => {
-        const inTok = Number(s.input_tokens) || 0;
-        const outTok = Number(s.output_tokens) || 0;
+        const inTok = displayInput(s);
+        const outTok = displayOutput(s);
         const cacheRead = Number(s.cache_read_tokens) || 0;
         const cacheCreate = Number(s.cache_creation_tokens) || 0;
         const line1 = [];
-        if (inTok) line1.push(`\u2193${formatNumber(inTok)}`);
-        if (outTok) line1.push(`\u2191${formatNumber(outTok)}`);
+        if (inTok) line1.push(`\u2193${tokenViewRow(s, 'input')}`);
+        if (outTok) line1.push(`\u2191${tokenViewRow(s, 'output')}`);
         const line2 = [];
         if (cacheRead) line2.push(`\u21CA${formatNumber(cacheRead)}`);
         if (cacheCreate) line2.push(`\u21C8${formatNumber(cacheCreate)}`);
@@ -4767,9 +5402,10 @@ function renderTurnList() {
         return;
     }
     const totalCost = filtered.reduce((sum, t) => sum + (Number(t.cost) || 0), 0);
-    const totalTokens = filtered.reduce((sum, t) => sum + (Number(t.total_tokens) || 0), 0);
+    const totalTokens = sumDisplayTokens(filtered);
+    const realTokens = filtered.reduce((sum, t) => sum + (Number(t.total_tokens) || 0), 0);
     const bdTotal = sumCostBreakdown(filtered);
-    setText('turn-table-summary', `${filtered.length} turns · ${formatNumber(totalTokens)} tokens · ${formatCost(totalCost)} total · cache R ${formatCost(bdTotal.cacheRead)} · cache W ${formatCost(bdTotal.cacheCreation)} (5m ${formatCost(bdTotal.cacheCreation5m)} / 1h ${formatCost(bdTotal.cacheCreation1h)}) · server tools ${formatCost(bdTotal.serverTools)}`);
+    setHTML('turn-table-summary', `${filtered.length} turns · ${tokenView(totalTokens, realTokens)} tokens · ${formatCost(totalCost)} total · cache R ${formatCost(bdTotal.cacheRead)} · cache W ${formatCost(bdTotal.cacheCreation)} (5m ${formatCost(bdTotal.cacheCreation5m)} / 1h ${formatCost(bdTotal.cacheCreation1h)}) · server tools ${formatCost(bdTotal.serverTools)}`);
     tbody.innerHTML = filtered.map((t, idx) => {
         const prompt = String(t.prompt || '').slice(0, 500);
         const sid = String(t.session_id || '');
@@ -4777,12 +5413,12 @@ function renderTurnList() {
         const tools = String(t.tools || '');
         const bd = costBreakdown(t);
         const tokensDisplay = [
-            Number(t.input_tokens) ? `in ${formatNumber(t.input_tokens)}` : '',
-            Number(t.output_tokens) ? `out ${formatNumber(t.output_tokens)}` : '',
+            displayInput(t) ? `in ${tokenViewRow(t, 'input')}` : '',
+            displayOutput(t) ? `out ${tokenViewRow(t, 'output')}` : '',
             (Number(t.cache_read_tokens) || Number(t.cache_creation_tokens)) ? `cache ${formatNumber((Number(t.cache_read_tokens) || 0) + (Number(t.cache_creation_tokens) || 0))}` : '',
         ].filter(Boolean).join('<br>');
         const proj = displayProject(t);
-        return `<tr data-session="${escapeHtml(sid)}" data-turn="${escapeHtml(String(t.turn_no || ''))}" data-turn-row="${idx}">
+        return `<tr class="${idx % 2 ? 'turn-row-alt' : ''}" data-session="${escapeHtml(sid)}" data-turn="${escapeHtml(String(t.turn_no || ''))}" data-turn-row="${idx}">
             <td><div class="col-summary-inner" title="${escapeHtml(prompt)}">${escapeHtml(prompt || '(empty prompt)')}</div></td>
             <td class="col-model" title="${escapeHtml(proj)}">${escapeHtml(proj)}</td>
             <td class="col-model">${escapeHtml(sid.slice(0, 8))}</td>
@@ -4808,12 +5444,12 @@ function renderTurnList() {
                         <div class="turn-detail-metric"><span>Model</span><b>${escapeHtml(shortModel(t.model) || '-')}</b></div>
                         <div class="turn-detail-metric"><span>Service tier</span><b>${escapeHtml(t.service_tier || 'standard')}</b></div>
                         <div class="turn-detail-metric"><span>Generations</span><b>${formatNumber(t.generations || 0)} ${Number(t.sidechain_generations) ? '(' + t.sidechain_generations + ' sidechain)' : ''}</b></div>
-                        <div class="turn-detail-metric"><span>Input tokens</span><b>${formatNumber(t.input_tokens || 0)}</b></div>
-                        <div class="turn-detail-metric"><span>Output tokens</span><b>${formatNumber(t.output_tokens || 0)}</b></div>
+                        <div class="turn-detail-metric"><span>Input tokens</span><b>${tokenViewRow(t, 'input')}</b></div>
+                        <div class="turn-detail-metric"><span>Output tokens</span><b>${tokenViewRow(t, 'output')}</b></div>
                         <div class="turn-detail-metric"><span>Cache read</span><b>${formatNumber(t.cache_read_tokens || 0)}</b></div>
                         <div class="turn-detail-metric"><span>Cache write 5m</span><b>${formatNumber(t.cache_creation_5m_tokens || 0)}</b></div>
                         <div class="turn-detail-metric"><span>Cache write 1h</span><b>${formatNumber(t.cache_creation_1h_tokens || 0)}</b></div>
-                        <div class="turn-detail-metric"><span>Total tokens</span><b>${formatNumber(t.total_tokens || 0)}</b></div>
+                        <div class="turn-detail-metric"><span>Total tokens</span><b>${tokenViewRow(t, 'total')}</b></div>
                         <div class="turn-detail-metric"><span>Cost</span><b>${formatCost(t.cost || 0)}</b></div>
                         <div class="turn-detail-metric"><span>Wall duration</span><b>${formatMs(t.wall_duration_ms || 0)}</b></div>
                         <div class="turn-tools-list"><strong>Tools:</strong> ${escapeHtml(tools || 'No tool calls detected in this turn')}</div>
@@ -4845,12 +5481,12 @@ function turnDetailHtml(t) {
             <div class="turn-detail-metric"><span>Model</span><b>${escapeHtml(shortModel(t.model) || '-')}</b></div>
             <div class="turn-detail-metric"><span>Service tier</span><b>${escapeHtml(t.service_tier || 'standard')}</b></div>
             <div class="turn-detail-metric"><span>Generations</span><b>${formatNumber(t.generations || 0)} ${Number(t.sidechain_generations) ? '(' + t.sidechain_generations + ' sidechain)' : ''}</b></div>
-            <div class="turn-detail-metric"><span>Input tokens</span><b>${formatNumber(t.input_tokens || 0)}</b></div>
-            <div class="turn-detail-metric"><span>Output tokens</span><b>${formatNumber(t.output_tokens || 0)}</b></div>
+            <div class="turn-detail-metric"><span>Input tokens</span><b>${tokenViewRow(t, 'input')}</b></div>
+            <div class="turn-detail-metric"><span>Output tokens</span><b>${tokenViewRow(t, 'output')}</b></div>
             <div class="turn-detail-metric"><span>Cache read</span><b>${formatNumber(t.cache_read_tokens || 0)}</b></div>
             <div class="turn-detail-metric"><span>Cache write 5m</span><b>${formatNumber(t.cache_creation_5m_tokens || 0)}</b></div>
             <div class="turn-detail-metric"><span>Cache write 1h</span><b>${formatNumber(t.cache_creation_1h_tokens || 0)}</b></div>
-            <div class="turn-detail-metric"><span>Total tokens</span><b>${formatNumber(t.total_tokens || 0)}</b></div>
+            <div class="turn-detail-metric"><span>Total tokens</span><b>${tokenViewRow(t, 'total')}</b></div>
             <div class="turn-detail-metric"><span>Cost</span><b>${formatCost(t.cost || 0)}</b></div>
             <div class="turn-detail-metric"><span>Input cost</span><b>${formatCost(bd.input)}</b></div>
             <div class="turn-detail-metric"><span>Output cost</span><b>${formatCost(bd.output)}</b></div>
@@ -4932,11 +5568,16 @@ function renderTraceGroupList() {
 
     const rows = groups.sort((a, b) => String(b.started).localeCompare(String(a.started)));
     const allTraceCost = rows.reduce((s, g) => s + g.cost, 0);
-    const allTraceTokens = rows.reduce((s, g) => s + g.tokens, 0);
+    const allTraceTokens = rows.reduce((s, g) => s + displayTotalTokens(g.session), 0);
+    const allTraceTokensReal = rows.reduce((s, g) => s + (Number(g.session.total_tokens) || 0), 0);
     const allBreakdown = sumCostBreakdown(filteredSessions);
-    setText('trace-group-summary', `${rows.length} traces · ${filteredTurns.length} turns · ${formatNumber(allTraceTokens)} tokens · ${formatCost(allTraceCost)} total · cache R ${formatCost(allBreakdown.cacheRead)} · cache W 5m ${formatCost(allBreakdown.cacheCreation5m)} · cache W 1h ${formatCost(allBreakdown.cacheCreation1h)} · server tools ${formatCost(allBreakdown.serverTools)}`);
+    setHTML('trace-group-summary', `${rows.length} traces · ${filteredTurns.length} turns · ${tokenView(allTraceTokens, allTraceTokensReal)} tokens · ${formatCost(allTraceCost)} total · cache R ${formatCost(allBreakdown.cacheRead)} · cache W 5m ${formatCost(allBreakdown.cacheCreation5m)} · cache W 1h ${formatCost(allBreakdown.cacheCreation1h)} · server tools ${formatCost(allBreakdown.serverTools)}`);
     tbody.innerHTML = rows.map(g => {
         const summary = getSummaryText(g.session || { first_question: g.turns[0]?.prompt || '' });
+        const gTokensDisp = displayTotalTokens(g.session);
+        const gTokensReal = Number(g.session.total_tokens) || 0;
+        const turnsTokensDisp = g.turns.reduce((s, t) => s + displayTotalTokens(t), 0);
+        const otherTokensDisp = Math.max(0, gTokensDisp - turnsTokensDisp);
         const turnsHtml = g.turns.map(t => {
                 const bd = costBreakdown(t);
                 const turnNo = escapeHtml(String(t.turn_no || ''));
@@ -4945,7 +5586,7 @@ function renderTraceGroupList() {
                     <div class="col-number nested-turn-cell" data-session="${sid}" data-turn="${turnNo}">#${Number(t.turn_no) || ''}</div>
                     <div class="nested-turn-prompt nested-turn-cell" data-session="${sid}" data-turn="${turnNo}" title="${escapeHtml(t.prompt || '')}">${escapeHtml(t.prompt || '(empty prompt)')}</div>
                     <div class="nested-turn-cell" data-session="${sid}" data-turn="${turnNo}">${escapeHtml(formatTime(t.started))}</div>
-                    <div class="col-number nested-turn-cell" data-session="${sid}" data-turn="${turnNo}">${formatNumber(t.total_tokens || 0)}</div>
+                    <div class="col-number nested-turn-cell" data-session="${sid}" data-turn="${turnNo}">${tokenViewRow(t, 'total')}</div>
                     <div class="col-number nested-turn-cell" data-session="${sid}" data-turn="${turnNo}">${formatCost(bd.cacheRead)}</div>
                     <div class="col-number nested-turn-cell" data-session="${sid}" data-turn="${turnNo}" title="5m ${formatCost(bd.cacheCreation5m)} · 1h ${formatCost(bd.cacheCreation1h)}">${formatCost(bd.cacheCreation)}</div>
                     <div class="col-number nested-turn-cell" data-session="${sid}" data-turn="${turnNo}">${formatCost(t.cost || 0)}</div>
@@ -4959,7 +5600,7 @@ function renderTraceGroupList() {
             <div class="col-number">–</div>
             <div class="nested-turn-prompt" title="Assistant messages outside a numbered turn (continuations, plan iterations, task notifications). Counted in session totals but not assigned to a turn.">(out-of-turn assistant messages)</div>
             <div></div>
-            <div class="col-number">${formatNumber(g.otherTokens)}</div>
+            <div class="col-number">${tokenView(otherTokensDisp, g.otherTokens)}</div>
             <div class="col-number"></div>
             <div class="col-number"></div>
             <div class="col-number">${formatCost(g.otherCost)}</div>
@@ -4978,7 +5619,7 @@ function renderTraceGroupList() {
                         <div class="summary-meta">
                             <span class="cost-pill ${costLevel(g.cost)}" title="${escapeHtml(turnsTitle)}">${formatCost(g.cost)} total</span>
                             <span class="quality-pill">${g.turns.length} turns</span>
-                            <span class="quality-pill">${formatNumber(g.tokens)} tokens</span>
+                            <span class="quality-pill">${tokenView(gTokensDisp, gTokensReal)} tokens</span>
                             ${sidechainBadge}
                             ${errBadge}
                         </div>
@@ -4988,7 +5629,7 @@ function renderTraceGroupList() {
                 <td class="col-time">${formatTime(g.started)}</td>
                 <td class="col-number align-right">${g.turns.length}</td>
                 <td class="col-number align-right">${formatNumber(g.generations)}</td>
-                <td class="col-number align-right">${formatNumber(g.tokens)}</td>
+                <td class="col-number align-right">${tokenView(gTokensDisp, gTokensReal)}</td>
                 <td class="col-number align-right">${formatCost(g.cacheReadCost)}</td>
                 <td class="col-number align-right" title="5m ${formatCost(g.cacheCreation5mCost)} · 1h ${formatCost(g.cacheCreation1hCost)}">${formatCost(cacheWriteCost)}</td>
                 <td class="col-cost" title="${escapeHtml(turnsTitle)}">${formatCost(g.cost)}</td>
@@ -5081,7 +5722,49 @@ document.getElementById('home-view-switcher').addEventListener('click', e => {
     renderHomeView();
 });
 
-document.getElementById('insight-strip').addEventListener('click', e => {
+function syncTokenModeButtons() {
+    document.querySelectorAll('#token-mode-switcher button[data-token-mode]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tokenMode === tokenMode);
+    });
+}
+document.getElementById('token-mode-switcher').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-token-mode]');
+    if (!btn) return;
+    tokenMode = btn.dataset.tokenMode;
+    try { localStorage.setItem('ccpanel-token-mode', tokenMode); } catch (err) {}
+    syncTokenModeButtons();
+    refreshHomeViews();
+});
+syncTokenModeButtons();
+
+// Zoom del texto del panel: cada clic en + / − cambia 1px el tamaño base y
+// escala el dashboard y la traza con la propiedad CSS `zoom`. Se recuerda en
+// localStorage. Sustituye a las métricas de cabecera (ya están en la stat-strip).
+// Tamaño base del CSS = 14px (z=1). El default del panel es 16px (estándar
+// recomendado para lectura), ajustable por el usuario y recordado en localStorage.
+const ZOOM_BASE = 14, ZOOM_DEFAULT = 16, ZOOM_MIN = 10, ZOOM_MAX = 28;
+let dashFontPx = (() => { try { return parseInt(localStorage.getItem('ccpanel-zoom'), 10) || ZOOM_DEFAULT; } catch (e) { return ZOOM_DEFAULT; } })();
+function applyDashZoom() {
+    dashFontPx = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, dashFontPx));
+    const z = dashFontPx / ZOOM_BASE;
+    // Zoom de TODO el panel (cabecera + contenido). Con `zoom` y SIN tocar el
+    // ancho, el contenedor sigue llenando el viewport y el layout refluye, sin
+    // desbordar ni estrechar el panel.
+    const root = document.querySelector('.container');
+    if (root) root.style.zoom = (z === 1 ? '' : z);
+    const lvl = document.getElementById('zoom-level');
+    if (lvl) lvl.textContent = dashFontPx + 'px';
+    const out = document.getElementById('zoom-out'), inc = document.getElementById('zoom-in');
+    if (out) out.disabled = dashFontPx <= ZOOM_MIN;
+    if (inc) inc.disabled = dashFontPx >= ZOOM_MAX;
+    try { localStorage.setItem('ccpanel-zoom', String(dashFontPx)); } catch (e) {}
+}
+document.getElementById('zoom-in')?.addEventListener('click', () => { dashFontPx += 1; applyDashZoom(); });
+document.getElementById('zoom-out')?.addEventListener('click', () => { dashFontPx -= 1; applyDashZoom(); });
+document.getElementById('zoom-level')?.addEventListener('click', () => { dashFontPx = ZOOM_DEFAULT; applyDashZoom(); });
+applyDashZoom();
+
+document.getElementById('insight-strip')?.addEventListener('click', e => {
     const card = e.target.closest('[data-session]');
     if (!card || !card.dataset.session) return;
     navigateTo('session/' + card.dataset.session);
@@ -5103,7 +5786,10 @@ document.getElementById('turn-tbody').addEventListener('click', e => {
     const tr = e.target.closest('tr[data-session]');
     if (!tr) return;
     const detail = document.querySelector(`[data-turn-detail="${tr.dataset.turnRow}"]`);
-    if (detail) detail.classList.toggle('hidden');
+    if (detail) {
+        const nowHidden = detail.classList.toggle('hidden');
+        tr.classList.toggle('is-expanded', !nowHidden);
+    }
 });
 
 document.getElementById('trace-group-tbody').addEventListener('click', e => {
@@ -7042,7 +7728,7 @@ function handleRoute() {
 }
 
 window.addEventListener('hashchange', handleRoute);
-window.addEventListener('resize', () => { updateStickyOffset(); renderDailyChart(); });
+window.addEventListener('resize', () => { updateStickyOffset(); renderDailyChart(); renderTokensPerTurn(); });
 document.getElementById('back-btn').addEventListener('click', () => navigateTo(''));
 
 // --- Init / data-source wizard ---
@@ -7309,6 +7995,10 @@ async function openChangeFolder() {
 function renderDataSourceChip(health) {
     const bar = document.getElementById('stats-bar');
     if (!bar || !health) return;
+    // Idempotente: si ya existe el chip lo quitamos antes de recrearlo, para no
+    // duplicarlo cuando se llama varias veces (init + updateStats).
+    const existingChip = document.getElementById('data-source-chip');
+    if (existingChip) existingChip.remove();
     const cfg = health.config || {};
     // The resolved glob is the source of truth — same one clickhouse-local sees.
     const fullPath = health.data_glob || '';
