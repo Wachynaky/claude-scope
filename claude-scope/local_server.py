@@ -39,10 +39,9 @@ LOCAL_DATA_GLOB = os.environ.get("CLAUDE_PANEL_LOCAL_GLOB") or str(LOCAL_DATA_RO
 HOME_DATA_GLOB = os.environ.get("CLAUDE_PANEL_HOME_GLOB") or str(Path.home() / ".claude" / "projects" / "*" / "*.jsonl")
 
 # Persistent panel configuration. Lives in the same per-user dir the launcher
-# uses for clickhouse-local cache.
-if sys.platform == "win32":
-    _APP_DIR = Path(os.environ.get("LOCALAPPDATA", str(Path.home() / "AppData" / "Local"))) / "ClaudeCodePanel"
-elif sys.platform == "darwin":
+# uses for the clickhouse cache. (Windows runs inside WSL, so it lands on the
+# Linux branch like any other Linux host.)
+if sys.platform == "darwin":
     _APP_DIR = Path.home() / "Library" / "Application Support" / "ClaudeCodePanel"
 else:
     _APP_DIR = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local" / "share"))) / "claude-panel"
@@ -188,9 +187,7 @@ def build_clickhouse_query(sql: str) -> str:
 
 
 def clickhouse_invocation() -> list[str]:
-    argv_env = os.environ.get("CLAUDE_PANEL_CLICKHOUSE_ARGV")
-    if argv_env:
-        return argv_env.split("\x00")
+    # CLAUDE_PANEL_CLICKHOUSE_BIN (set by the launcher) wins via shutil_which.
     binary = shutil_which("clickhouse-local") or shutil_which("clickhouse") or "clickhouse-local"
     return [binary]
 
@@ -480,8 +477,12 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
-    if not shutil_which("clickhouse-local"):
-        print("clickhouse-local was not found in PATH", file=sys.stderr)
+    if not (shutil_which("clickhouse-local") or shutil_which("clickhouse")):
+        print(
+            "No se encontró clickhouse-local ni clickhouse. Arranca el panel con "
+            "installer/launcher.py (descarga el binario) o instala ClickHouse.",
+            file=sys.stderr,
+        )
         return 1
     args = parse_args()
     server = ThreadingHTTPServer((args.host, args.port), Handler)

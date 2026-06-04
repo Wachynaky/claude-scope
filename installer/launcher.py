@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
-"""Claude Code Local Panel — user-friendly launcher (Linux, macOS, Windows).
+"""Claude Code Local Panel — user-friendly launcher (Linux, macOS).
 
-Designed to be run by a non-technical user after extracting the OS-specific
-archive:
-  - Linux/macOS: ``./claude-panel``
-  - Windows:     ``claude-panel.exe``
+On Windows the panel runs inside WSL, where Python and the ClickHouse binary
+behave exactly like on Linux. There is no Windows-native code path here: the
+user opens a WSL terminal and runs ``python3 installer/launcher.py`` as if on
+Linux (see README).
 
 Responsibilities on first run:
-  1. Detect OS and architecture; pick the right `clickhouse-local` binary
-     (or, on Windows, fall back to WSL with a friendly dialog if missing).
-  2. Download `clickhouse-local` (~150-180 MB) into the per-user app dir.
-  3. Resolve bundled assets (works both from source and from PyInstaller bundle).
-  4. Start the local HTTP server on a free port.
-  5. Open the user's default browser pointing at the panel.
+  1. Detect OS and architecture; pick the matching ClickHouse binary.
+  2. Download the binary (~150-180 MB) into the per-user app dir.
+  3. Run it by absolute path (never relying on it being on PATH).
+  4. Resolve bundled assets (works both from source and from PyInstaller bundle).
+  5. Start the local HTTP server on a free port and open the browser.
 
 Errors and missing prerequisites surface through a small Tk dialog so the user
 gets a readable message instead of a Python traceback.
@@ -24,7 +23,6 @@ import os
 import platform
 import shutil
 import socket
-import subprocess
 import sys
 import threading
 import time
@@ -40,20 +38,15 @@ from typing import Callable, Optional
 # ---------------------------------------------------------------------------
 
 PROFILES = {
-    "linux-x86_64":   {"url": "https://builds.clickhouse.com/master/amd64/clickhouse",          "ext": ""},
-    "linux-aarch64":  {"url": "https://builds.clickhouse.com/master/aarch64/clickhouse",        "ext": ""},
-    "macos-x86_64":   {"url": "https://builds.clickhouse.com/master/macos/clickhouse",          "ext": ""},
-    "macos-arm64":    {"url": "https://builds.clickhouse.com/master/macos-aarch64/clickhouse",  "ext": ""},
-    # Windows has no native ClickHouse binary. We always go through WSL,
-    # which itself downloads the Linux x86_64 build.
-    "windows-x86_64": {"url": "https://builds.clickhouse.com/master/amd64/clickhouse",          "ext": "", "needs_wsl": True},
+    "linux-x86_64":   {"url": "https://builds.clickhouse.com/master/amd64/clickhouse"},
+    "linux-aarch64":  {"url": "https://builds.clickhouse.com/master/aarch64/clickhouse"},
+    "macos-x86_64":   {"url": "https://builds.clickhouse.com/master/macos/clickhouse"},
+    "macos-arm64":    {"url": "https://builds.clickhouse.com/master/macos-aarch64/clickhouse"},
 }
 
 DEFAULT_PORT = 8765
 
-if sys.platform == "win32":
-    APP_DIR = Path(os.environ.get("LOCALAPPDATA", str(Path.home() / "AppData" / "Local"))) / "ClaudeCodePanel"
-elif sys.platform == "darwin":
+if sys.platform == "darwin":
     APP_DIR = Path.home() / "Library" / "Application Support" / "ClaudeCodePanel"
 else:
     APP_DIR = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local" / "share"))) / "claude-panel"
@@ -70,12 +63,16 @@ def current_profile() -> str:
     if sys_name == "darwin":
         return "macos-arm64" if arch in ("arm64", "aarch64") else "macos-x86_64"
     if sys_name == "windows":
-        return "windows-x86_64"
+        raise RuntimeError(
+            "En Windows el panel se ejecuta dentro de WSL.\n\n"
+            "Abre una terminal de Ubuntu/WSL y, dentro de ella, vuelve a lanzar:\n"
+            "  python3 installer/launcher.py\n\n"
+            "Si no tienes WSL, instálalo una sola vez con:  wsl --install"
+        )
     raise RuntimeError(f"Sistema operativo no soportado: {sys_name} {arch}")
 
 
 def clickhouse_filename() -> str:
-    # On Windows we still run the Linux binary inside WSL, so no .exe extension.
     return "clickhouse"
 
 
@@ -113,28 +110,6 @@ def show_error(title: str, message: str) -> None:
         root.destroy()
     except Exception:
         print(f"ERROR · {title}\n{message}", file=sys.stderr)
-
-
-def show_info(title: str, message: str) -> None:
-    try:
-        from tkinter import messagebox
-        root = _tk_root()
-        messagebox.showinfo(title, message)
-        root.destroy()
-    except Exception:
-        print(f"INFO · {title}\n{message}", file=sys.stderr)
-
-
-def ask_yes_no(title: str, message: str) -> bool:
-    try:
-        from tkinter import messagebox
-        root = _tk_root()
-        ok = messagebox.askyesno(title, message)
-        root.destroy()
-        return bool(ok)
-    except Exception:
-        ans = input(f"{title}\n{message} [y/N] ").strip().lower()
-        return ans in ("y", "yes", "s", "si", "sí")
 
 
 class ProgressDialog:
@@ -182,58 +157,6 @@ class ProgressDialog:
                 self.root.destroy()
             except Exception:
                 pass
-
-
-# ---------------------------------------------------------------------------
-# WSL helpers (Windows only)
-# ---------------------------------------------------------------------------
-
-def wsl_available() -> bool:
-    if sys.platform != "win32":
-        return False
-    if not shutil.which("wsl"):
-        return False
-    try:
-        r = subprocess.run(["wsl", "--status"], capture_output=True, timeout=5)
-        return r.returncode == 0
-    except Exception:
-        return False
-
-
-def wsl_path_to_windows(path: str) -> str:
-    """Convert a Windows path to a /mnt/c-style WSL path."""
-    p = path.replace("\\", "/")
-    if len(p) >= 2 and p[1] == ":":
-        drive = p[0].lower()
-        return f"/mnt/{drive}{p[2:]}"
-    return p
-
-
-def ensure_clickhouse_windows() -> list[str]:
-    """On Windows we run ClickHouse inside WSL. Returns a command prefix list,
-    e.g. ['wsl', '/mnt/c/Users/<u>/AppData/.../clickhouse']."""
-    if not wsl_available():
-        msg = (
-            "El panel necesita WSL (Windows Subsystem for Linux) para ejecutar "
-            "ClickHouse en Windows.\n\n"
-            "Cómo activarlo (una sola vez):\n"
-            "  1. Abre PowerShell como Administrador.\n"
-            "  2. Ejecuta:  wsl --install\n"
-            "  3. Reinicia el equipo cuando te lo pida.\n"
-            "  4. Vuelve a abrir Claude Code Panel.\n\n"
-            "¿Quieres que abra la página oficial de instalación de WSL?"
-        )
-        if ask_yes_no("Falta WSL", msg):
-            webbrowser.open("https://learn.microsoft.com/windows/wsl/install")
-        raise RuntimeError("WSL no está instalado o no responde.")
-
-    target = clickhouse_path()
-    if not target.exists():
-        download_clickhouse(PROFILES["windows-x86_64"]["url"], target)
-    wsl_target = wsl_path_to_windows(str(target.resolve()))
-    # Make sure the binary is executable from inside WSL.
-    subprocess.run(["wsl", "chmod", "+x", wsl_target], check=False, capture_output=True)
-    return ["wsl", wsl_target]
 
 
 # ---------------------------------------------------------------------------
@@ -311,27 +234,25 @@ def detect_system_clickhouse() -> Optional[str]:
     return None
 
 
-def resolve_clickhouse_command() -> tuple[list[str], str]:
-    """Return (argv_prefix, identifier_for_logs).
+def resolve_clickhouse_command() -> tuple[str, str]:
+    """Return (binary_path, identifier_for_logs).
 
-    On Linux/macOS the result is ['/path/to/clickhouse-local'].
-    On Windows it is ['wsl', '/mnt/c/.../clickhouse'] (Linux binary in WSL).
+    Always an absolute path to the ClickHouse binary — never a bare name that
+    would depend on the binary being on PATH.
     """
     profile_id = current_profile()
     profile = PROFILES[profile_id]
 
-    if profile.get("needs_wsl"):
-        return ensure_clickhouse_windows(), f"WSL+{profile_id}"
-
     # First, see if the user already has ClickHouse on PATH — skip the download.
+    # shutil.which returns an absolute path, so we still run it by full path.
     system = detect_system_clickhouse()
     if system:
-        return [system], f"sistema:{system}"
+        return system, f"sistema:{system}"
 
     target = clickhouse_path()
     if not target.exists() or not os.access(target, os.X_OK):
         download_clickhouse(profile["url"], target)
-    return [str(target)], f"cache:{target}"
+    return str(target), f"cache:{target}"
 
 
 # ---------------------------------------------------------------------------
@@ -368,16 +289,12 @@ def wait_until_up(url: str, timeout: float = 5.0) -> bool:
 def main() -> int:
     try:
         assets = resolve_assets_dir()
-        ch_cmd, ch_desc = resolve_clickhouse_command()
-        log(f"ClickHouse: {ch_desc} (argv={ch_cmd})")
+        ch_bin, ch_desc = resolve_clickhouse_command()
+        log(f"ClickHouse: {ch_desc} (bin={ch_bin})")
 
-        # Single-binary path → server uses CLAUDE_PANEL_CLICKHOUSE_BIN; for
-        # multi-arg invocations (e.g. ['wsl', '/mnt/c/.../clickhouse']) we use
-        # CLAUDE_PANEL_CLICKHOUSE_ARGV with NUL separators.
-        if len(ch_cmd) == 1:
-            os.environ["CLAUDE_PANEL_CLICKHOUSE_BIN"] = ch_cmd[0]
-        else:
-            os.environ["CLAUDE_PANEL_CLICKHOUSE_ARGV"] = "\x00".join(ch_cmd)
+        # The server resolves the binary through CLAUDE_PANEL_CLICKHOUSE_BIN,
+        # always an absolute path.
+        os.environ["CLAUDE_PANEL_CLICKHOUSE_BIN"] = ch_bin
 
         os.environ["CLAUDE_PANEL_BASE_DIR"] = str(assets)
         os.environ["CLAUDE_PANEL_LOCAL_GLOB"] = str(assets / "local-data" / "projects" / "*" / "*.jsonl")
