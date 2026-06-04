@@ -68,8 +68,9 @@ Si no tienes Python, instálalo desde
 
 ### Windows
 
-ClickHouse no tiene versión nativa para Windows, así que el panel lo ejecuta
-a través de **WSL** (Windows Subsystem for Linux). Sólo se activa una vez:
+ClickHouse no tiene versión nativa para Windows, así que el panel se ejecuta
+**dentro de WSL** (Windows Subsystem for Linux), donde todo funciona igual que
+en Linux. Sólo necesitas activar WSL una vez:
 
 ```powershell
 # PowerShell como Administrador, sólo la primera vez
@@ -77,13 +78,14 @@ wsl --install
 # Reinicia el equipo cuando lo pida.
 ```
 
-Instala Python desde
-[python.org](https://www.python.org/downloads/windows/) (marca *"Add python.exe
-to PATH"* en el instalador). Después, en PowerShell o CMD dentro de la carpeta:
+Después abre una terminal de **Ubuntu/WSL** y, ya dentro de WSL, sitúate en la
+carpeta del proyecto y lánzalo exactamente igual que en Linux:
 
-```powershell
-python installer\launcher.py
+```bash
+python3 installer/launcher.py
 ```
+
+Si dentro de WSL falta Python: `sudo apt install python3`.
 
 ---
 
