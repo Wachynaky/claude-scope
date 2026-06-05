@@ -3294,6 +3294,8 @@ tbody td + td { border-left: 1px solid var(--line); }
 #trace-group-wrap .metric .mv { font-family: var(--tg-mono); font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 500; margin-top: 5px; color: var(--text); overflow: hidden; text-overflow: ellipsis; }
 #trace-group-wrap .metric.accent .mv { color: var(--accent); }
 #trace-group-wrap .metric.dim .mv { color: var(--tg-faint); }
+#trace-group-wrap .metric.think .mk { color: #7c3aed; }
+#trace-group-wrap .metric.think .mv { color: #6d28d9; }
 #trace-group-wrap .detail-foot { display: flex; align-items: center; gap: 14px; padding: 12px 18px; flex-wrap: wrap; }
 #trace-group-wrap .tools { font-size: 11.5px; color: var(--muted); }
 #trace-group-wrap .tools b { color: var(--text-soft); }
@@ -4826,6 +4828,14 @@ async function loadTurns() {
             ),
             []
         ) AS tool_names,
+        -- Bloques de razonamiento (type:thinking) por mensaje. Casteamos el TEXTO
+        -- JSON (con fallback '[]') en vez del Dynamic directo: algunas filas reportan
+        -- dynamicType Array% pero no son casteables y el if() de ClickHouse evalúa
+        -- ambas ramas, así el cast nunca falla.
+        arrayCount(
+            x -> x.type::String = 'thinking' AND trimBoth(x.thinking::String) != '',
+            CAST(if(data.type::String = 'assistant' AND dynamicType(data.message.content) LIKE 'Array%', toString(data.message.content), '[]'), 'Array(JSON)')
+        ) AS thinking_blocks,
         if(
             data.type::String = 'user'
             AND dynamicType(data.message.content) = 'String'
@@ -4879,6 +4889,7 @@ SELECT
     sumIf(web_fetch_requests, type = 'assistant' AND req_seq = 1) AS web_fetch_requests,
     countIf(type = 'assistant' AND req_seq = 1) AS generations,
     countIf(type = 'assistant' AND req_seq = 1 AND is_sidechain = true) AS sidechain_generations,
+    sumIf(marked.thinking_blocks, type = 'assistant' AND req_seq = 1) AS thinking_blocks,
     arrayStringConcat(arrayDistinct(arrayFlatten(groupArrayIf(tool_names, req_seq = 1))), ', ') AS tools
 FROM marked
 WHERE turn_no > 0
@@ -6058,6 +6069,7 @@ function turnDetailHtml(t) {
             <div class="turn-detail-metric"><span>Model</span><b>${escapeHtml(shortModel(t.model) || '-')}</b></div>
             <div class="turn-detail-metric"><span>Service tier</span><b>${escapeHtml(t.service_tier || 'standard')}</b></div>
             <div class="turn-detail-metric"><span>Generations</span><b>${formatNumber(t.generations || 0)} ${Number(t.sidechain_generations) ? '(' + t.sidechain_generations + ' sidechain)' : ''}</b></div>
+            <div class="turn-detail-metric" title="Razonamiento interno del modelo (bloques type:thinking). Sus tokens van incluidos en el output."><span>💭 Thinking</span><b>${Number(t.thinking_blocks) ? `${formatNumber(t.thinking_blocks)} ${Number(t.thinking_blocks) === 1 ? 'block' : 'blocks'}` : '—'}</b></div>
             <div class="turn-detail-metric"><span>Input tokens</span><b>${tokenViewRow(t, 'input')}</b></div>
             <div class="turn-detail-metric"><span>Output tokens</span><b>${tokenViewRow(t, 'output')}</b></div>
             <div class="turn-detail-metric"><span>Cache read</span><b>${formatNumber(t.cache_read_tokens || 0)}</b></div>
@@ -6106,7 +6118,12 @@ function traceTurnDetail(t) {
         ? tools.split(/\s*[,·]\s*/).filter(Boolean).map(x => `<span class="tool-tag">${escapeHtml(x)}</span>`).join('')
         : '<span class="tool-tag">—</span>';
     const cacheWrite = (Number(t.cache_creation_5m_tokens) || 0) + (Number(t.cache_creation_1h_tokens) || 0);
+    const thinkBlocks = Number(t.thinking_blocks) || 0;
     const m = (k, v, cls) => `<div class="metric${cls ? ' ' + cls : ''}"><div class="mk">${k}</div><div class="mv">${v}</div></div>`;
+    const thinkingMetric = `<div class="metric${thinkBlocks ? ' think' : ' dim'}" title="Razonamiento interno del modelo: ${formatNumber(thinkBlocks)} bloque(s) type:thinking en este turno. Sus tokens ya van incluidos en el output.">
+            <div class="mk">💭 Thinking</div>
+            <div class="mv">${thinkBlocks ? `${formatNumber(thinkBlocks)} ${thinkBlocks === 1 ? 'block' : 'blocks'}` : '—'}</div>
+        </div>`;
     return `<div class="detail">
         <div class="detail-top">
             <div class="lbl">Prompt</div>
@@ -6118,6 +6135,7 @@ function traceTurnDetail(t) {
             ${m('Model', escapeHtml(shortModel(t.model) || '-'), 'accent')}
             ${m('Service tier', escapeHtml(t.service_tier || 'standard'))}
             ${m('Generations', formatNumber(t.generations || 0))}
+            ${thinkingMetric}
             ${m('Input tok.', tokenViewRow(t, 'input'))}
             ${m('Output tok.', tokenViewRow(t, 'output'))}
             ${m('Cache read', formatNumber(t.cache_read_tokens || 0))}
@@ -6875,7 +6893,7 @@ function classifyMessage(msg) {
         // Count sub-block types
         let hasText = false, thinkingCount = 0, toolUseCount = 0;
         for (const b of blocks) {
-            if (b.type === 'thinking' && b.thinking) thinkingCount++;
+            if (b.type === 'thinking' && b.thinking && b.thinking.trim()) thinkingCount++;
             else if (b.type === 'text' && b.text) hasText = true;
             else if (b.type === 'tool_use') toolUseCount++;
         }
@@ -6956,7 +6974,7 @@ function buildFlowNodes() {
             let hasGeneration = false;
             let generationPreview = '';
             for (const block of cl.blocks) {
-                if (block.type === 'thinking' && block.thinking) {
+                if (block.type === 'thinking' && block.thinking && block.thinking.trim()) {
                     nodes.push({ type: 'thinking', title: 'Thinking', meta: shortModel(msg.model), preview: block.thinking.slice(0, 700), idx: i, model: shortModel(msg.model) });
                 } else if (block.type === 'tool_use') {
                     const preview = block.input && typeof block.input === 'object' ? JSON.stringify(block.input, null, 2).slice(0, 700) : '';
@@ -7136,7 +7154,7 @@ function buildExecutionRows() {
         } else if (cl.category === 'assistant') {
             let hasText = false;
             for (const block of cl.blocks) {
-                if (block.type === 'thinking' && block.thinking) {
+                if (block.type === 'thinking' && block.thinking && block.thinking.trim()) {
                     rows.push({ level: 1, type: 'thinking', title: block.thinking.slice(0, 220), meta: shortModel(msg.model), idx: i });
                 } else if (block.type === 'tool_use') {
                     const input = block.input && typeof block.input === 'object' ? Object.values(block.input).join(' ').slice(0, 160) : '';
@@ -7228,7 +7246,7 @@ function buildFullTraceRows() {
                 if (block.type === 'tool_use') {
                     const input = block.input && typeof block.input === 'object' ? JSON.stringify(block.input).slice(0, 280) : '';
                     rows.push({ ...base, kind: 'tool_call', tool: block.name || 'tool', preview: input });
-                } else if (block.type === 'thinking' && block.thinking) {
+                } else if (block.type === 'thinking' && block.thinking && block.thinking.trim()) {
                     thinkingPreview = thinkingPreview || block.thinking.slice(0, 320);
                 } else if (block.type === 'text' && block.text) {
                     textPreview += block.text.replace(/\s+/g, ' ').slice(0, 320);
@@ -7317,8 +7335,8 @@ function renderTraceMap() {
                 parent_uuid: m.parent_uuid, uuid: m.uuid, ts: m.ts, turn: turnByIdx.get(i) });
         } else if (cl.category === 'assistant') {
             for (const b of cl.blocks) {
-                if (b.type === 'thinking' && b.thinking) {
-                    nodes.push({ idx: i, kind: 'thinking', title: b.thinking.slice(0, 60),
+                if (b.type === 'thinking' && b.thinking && b.thinking.trim()) {
+                    nodes.push({ idx: i, kind: 'thinking', title: b.thinking.slice(0, 60), fullText: b.thinking,
                         parent_uuid: m.parent_uuid, uuid: m.uuid + ':think', ts: m.ts, turn: turnByIdx.get(i) });
                 } else if (b.type === 'tool_use') {
                     nodes.push({ idx: i, kind: 'tool', title: (b.name || 'tool'),
@@ -7425,10 +7443,10 @@ function renderTraceMap() {
 
     const edgeSvg = edges.map(e => `<path class="trace-map-edge ${e.kind === 'tool-pair' ? 'tool-pair' : ''}" d="${bezier(e.from, e.to)}"></path>`).join('');
 
-    const nodeSvg = nodes.map(n => {
+    const nodeSvg = nodes.map((n, ni) => {
         const k = KIND[n.kind] || KIND.summary;
         const titleAttr = (k.label + ' · ' + (n.title || '')).replace(/"/g, '&quot;');
-        return `<g class="trace-map-node" data-msg-idx="${n.idx}">
+        return `<g class="trace-map-node" data-msg-idx="${n.idx}" data-node-i="${ni}">
             <title>${escapeHtml(titleAttr)}</title>
             <rect class="trace-map-node-rect" x="${n._x}" y="${n._y}" width="${NODE_W}" height="${NODE_H}" fill="${k.fill}" stroke="${k.stroke}"/>
             <text class="trace-map-node-label" x="${n._x + 8}" y="${n._y + NODE_H/2 + 4}" fill="${k.textFill}">${escapeHtml((k.label + ' ' + (n.title||'')).slice(0, 24))}</text>
@@ -7462,6 +7480,13 @@ function renderTraceMap() {
 
     el.querySelectorAll('.trace-map-node').forEach(g => {
         g.addEventListener('click', () => {
+            const node = nodes[Number(g.dataset.nodeI)];
+            // Para los nodos de razonamiento mostramos el texto íntegro en el
+            // modal; el resto sigue saltando al mensaje en la conversación.
+            if (node && node.kind === 'thinking' && node.fullText) {
+                openTimelineModal({ idx: node.idx, type: 'thinking', title: 'Cadena de pensamiento', preview: node.fullText });
+                return;
+            }
             const idx = Number(g.dataset.msgIdx);
             const target = document.querySelector(`[data-msg-idx="${idx}"]`);
             if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -7650,7 +7675,7 @@ function chatMessageObservation(turns, msgIdx) {
     let nText = 0, nThink = 0, nTool = 0, textLen = 0;
     for (const b of cl.blocks) {
         if (b.type === 'text' && b.text) { nText++; textLen += b.text.length; }
-        else if (b.type === 'thinking' && b.thinking) nThink++;
+        else if (b.type === 'thinking' && b.thinking && b.thinking.trim()) nThink++;
         else if (b.type === 'tool_use') nTool++;
     }
     const tokens = {
@@ -8313,8 +8338,8 @@ function renderTranscript() {
                 let bodyMd = '';
                 const extras = [];
                 for (const b of cl.blocks) {
-                    if (b.type === 'thinking' && b.thinking) {
-                        extras.push(`<details class="chat-tool thinking"><summary><span class="ct-ic">💭</span><span class="ct-name">Thinking</span></summary><div class="chat-tool-body"><div class="chat-tool-think-text">${escapeHtml(b.thinking)}</div></div></details>`);
+                    if (b.type === 'thinking' && b.thinking && b.thinking.trim()) {
+                        extras.push(`<details class="chat-tool thinking"><summary><span class="ct-ic">💭</span><span class="ct-name">Thinking</span><span class="ct-count">${formatNumber(b.thinking.length)} chars</span></summary><div class="chat-tool-body"><div class="chat-tool-think-text">${escapeHtml(b.thinking)}</div></div></details>`);
                     } else if (b.type === 'text' && b.text && b.text.trim()) {
                         bodyMd += renderMd(b.text);
                     } else if (b.type === 'tool_use') {
@@ -8394,7 +8419,7 @@ function renderTranscript() {
                 emit('assistant', '<span class="role-badge role-assistant">\uD83E\uDD16 IA</span>', joined, msg, isSidechain);
             }
             for (const block of blocks) {
-                if (block.type === 'thinking' && block.thinking) {
+                if (block.type === 'thinking' && block.thinking && block.thinking.trim()) {
                     flushText();
                     if (!filters.thinking) continue;
                     emit('thinking', '<span class="role-badge role-thinking">💭 Razonando</span>', `<div style="white-space:pre-wrap">${escapeHtml(block.thinking)}</div>`, msg, isSidechain);
