@@ -173,7 +173,7 @@ def _get_chdb():
             import chdb  # type: ignore
         except ImportError as exc:
             raise RuntimeError(
-                "chdb no está instalado. Ejecuta:  pip install chdb"
+                "chdb is not installed. Run:  pip install chdb"
             ) from exc
         _chdb_module = chdb
     return _chdb_module
@@ -446,10 +446,10 @@ class Handler(SimpleHTTPRequestHandler):
                 try:
                     raw = base64.b64decode(b64, validate=False)
                 except Exception as e:
-                    errors.append(f"{name}: base64 inválido ({e})")
+                    errors.append(f"{name}: invalid base64 ({e})")
                     continue
                 if not raw:
-                    errors.append(f"{name}: vacío")
+                    errors.append(f"{name}: empty")
                     continue
                 try:
                     dest = store_uploaded_jsonl(name, raw, relpath)

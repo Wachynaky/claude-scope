@@ -2188,7 +2188,7 @@ mark.search-hit.current { background: #facc15; color: #422006; }
 
 /* Chain banner: when this Output feeds the next Input */
 .tool-step.v2 + .tool-step.v2::before {
-    content: '↓ Output anterior alimenta el siguiente Input';
+    content: '↓ previous Output feeds the next Input';
     display: block;
     text-align: center;
     color: var(--accent);
@@ -2247,7 +2247,7 @@ mark.search-hit.current { background: #facc15; color: #422006; }
     margin-top: 22px;
 }
 .term-block.type-tool_use + .term-block.type-tool_use::before {
-    content: '↓ siguiente paso';
+    content: '↓ next step';
     position: absolute;
     top: -18px;
     left: 14px;
@@ -4016,7 +4016,7 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 </style>
 </head>
 <body>
-<button type="button" id="scroll-top-btn" class="scroll-top-btn" title="Subir arriba" aria-label="Subir arriba">↑</button>
+<button type="button" id="scroll-top-btn" class="scroll-top-btn" title="Scroll to top" aria-label="Scroll to top">↑</button>
 <div class="container">
     <header class="app-header">
         <div class="brand">
@@ -4033,7 +4033,7 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
         <div class="search-box">
             <input type="text" id="search-input" placeholder="Search all message content...">
         </div>
-        <div class="token-mode-switcher token-mode-switcher-header" id="token-mode-switcher" title="Cómo se calcula el «total de tokens» de las estadísticas. «All & Real data»: input + output + cache, deduplicado por petición (lo que de verdad consumes). «Same as Claude Code»: solo input + output en crudo, igual que el «Total tokens» de /config Stats (suele dar más porque no deduplica).">
+        <div class="token-mode-switcher token-mode-switcher-header" id="token-mode-switcher" title="How the stats «total tokens» is computed. «All & Real data»: input + output + cache, deduplicated per request (what you actually consume). «Same as Claude Code»: raw input + output only, like the «Total tokens» in /config Stats (usually higher because it does not deduplicate).">
             <span class="token-mode-label">Tokens</span>
             <div class="token-mode-options">
                 <button data-token-mode="real" class="active">All &amp; Real data</button>
@@ -4041,12 +4041,12 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
             </div>
         </div>
         <div class="stats-bar" id="stats-bar"></div>
-        <div class="zoom-control" id="zoom-control" title="Tamaño del texto del panel">
-            <button type="button" id="zoom-out" class="zoom-btn" title="Reducir el tamaño del texto" aria-label="Reducir tamaño">−</button>
-            <span class="zoom-level" id="zoom-level" title="Restablecer el tamaño (clic)" role="button" tabindex="0">16px</span>
-            <button type="button" id="zoom-in" class="zoom-btn" title="Aumentar el tamaño del texto" aria-label="Aumentar tamaño">+</button>
+        <div class="zoom-control" id="zoom-control" title="Panel text size">
+            <button type="button" id="zoom-out" class="zoom-btn" title="Decrease text size" aria-label="Decrease size">−</button>
+            <span class="zoom-level" id="zoom-level" title="Reset size (click)" role="button" tabindex="0">16px</span>
+            <button type="button" id="zoom-in" class="zoom-btn" title="Increase text size" aria-label="Increase size">+</button>
         </div>
-        <button id="shutdown-btn" class="shutdown-btn" title="Cerrar el panel (apaga el servidor local)"><span class="shutdown-glyph">⏻</span><span class="shutdown-text">Apagar</span></button>
+        <button id="shutdown-btn" class="shutdown-btn" title="Close the panel (shuts down the local server)"><span class="shutdown-glyph">⏻</span><span class="shutdown-text">Power off</span></button>
     </header>
 
     <div id="session-list-view">
@@ -4090,7 +4090,7 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
             </div>
             <div class="filter-group filter-group-actions">
             <span class="filter-chip"><button id="clear-session-filters">Clear filters</button></span>
-            <span class="filter-chip"><button type="button" id="dashboard-charts-toggle" class="charts-toggle-btn" title="Ocultar todas las gráficas del dashboard">Ocultar todas</button></span>
+            <span class="filter-chip"><button type="button" id="dashboard-charts-toggle" class="charts-toggle-btn" title="Hide all dashboard charts">Hide all</button></span>
             </div>
         </div>
         <section class="stat-strip" id="stat-strip">
@@ -4122,47 +4122,47 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
         </section>
         <div class="hidden-charts-bar hidden" id="hidden-charts-bar">
             <span class="hidden-charts-icon" aria-hidden="true">👁</span>
-            <span class="hidden-charts-text"><b id="hidden-charts-count">0</b> gráficas ocultas:</span>
+            <span class="hidden-charts-text"><b id="hidden-charts-count">0</b> charts hidden:</span>
             <div class="hidden-charts-chips" id="hidden-charts-chips"></div>
-            <button type="button" id="hidden-charts-show-all" class="hidden-charts-show-all">Mostrar todas</button>
+            <button type="button" id="hidden-charts-show-all" class="hidden-charts-show-all">Show all</button>
         </div>
         <section class="dashboard-wide" id="dashboard-wide">
             <div class="chart-panel" data-chart-id="volume" data-chart-name="Tokens Daily">
-                <div class="chart-head"><span>Tokens Daily</span><div class="chart-head-legend" id="daily-chart-legend"></div><span class="muted" id="daily-chart-meta"></span><button type="button" class="chart-hide-btn" title="Ocultar gráfica">×</button></div>
+                <div class="chart-head"><span>Tokens Daily</span><div class="chart-head-legend" id="daily-chart-legend"></div><span class="muted" id="daily-chart-meta"></span><button type="button" class="chart-hide-btn" title="Hide chart">×</button></div>
                 <canvas class="chart-canvas" id="daily-chart"></canvas>
             </div>
             <div class="chart-panel" data-chart-id="tokens-per-turn" data-chart-name="Tokens by Tool">
                 <div class="chart-head">
                     <span>Tokens by Tool</span>
-                    <span class="muted" id="tool-tokens-meta">tokens de turnos que usan cada herramienta · todo el periodo</span>
-                    <button type="button" class="chart-hide-btn" title="Ocultar gráfica">×</button>
+                    <span class="muted" id="tool-tokens-meta">tokens from turns that use each tool · all time</span>
+                    <button type="button" class="chart-hide-btn" title="Hide chart">×</button>
                 </div>
                 <canvas class="chart-canvas" id="tool-tokens-chart"></canvas>
             </div>
         </section>
         <section class="dashboard" id="dashboard">
             <div class="chart-panel" data-chart-id="token-mix" data-chart-name="Token Mix">
-                <div class="chart-head"><span>Token Mix</span><span class="muted" id="token-mix-meta"></span><button type="button" class="chart-hide-btn" title="Ocultar gráfica">×</button></div>
+                <div class="chart-head"><span>Token Mix</span><span class="muted" id="token-mix-meta"></span><button type="button" class="chart-hide-btn" title="Hide chart">×</button></div>
                 <div id="token-mix-chart"></div>
             </div>
             <div class="chart-panel" data-chart-id="cost-mix" data-chart-name="Cost Mix">
-                <div class="chart-head"><span>Cost Mix</span><span class="muted" id="cost-mix-meta"></span><button type="button" class="chart-hide-btn" title="Ocultar gráfica">×</button></div>
+                <div class="chart-head"><span>Cost Mix</span><span class="muted" id="cost-mix-meta"></span><button type="button" class="chart-hide-btn" title="Hide chart">×</button></div>
                 <div id="cost-mix-chart"></div>
             </div>
             <div class="chart-panel" data-chart-id="model-cost" data-chart-name="Model Cost">
-                <div class="chart-head"><span>Model Cost</span><span class="muted">top models</span><button type="button" class="chart-hide-btn" title="Ocultar gráfica">×</button></div>
+                <div class="chart-head"><span>Model Cost</span><span class="muted">top models</span><button type="button" class="chart-hide-btn" title="Hide chart">×</button></div>
                 <div class="bar-list" id="model-cost-chart"></div>
             </div>
             <div class="chart-panel" data-chart-id="tool-calls" data-chart-name="Tool Calls">
-                <div class="chart-head"><span>Tool Calls</span><span class="muted">top tools · click para filtrar</span><button type="button" class="chart-hide-btn" title="Ocultar gráfica">×</button></div>
+                <div class="chart-head"><span>Tool Calls</span><span class="muted">top tools · click to filter</span><button type="button" class="chart-hide-btn" title="Hide chart">×</button></div>
                 <div class="bar-list" id="tool-call-chart"></div>
             </div>
             <div class="chart-panel" data-chart-id="mcp-servers" data-chart-name="MCP Servers">
-                <div class="chart-head"><span>MCP Servers</span><span class="muted" id="mcp-chart-meta">calls per server</span><button type="button" class="chart-hide-btn" title="Ocultar gráfica">×</button></div>
+                <div class="chart-head"><span>MCP Servers</span><span class="muted" id="mcp-chart-meta">calls per server</span><button type="button" class="chart-hide-btn" title="Hide chart">×</button></div>
                 <div class="bar-list" id="mcp-server-chart"></div>
             </div>
             <div class="chart-panel" data-chart-id="projects" data-chart-name="Projects">
-                <div class="chart-head"><span>Projects</span><span class="muted">cost split</span><button type="button" class="chart-hide-btn" title="Ocultar gráfica">×</button></div>
+                <div class="chart-head"><span>Projects</span><span class="muted">cost split</span><button type="button" class="chart-hide-btn" title="Hide chart">×</button></div>
                 <div class="bar-list" id="project-cost-chart"></div>
             </div>
         </section>
@@ -4246,7 +4246,7 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
         </div>
         <div class="filters-bar" id="filters-bar">
             <div class="filters-toggles">
-                <button class="back-btn" id="back-btn" title="Volver al listado de sesiones">&larr; Volver a sesiones</button>
+                <button class="back-btn" id="back-btn" title="Back to session list">&larr; Back to sessions</button>
                 <div class="transcript-search">
                     <input type="text" id="transcript-search-input" placeholder="Find in transcript...">
                     <span id="transcript-search-count"></span>
@@ -4255,39 +4255,39 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
                         <button id="transcript-search-next" title="Next">&darr;</button>
                     </span>
                 </div>
-                <label title="Mostrar / ocultar todos los tipos"><input type="checkbox" id="filter-all"> Todo</label>
-                <label title="Tu prompt o intervención"><input type="checkbox" id="filter-user" checked> 👤 Tú</label>
-                <label title="Texto generado por la IA"><input type="checkbox" id="filter-assistant" checked> 🤖 IA</label>
-                <label title="Razonamiento interno del modelo"><input type="checkbox" id="filter-thinking" checked> 💭 Pensar</label>
-                <label title="Llamadas a herramientas (Bash, Edit, Read…)"><input type="checkbox" id="filter-tools" checked> 🔧 Acción</label>
-                <label title="Salida de cada herramienta"><input type="checkbox" id="filter-results" checked> ↩︎ Resultado</label>
-                <label title="Notificaciones internas (task-notification)"><input type="checkbox" id="filter-agent"> 📣 Notif</label>
-                <label title="Skills/comandos invocados con /"><input type="checkbox" id="filter-skill"> ⚙️ Skill</label>
-                <label title="Entrada en modo plan"><input type="checkbox" id="filter-plan" checked> 📋 Plan</label>
-                <label title="Mensajes [Request interrupted by user]"><input type="checkbox" id="filter-interrupt" checked> ⏹ Pausar</label>
-                <label title="Mensajes de continuación de sesión previa"><input type="checkbox" id="filter-continuation"> ↻ Cont.</label>
+                <label title="Show / hide all types"><input type="checkbox" id="filter-all"> All</label>
+                <label title="Your prompt or intervention"><input type="checkbox" id="filter-user" checked> 👤 You</label>
+                <label title="Text generated by the AI"><input type="checkbox" id="filter-assistant" checked> 🤖 AI</label>
+                <label title="Model internal reasoning"><input type="checkbox" id="filter-thinking" checked> 💭 Think</label>
+                <label title="Tool calls (Bash, Edit, Read…)"><input type="checkbox" id="filter-tools" checked> 🔧 Action</label>
+                <label title="Output of each tool"><input type="checkbox" id="filter-results" checked> ↩︎ Result</label>
+                <label title="Internal notifications (task-notification)"><input type="checkbox" id="filter-agent"> 📣 Notif</label>
+                <label title="Skills/commands invoked with /"><input type="checkbox" id="filter-skill"> ⚙️ Skill</label>
+                <label title="Plan mode entry"><input type="checkbox" id="filter-plan" checked> 📋 Plan</label>
+                <label title="[Request interrupted by user] messages"><input type="checkbox" id="filter-interrupt" checked> ⏹ Pause</label>
+                <label title="Messages continued from a previous session"><input type="checkbox" id="filter-continuation"> ↻ Cont.</label>
             </div>
             <div id="scroll-metrics"></div>
             <div class="trace-controls-row">
                 <div class="view-switcher" id="trace-view-switcher">
-                    <button data-trace-view="all" class="active">📦 Todo</button>
-                    <button data-trace-view="transcript">💬 Conversación</button>
-                    <button data-trace-view="map">🗺 Mapa</button>
-                    <button data-trace-view="turns">📋 Turnos</button>
-                    <button data-trace-view="observations">📊 Observaciones</button>
-                    <button data-trace-view="flow">🌳 Flujo</button>
+                    <button data-trace-view="all" class="active">📦 All</button>
+                    <button data-trace-view="transcript">💬 Conversation</button>
+                    <button data-trace-view="map">🗺 Map</button>
+                    <button data-trace-view="turns">📋 Turns</button>
+                    <button data-trace-view="observations">📊 Observations</button>
+                    <button data-trace-view="flow">🌳 Flow</button>
                     <button data-trace-view="timeline">⏱ Timeline</button>
                 </div>
                 <div class="turn-bulk-group">
-                    <span class="turn-bulk-controls" title="Plegar/desplegar todos los turnos del transcript">
+                    <span class="turn-bulk-controls" title="Collapse/expand all transcript turns">
                         <span class="turn-bulk-label">Turns</span>
-                        <button type="button" id="turns-expand-all" class="turn-bulk-btn" title="Desplegar todos los turnos">Show</button>
-                        <button type="button" id="turns-collapse-all" class="turn-bulk-btn" title="Plegar todos los turnos">Hide</button>
+                        <button type="button" id="turns-expand-all" class="turn-bulk-btn" title="Expand all turns">Show</button>
+                        <button type="button" id="turns-collapse-all" class="turn-bulk-btn" title="Collapse all turns">Hide</button>
                     </span>
-                    <span class="turn-bulk-controls" title="Plegar/desplegar Input · Output · Metadata de TODOS los tool-steps">
+                    <span class="turn-bulk-controls" title="Collapse/expand Input · Output · Metadata of ALL tool-steps">
                         <span class="turn-bulk-label">Input / Output data</span>
-                        <button type="button" id="ts-expand-all" class="turn-bulk-btn" title="Desplegar Input/Output/Metadata de todos los tool-steps">Show</button>
-                        <button type="button" id="ts-collapse-all" class="turn-bulk-btn" title="Plegar Input/Output/Metadata de todos los tool-steps">Hide</button>
+                        <button type="button" id="ts-expand-all" class="turn-bulk-btn" title="Expand Input/Output/Metadata of all tool-steps">Show</button>
+                        <button type="button" id="ts-collapse-all" class="turn-bulk-btn" title="Collapse Input/Output/Metadata of all tool-steps">Hide</button>
                     </span>
                 </div>
             </div>
@@ -4301,7 +4301,7 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
         <div class="messages" id="messages-container"></div>
         <div id="chat-layout" class="chat-layout hidden">
             <div class="chat-col" id="chat-col"></div>
-            <div class="chat-resizer" id="chat-resizer" title="Arrastra para ajustar el ancho · doble clic para restablecer"></div>
+            <div class="chat-resizer" id="chat-resizer" title="Drag to adjust width · double-click to reset"></div>
             <aside class="chat-details" id="chat-details"></aside>
         </div>
         <div id="transcript-loading" class="hidden" style="text-align:center;padding:40px;color:#555">Loading transcript...</div>
@@ -5177,7 +5177,7 @@ function renderDashboard() {
     const showCC = tokenMode === 'cc';
     setHTML('metric-tokens', tokenView(showCC ? ccTokens : totalTokens, totalTokens));
     setText('metric-tokens-sub', showCC
-        ? `in+out · sin cache · como /config (sin deduplicar)`
+        ? `in+out · no cache · like /config (not deduplicated)`
         : `in ${formatNumber(input)} · out ${formatNumber(output)} · cache ${formatNumber(cacheRead + cacheCreate)}`);
     const tokensLabelEl = document.getElementById('metric-tokens-label');
     if (tokensLabelEl) tokensLabelEl.textContent = showCC ? 'Usage · Claude Code' : 'Usage';
@@ -5250,8 +5250,8 @@ function renderTokensPerTurn() {
         .slice(0, 10);
 
     setText('tool-tokens-meta', rows.length
-        ? `${rows.length} herramientas · ${formatNumber(source.length)} turnos · todo el periodo`
-        : (turns.length ? 'sin herramientas detectadas' : 'turnos no cargados aún'));
+        ? `${rows.length} tools · ${formatNumber(source.length)} turns · all time`
+        : (turns.length ? 'no tools detected' : 'turns not loaded yet'));
 
     const ctx = canvas.getContext('2d');
     const rect = canvas.getBoundingClientRect();
@@ -6069,7 +6069,7 @@ function turnDetailHtml(t) {
             <div class="turn-detail-metric"><span>Model</span><b>${escapeHtml(shortModel(t.model) || '-')}</b></div>
             <div class="turn-detail-metric"><span>Service tier</span><b>${escapeHtml(t.service_tier || 'standard')}</b></div>
             <div class="turn-detail-metric"><span>Generations</span><b>${formatNumber(t.generations || 0)} ${Number(t.sidechain_generations) ? '(' + t.sidechain_generations + ' sidechain)' : ''}</b></div>
-            <div class="turn-detail-metric" title="Razonamiento interno del modelo (bloques type:thinking). Sus tokens van incluidos en el output."><span>💭 Thinking</span><b>${Number(t.thinking_blocks) ? `${formatNumber(t.thinking_blocks)} ${Number(t.thinking_blocks) === 1 ? 'block' : 'blocks'}` : '—'}</b></div>
+            <div class="turn-detail-metric" title="Model internal reasoning (type:thinking blocks). Their tokens are included in the output."><span>💭 Thinking</span><b>${Number(t.thinking_blocks) ? `${formatNumber(t.thinking_blocks)} ${Number(t.thinking_blocks) === 1 ? 'block' : 'blocks'}` : '—'}</b></div>
             <div class="turn-detail-metric"><span>Input tokens</span><b>${tokenViewRow(t, 'input')}</b></div>
             <div class="turn-detail-metric"><span>Output tokens</span><b>${tokenViewRow(t, 'output')}</b></div>
             <div class="turn-detail-metric"><span>Cache read</span><b>${formatNumber(t.cache_read_tokens || 0)}</b></div>
@@ -6120,7 +6120,7 @@ function traceTurnDetail(t) {
     const cacheWrite = (Number(t.cache_creation_5m_tokens) || 0) + (Number(t.cache_creation_1h_tokens) || 0);
     const thinkBlocks = Number(t.thinking_blocks) || 0;
     const m = (k, v, cls) => `<div class="metric${cls ? ' ' + cls : ''}"><div class="mk">${k}</div><div class="mv">${v}</div></div>`;
-    const thinkingMetric = `<div class="metric${thinkBlocks ? ' think' : ' dim'}" title="Razonamiento interno del modelo: ${formatNumber(thinkBlocks)} bloque(s) type:thinking en este turno. Sus tokens ya van incluidos en el output.">
+    const thinkingMetric = `<div class="metric${thinkBlocks ? ' think' : ' dim'}" title="Model internal reasoning: ${formatNumber(thinkBlocks)} type:thinking block(s) in this turn. Their tokens are already included in the output.">
             <div class="mk">💭 Thinking</div>
             <div class="mv">${thinkBlocks ? `${formatNumber(thinkBlocks)} ${thinkBlocks === 1 ? 'block' : 'blocks'}` : '—'}</div>
         </div>`;
@@ -6270,7 +6270,7 @@ function renderTraceGroupList() {
             <div class="turn-rail"></div>
             <div class="row-turn" style="cursor:default">
                 <div class="tno"><b>—</b></div>
-                <div class="tprompt" title="Mensajes del asistente fuera de un turno numerado (continuations, planes, notificaciones).">(out-of-turn assistant messages)</div>
+                <div class="tprompt" title="Assistant messages outside a numbered turn (continuations, plans, notifications).">(out-of-turn assistant messages)</div>
                 <div class="tstarted"></div>
                 <div class="tokcell"><span class="v">${tokenView(Math.max(0, gTokensDisp - turnsTokensDisp), g.otherTokens)}</span></div>
                 <div class="tcost">${formatCost(g.otherCost)}</div>
@@ -6288,7 +6288,7 @@ function renderTraceGroupList() {
                             <span class="tag">${g.turns.length} turns</span>
                             <span class="tag">${tokenView(gTokensDisp, gTokensReal)} tokens</span>
                             ${subTag}${errTag}
-                            <button class="tg-open open-turn-session" data-session="${sid}" title="Abrir la traza completa de la sesión">Open session trace ↗</button>
+                            <button class="tg-open open-turn-session" data-session="${sid}" title="Open the full session trace">Open session trace ↗</button>
                         </div>
                     </div>
                 </div>
@@ -6301,7 +6301,7 @@ function renderTraceGroupList() {
                 <div class="cell-r tnum cost-strong" title="${escapeHtml(turnsTitle)}">${formatCost(g.cost)}</div>
             </div>
             <div class="turns-wrap"><div class="turns-inner">
-                <div class="turns-head">${TG_ARROW} Turnos de esta sesión <span class="q">· session ${sid8}</span></div>
+                <div class="turns-head">${TG_ARROW} Turns in this session <span class="q">· session ${sid8}</span></div>
                 <div class="turn-head-row"><div>Turn</div><div>Prompt</div><div>Started</div><div class="r">Tokens</div><div class="r">Cost</div></div>
                 ${turnsHtml}
                 ${otherHtml}
@@ -6729,26 +6729,26 @@ function renderSessionCards(session) {
     // Los tokens mostrados respetan el modo del selector (real / cc), igual que la
     // tabla del home, para que «Same as Claude Code» se arrastre también al detalle.
     const showCC = tokenMode === 'cc';
-    const totalSub = `${turnsCount} prompts · ${gens} llamadas API`;
+    const totalSub = `${turnsCount} prompts · ${gens} API calls`;
     const totalTitle = showCC
-        ? 'Same as Claude Code: input + output en crudo (sin cache, sin deduplicar).'
-        : 'Suma de input + output + cache (todos los tokens que pasan por la API).';
-    const totalHint = showCC ? 'in+out · como /config Stats' : 'incluye contexto reusado';
+        ? 'Same as Claude Code: raw input + output (no cache, not deduplicated).'
+        : 'Sum of input + output + cache (all tokens that go through the API).';
+    const totalHint = showCC ? 'in+out · like /config Stats' : 'includes reused context';
     const inputTitle = showCC
-        ? 'Tokens de entrada en crudo (sin deduplicar), como /config Stats.'
-        : 'Tokens de entrada únicos por llamada (sin cache).';
-    const outputTitle = 'Tokens generados por el modelo (lo que produce la API).';
+        ? 'Raw input tokens (not deduplicated), like /config Stats.'
+        : 'Unique input tokens per call (no cache).';
+    const outputTitle = 'Tokens generated by the model (what the API produces).';
     el.innerHTML = `
-        <div class="session-card accent-cost" title="Coste total facturable: input + output + cache (R+W 5m+1h) + server tools, ajustado por service tier.">
-            <div class="card-label"><span class="card-icon">💲</span>Coste total</div>
+        <div class="session-card accent-cost" title="Total billable cost: input + output + cache (R+W 5m+1h) + server tools, adjusted by service tier.">
+            <div class="card-label"><span class="card-icon">💲</span>Total cost</div>
             <div class="card-value">${formatCost(session.cost || 0)}</div>
             <div class="card-sub">in ${formatCost(bd.input)} · out ${formatCost(bd.output)}</div>
             <div class="card-sub">cache R ${formatCost(bd.cacheRead)} · W ${formatCost(bd.cacheCreation)}</div>
             ${bd.serverTools ? `<div class="card-sub">server tools ${formatCost(bd.serverTools)}</div>` : ''}
-            <div class="card-hint">facturado por Anthropic</div>
+            <div class="card-hint">billed by Anthropic</div>
         </div>
         <div class="session-card accent-tokens" title="${totalTitle}">
-            <div class="card-label"><span class="card-icon">∑</span>Tokens totales</div>
+            <div class="card-label"><span class="card-icon">∑</span>Total tokens</div>
             <div class="card-value">${tokenViewRow(session, 'total')}</div>
             <div class="card-sub">${totalSub}</div>
             <div class="card-hint">${totalHint}</div>
@@ -6757,20 +6757,20 @@ function renderSessionCards(session) {
             <div class="card-label"><span class="card-icon">↓</span>Input</div>
             <div class="card-value">${tokenViewRow(session, 'input')}</div>
             <div class="card-sub">${formatCost(bd.input)}</div>
-            <div class="card-hint">prompt nuevo del usuario</div>
+            <div class="card-hint">new user prompt</div>
         </div>
         <div class="session-card accent-output" title="${outputTitle}">
             <div class="card-label"><span class="card-icon">↑</span>Output</div>
             <div class="card-value">${tokenViewRow(session, 'output')}</div>
             <div class="card-sub">${formatCost(bd.output)}</div>
-            <div class="card-hint">respuestas + thinking + tool calls</div>
+            <div class="card-hint">responses + thinking + tool calls</div>
         </div>
-        <div class="session-card accent-cache" title="Cache read = contexto previo reutilizado y barato. Cache write = nuevo contexto que se guarda para reutilizarlo.${showCC ? ' No se cuenta en «Same as Claude Code».' : ''}">
+        <div class="session-card accent-cache" title="Cache read = previous context reused and cheap. Cache write = new context stored to reuse later.${showCC ? ' Not counted in «Same as Claude Code».' : ''}">
             <div class="card-label"><span class="card-icon">⇊</span>Cache</div>
             <div class="card-value">${formatNumber(cache)}</div>
             <div class="card-sub">R ${formatNumber(cR)} · W ${formatNumber(cW)}</div>
             <div class="card-sub">R ${formatCost(bd.cacheRead)} · W ${formatCost(bd.cacheCreation)}</div>
-            <div class="card-hint">${showCC ? 'no incluido en el total cc' : 'contexto reusado entre prompts'}</div>
+            <div class="card-hint">${showCC ? 'not included in cc total' : 'context reused across prompts'}</div>
         </div>
     `;
 }
@@ -7307,12 +7307,12 @@ function renderTraceMap() {
 
     // Build node list (skip irrelevant types)
     const KIND = {
-        request:   { fill: '#fef9c3', stroke: '#ca8a04', label: '👤 Tú', textFill: '#713f12' },
+        request:   { fill: '#fef9c3', stroke: '#ca8a04', label: '👤 You', textFill: '#713f12' },
         plan:      { fill: '#fef9c3', stroke: '#ca8a04', label: '📋 Plan', textFill: '#713f12' },
-        thinking:  { fill: '#ede9fe', stroke: '#7c3aed', label: '💭 Razonar', textFill: '#5b21b6' },
-        generation:{ fill: '#d1fae5', stroke: '#059669', label: '🤖 IA', textFill: '#065f46' },
+        thinking:  { fill: '#ede9fe', stroke: '#7c3aed', label: '💭 Reason', textFill: '#5b21b6' },
+        generation:{ fill: '#d1fae5', stroke: '#059669', label: '🤖 AI', textFill: '#065f46' },
         tool:      { fill: 'var(--accent-soft)', stroke: 'var(--accent)', label: '🔧 Tool', textFill: 'var(--accent-dim)' },
-        result:    { fill: '#ccfbf1', stroke: '#0d9488', label: '↩︎ Salida', textFill: '#115e59' },
+        result:    { fill: '#ccfbf1', stroke: '#0d9488', label: '↩︎ Output', textFill: '#115e59' },
         error:     { fill: '#fee2e2', stroke: '#dc2626', label: '✖ Error', textFill: '#991b1b' },
         notif:     { fill: '#ffedd5', stroke: '#ea580c', label: '📣 Notif', textFill: '#7c2d12' },
         skill:     { fill: '#ede9fe', stroke: '#6d28d9', label: '⚙️ Skill', textFill: '#5b21b6' },
@@ -7455,19 +7455,19 @@ function renderTraceMap() {
 
     const legend = `
         <div class="trace-map-legend">
-            <span><span class="swatch" style="background:#fef9c3;border:1px solid #ca8a04"></span>👤 Tu prompt</span>
-            <span><span class="swatch" style="background:#ede9fe;border:1px solid #7c3aed"></span>💭 Razonar</span>
-            <span><span class="swatch" style="background:#d1fae5;border:1px solid #059669"></span>🤖 Generación</span>
+            <span><span class="swatch" style="background:#fef9c3;border:1px solid #ca8a04"></span>👤 Your prompt</span>
+            <span><span class="swatch" style="background:#ede9fe;border:1px solid #7c3aed"></span>💭 Reason</span>
+            <span><span class="swatch" style="background:#d1fae5;border:1px solid #059669"></span>🤖 Generation</span>
             <span><span class="swatch" style="background:var(--accent-soft);border:1px solid var(--accent)"></span>🔧 Tool call</span>
-            <span><span class="swatch" style="background:#ccfbf1;border:1px solid #0d9488"></span>↩︎ Resultado</span>
+            <span><span class="swatch" style="background:#ccfbf1;border:1px solid #0d9488"></span>↩︎ Result</span>
             <span><span class="swatch" style="background:#fee2e2;border:1px solid #dc2626"></span>✖ Error</span>
-            <span style="margin-left:14px;color:#475569">— línea fina: orden · — línea azul gruesa: comando ↔ salida</span>
+            <span style="margin-left:14px;color:#475569">— thin line: order · — thick blue line: command ↔ output</span>
         </div>`;
 
     el.innerHTML = `
         <div class="trace-map-head">
-            <span><strong>🗺 Mapa del flujo</strong> · ${nodes.length} observaciones · ${turnIds.length} turnos</span>
-            <span>Click en un nodo para ir al mensaje en la conversación</span>
+            <span><strong>🗺 Flow map</strong> · ${nodes.length} observations · ${turnIds.length} turns</span>
+            <span>Click a node to jump to the message in the conversation</span>
         </div>
         <div class="trace-map-canvas">
             <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
@@ -7555,7 +7555,7 @@ function chatSessionTitle(sessionId) {
     if (s && s.summary) return s.summary;
     const turns = buildTurns();
     if (turns.length && turns[0].prompt) return turns[0].prompt.replace(/\s+/g, ' ').slice(0, 100);
-    return sessionId ? sessionId.slice(0, 8) + '…' : 'Sesión';
+    return sessionId ? sessionId.slice(0, 8) + '…' : 'Session';
 }
 function chatTotals(sessionId, turns) {
     const session = sessions.find(s => s.session_id === sessionId);
@@ -7621,7 +7621,7 @@ function chatTurnSpans(turn) {
     return spans;
 }
 function chatGanttHtml(rows, winStart, winEnd) {
-    if (!rows.length) return '<div class="cd-empty" style="padding:14px">Sin spans temporales.</div>';
+    if (!rows.length) return '<div class="cd-empty" style="padding:14px">No temporal spans.</div>';
     const span = Math.max(1, winEnd - winStart);
     let body = rows.map((r, i) => {
         const color = r.color || chatPalette(i);
@@ -7807,7 +7807,7 @@ function chatBindEvents() {
                     const sections = step.querySelectorAll('.ts-section');
                     const anyOpen = [...sections].some(s => s.open);
                     sections.forEach(s => { s.open = !anyOpen; });
-                    tsBtn.textContent = anyOpen ? '▸ Desplegar todo' : '▾ Plegar todo';
+                    tsBtn.textContent = anyOpen ? '▸ Expand all' : '▾ Collapse all';
                     tsBtn.dataset.tsToggle = anyOpen ? 'expand' : 'collapse';
                 }
             }
@@ -7844,7 +7844,7 @@ function chatBindEvents() {
 function renderInvocationDetails() {
     const panel = document.getElementById('chat-details');
     if (!panel) return;
-    if (!transcriptData || !transcriptData.length) { panel.innerHTML = '<div class="cd-empty">Sin datos de invocación.</div>'; return; }
+    if (!transcriptData || !transcriptData.length) { panel.innerHTML = '<div class="cd-empty">No invocation data.</div>'; return; }
     const sessionId = chatActiveSessionId || (transcriptData[0] && transcriptData[0].sid) || '';
     const turns = buildTurns();
     const session = sessions.find(s => s.session_id === sessionId);
@@ -7864,7 +7864,7 @@ function renderInvocationDetails() {
         const ws = t ? (chatTsMs(t.started) || o.startMs) : o.startMs;
         const we = Math.max(t ? (chatTsMs(t.ended) || ws) : ws, (o.startMs || 0) + o.durMs);
         v.kindChip = 'tool'; v.kindCls = 'tool'; v.ipTitle = o.name;
-        v.chips = [o.name, formatTime(o.ts), t ? ('turno #' + t.idx) : ''];
+        v.chips = [o.name, formatTime(o.ts), t ? ('turn #' + t.idx) : ''];
         v.metrics = [
             ['cost', '≡', 'Lines', formatNumber(o.outLines)],
             ['tot', '∑', 'Total', formatNumber((o.parentTokens.input || 0) + (o.parentTokens.output || 0) + (o.parentTokens.cacheRead || 0))],
@@ -7874,18 +7874,18 @@ function renderInvocationDetails() {
         ];
         v.winStart = ws; v.winEnd = Math.max(we, ws + 1);
         v.ganttRows = [];
-        if (t) v.ganttRows.push({ label: `#${t.idx} ${shortModel(o.model) || 'turno'}`, startMs: ws, durMs: (we - ws), color: '#cbd5e1', turnIdx: t.idx });
+        if (t) v.ganttRows.push({ label: `#${t.idx} ${shortModel(o.model) || 'turn'}`, startMs: ws, durMs: (we - ws), color: '#cbd5e1', turnIdx: t.idx });
         v.ganttRows.push({ label: o.name, startMs: o.startMs, durMs: o.durMs, color: o.isError ? '#dc2626' : '#e82a6b' });
         v.metaRows = [
             ['🔧', 'Tool', o.name, 'accent'],
             ['#', 'tool_use_id', o.toolUseId || '-', 'mono'],
-            ['≡', 'Turno', t ? ('#' + t.idx) : '-', ''],
-            ['◷', 'Hora', formatTime(o.ts), ''],
-            ['⏱', 'Duración', chatDur(o.durMs), ''],
+            ['≡', 'Turn', t ? ('#' + t.idx) : '-', ''],
+            ['◷', 'Time', formatTime(o.ts), ''],
+            ['⏱', 'Duration', chatDur(o.durMs), ''],
             ['⬇', 'Input', (o.inputKeys.length ? o.inputKeys.length + ' keys · ' : '') + formatNumber(o.inputLen) + ' chars', ''],
             ['⬆', 'Output', formatNumber(o.outLen) + ' chars · ' + formatNumber(o.outLines) + ' lines', ''],
             ['⚠', 'Error', o.isError ? 'true' : 'false', o.isError ? 'accent' : ''],
-            ['✦', 'Modelo (req)', shortModel(o.model) || '-', ''],
+            ['✦', 'Model (req)', shortModel(o.model) || '-', ''],
             ['∑', 'Tokens (req)', `↓${formatNumber(o.parentTokens.input)} ↑${formatNumber(o.parentTokens.output)} ⇊${formatNumber(o.parentTokens.cacheRead)}`, ''],
         ];
         v.jsonObj = { kind: 'tool', name: o.name, tool_use_id: o.toolUseId, turn: t ? t.idx : null, time: o.ts, duration: chatDur(o.durMs), input_keys: o.inputKeys, input_chars: o.inputLen, output_chars: o.outLen, output_lines: o.outLines, is_error: o.isError, request_model: shortModel(o.model), request_tokens: o.parentTokens };
@@ -7894,7 +7894,7 @@ function renderInvocationDetails() {
         const o = chatMessageObservation(turns, sel.msgIdx);
         const t = o.turn;
         v.kindChip = 'observation'; v.kindCls = 'obs'; v.ipTitle = o.role + ' message';
-        v.chips = [o.role, formatTime(o.ts), t ? ('turno #' + t.idx) : ''];
+        v.chips = [o.role, formatTime(o.ts), t ? ('turn #' + t.idx) : ''];
         v.metrics = [
             ['cost', '$', 'Cost', formatCost(turnCost(o.tokens, o.model))],
             ['tot', '∑', 'Total', formatNumber((o.tokens.input || 0) + (o.tokens.output || 0) + (o.tokens.cacheRead || 0) + (o.tokens.cacheCreate || 0))],
@@ -7903,21 +7903,21 @@ function renderInvocationDetails() {
             ['dur', '⇊', 'Cache R', formatNumber(o.tokens.cacheRead)],
         ];
         // En vez de gantt, un desglose del contenido del mensaje.
-        v.sectionTitle = 'Contenido';
+        v.sectionTitle = 'Content';
         v.altSection = `<div class="cd-summary-row">
-            <span class="cd-chip">📝 ${o.nText} texto</span>
+            <span class="cd-chip">📝 ${o.nText} text</span>
             <span class="cd-chip">💭 ${o.nThink} thinking</span>
             <span class="cd-chip">🔧 ${o.nTool} tools</span>
             <span class="cd-chip">${formatNumber(o.textLen)} chars</span>
         </div>`;
         v.metaRows = [
-            ['◆', 'Tipo', o.category, ''],
-            ['≡', 'Turno', t ? ('#' + t.idx) : '-', ''],
-            ['◷', 'Hora', formatTime(o.ts), ''],
-            ['✦', 'Modelo', shortModel(o.model) || '-', ''],
+            ['◆', 'Type', o.category, ''],
+            ['≡', 'Turn', t ? ('#' + t.idx) : '-', ''],
+            ['◷', 'Time', formatTime(o.ts), ''],
+            ['✦', 'Model', shortModel(o.model) || '-', ''],
             ['∑', 'Tokens', `↓${formatNumber(o.tokens.input)} ↑${formatNumber(o.tokens.output)} ⇊${formatNumber(o.tokens.cacheRead)} ⇈${formatNumber(o.tokens.cacheCreate)}`, ''],
-            ['🧩', 'Bloques', `${o.nText} texto · ${o.nThink} thinking · ${o.nTool} tools`, ''],
-            ['↔', 'Long. texto', formatNumber(o.textLen) + ' chars', ''],
+            ['🧩', 'Blocks', `${o.nText} text · ${o.nThink} thinking · ${o.nTool} tools`, ''],
+            ['↔', 'Text len', formatNumber(o.textLen) + ' chars', ''],
         ];
         if (o.sidechain) v.metaRows.push(['↘', 'Sidechain', 'true', '']);
         v.jsonObj = { kind: 'observation', role: o.role, category: o.category, turn: t ? t.idx : null, time: o.ts, model: shortModel(o.model), tokens: o.tokens, blocks: { text: o.nText, thinking: o.nThink, tools: o.nTool }, text_chars: o.textLen };
@@ -8003,7 +8003,7 @@ function renderInvocationDetails() {
         const full = (headerTurn.prompt || '').replace(/\s+/g, ' ').trim();
         const preview = full.slice(0, 70);
         const previewHtml = full ? ` <span class="cd-turn-sep">-</span> <span class="cd-turn-preview" title="${escapeHtml(full)}">${escapeHtml(preview)}${full.length > 70 ? '…' : ''}</span>` : '';
-        titleHtml = `Details of: <b class="cd-turn-no">Turno #${headerTurn.idx}</b>${previewHtml} ${kindChipHtml}`;
+        titleHtml = `Details of: <b class="cd-turn-no">Turn #${headerTurn.idx}</b>${previewHtml} ${kindChipHtml}`;
     } else {
         titleHtml = `Details of: ${kindChipHtml}`;
     }
@@ -8015,9 +8015,9 @@ function renderInvocationDetails() {
     const navPrevOff = obsTotal === 0 || obsPos === 0;
     const navNextOff = obsTotal === 0 || (obsPos >= 0 && obsPos >= obsTotal - 1);
     const navHtml = `<div class="cd-nav">
-        <button type="button" class="cd-nav-prev"${navPrevOff ? ' disabled' : ''} title="Observación anterior">▲ Anterior</button>
+        <button type="button" class="cd-nav-prev"${navPrevOff ? ' disabled' : ''} title="Previous observation">▲ Previous</button>
         <span class="cd-nav-pos">${obsPos >= 0 ? `obs ${obsPos + 1}/${obsTotal}` : `${obsTotal} obs`}</span>
-        <button type="button" class="cd-nav-next"${navNextOff ? ' disabled' : ''} title="Observación siguiente">Siguiente ▼</button>
+        <button type="button" class="cd-nav-next"${navNextOff ? ' disabled' : ''} title="Next observation">Next ▼</button>
     </div>`;
     const chipsHtml = v.chips.filter(Boolean).map((c, i) => `<span class="cd-chip"><span class="${i === 2 ? 'mono' : ''}">${escapeHtml(String(c))}</span></span>`).join('');
     const metricsHtml = v.metrics.map(([cls, ic, lab, val]) => `<div class="cd-metric ${cls}"><div class="cm-h"><span class="cm-ic">${ic}</span>${lab}</div><div class="cm-n">${escapeHtml(String(val))}</div></div>`).join('');
@@ -8028,7 +8028,7 @@ function renderInvocationDetails() {
 
     panel.innerHTML = `
         <div class="cd-head${hasBack ? ' has-back' : ''}">
-            <button type="button" class="cd-back" title="Subir un nivel">←</button>
+            <button type="button" class="cd-back" title="Up one level">←</button>
             <span class="cd-title">${titleHtml}</span>
             <button type="button" class="cd-spy-toggle cd-refresh" title="${chatSpyEnabled ? 'Seguir scroll: ON' : 'Seguir scroll: OFF'}">${chatSpyEnabled ? '🧲' : '📌'}</button>
             <button type="button" class="cd-refresh" title="Refrescar">⟳</button>
@@ -8243,9 +8243,9 @@ function renderTranscript() {
             <div class="ts-head">
                 <span class="ts-head-icon">🔧</span>
                 <span class="ts-head-tool">${escapeHtml(toolName)}</span>
-                <span class="ts-head-type" title="Tipo de bloque">tool_use</span>
+                <span class="ts-head-type" title="Block type">tool_use</span>
                 ${toolIdShort ? `<span class="ts-head-id" title="${escapeHtml(toolId)}">${escapeHtml(toolIdShort)}</span>` : ''}
-                <button type="button" class="ts-toggle-all" data-ts-toggle="${collapsed ? 'expand' : 'collapse'}" title="Plegar / desplegar Input · Output · Metadata">${collapsed ? '▸ Desplegar todo' : '▾ Plegar todo'}</button>
+                <button type="button" class="ts-toggle-all" data-ts-toggle="${collapsed ? 'expand' : 'collapse'}" title="Collapse / expand Input · Output · Metadata">${collapsed ? '▸ Expand all' : '▾ Collapse all'}</button>
             </div>
             ${jumpHtml}
             ${inputSection}
@@ -8269,16 +8269,16 @@ function renderTranscript() {
         html.push(`<section class="turn-group" data-turn-no="${t.idx}">
             <header class="turn-group-header">
                 <div class="turn-head-top">
-                    <button type="button" class="turn-toggle" data-turn-toggle title="Plegar / desplegar este turno">\u25BE</button>
-                    <span class="turn-no" title="N\u00FAmero de turno dentro de la sesi\u00F3n">#${t.idx}</span>
-                    <span class="turn-head-time" title="Hora del prompt">${escapeHtml(formatTime(t.started))}</span>
-                    ${wallMs ? `<span class="turn-head-dur" title="Duraci\u00F3n wall-clock del turno">${formatMs(wallMs)}</span>` : ''}
+                    <button type="button" class="turn-toggle" data-turn-toggle title="Collapse / expand this turn">\u25BE</button>
+                    <span class="turn-no" title="Turn number within the session">#${t.idx}</span>
+                    <span class="turn-head-time" title="Prompt time">${escapeHtml(formatTime(t.started))}</span>
+                    ${wallMs ? `<span class="turn-head-dur" title="Turn wall-clock duration">${formatMs(wallMs)}</span>` : ''}
                     <span class="turn-head-model" title="Modelo usado">${escapeHtml(shortModel(t.model) || '')}</span>
-                    <span class="turn-head-stat" title="Tokens totales del turno: input+output+cache">\u2211 ${formatNumber(tokens)} tok</span>
-                    <span class="turn-head-cost" title="Coste facturable del turno">${formatCost(costVal)}</span>
+                    <span class="turn-head-stat" title="Turn total tokens: input+output+cache">\u2211 ${formatNumber(tokens)} tok</span>
+                    <span class="turn-head-cost" title="Turn billable cost">${formatCost(costVal)}</span>
                 </div>
                 <div class="turn-head-prompt" title="${escapeHtml(t.prompt)}">${escapeHtml(promptPreview)}</div>
-                ${toolBadges ? `<div class="turn-head-tools" title="Herramientas usadas en este turno">${toolBadges}</div>` : ''}
+                ${toolBadges ? `<div class="turn-head-tools" title="Tools used in this turn">${toolBadges}</div>` : ''}
             </header>
             <div class="turn-group-body">`);
         turnOpen = true;
@@ -8369,7 +8369,7 @@ function renderTranscript() {
             parts.push(chatBubble('left', 'sys', 'System', msg.ts, turnIdx, mi, chatClampWrap(renderMd(txt)), tag));
         }
 
-        col.innerHTML = headHtml + `<div class="chat-stream">${parts.join('') || '<div class="cd-empty">No hay mensajes visibles.</div>'}</div>`;
+        col.innerHTML = headHtml + `<div class="chat-stream">${parts.join('') || '<div class="cd-empty">No visible messages.</div>'}</div>`;
     }
 
     for (let mi = 0; mi < transcriptData.length; mi++) {
@@ -8416,13 +8416,13 @@ function renderTranscript() {
                 const joined = textParts.join('');
                 textParts = [];
                 if (!joined.replace(/<[^>]*>/g, '').trim()) return;
-                emit('assistant', '<span class="role-badge role-assistant">\uD83E\uDD16 IA</span>', joined, msg, isSidechain);
+                emit('assistant', '<span class="role-badge role-assistant">\uD83E\uDD16 AI</span>', joined, msg, isSidechain);
             }
             for (const block of blocks) {
                 if (block.type === 'thinking' && block.thinking && block.thinking.trim()) {
                     flushText();
                     if (!filters.thinking) continue;
-                    emit('thinking', '<span class="role-badge role-thinking">💭 Razonando</span>', `<div style="white-space:pre-wrap">${escapeHtml(block.thinking)}</div>`, msg, isSidechain);
+                    emit('thinking', '<span class="role-badge role-thinking">💭 Reasoning</span>', `<div style="white-space:pre-wrap">${escapeHtml(block.thinking)}</div>`, msg, isSidechain);
                 } else if (block.type === 'text' && block.text && block.text.trim()) {
                     textParts.push(renderMd(block.text));
                 } else if (block.type === 'tool_use') {
@@ -8442,13 +8442,13 @@ function renderTranscript() {
 
         // Human-readable role badge before each message.
         const prefixMap = {
-            user:               '<span class="role-badge role-user">\uD83D\uDC64 T\u00FA</span>',
-            tool_result:        '<span class="role-badge role-result">\u21A9\uFE0E Resultado</span>',
+            user:               '<span class="role-badge role-user">\uD83D\uDC64 You</span>',
+            tool_result:        '<span class="role-badge role-result">\u21A9\uFE0E Result</span>',
             agent_notification: '<span class="role-badge role-notif">\uD83D\uDCE3 Notif</span>',
             skill:              '<span class="role-badge role-skill">\u2699\uFE0F Skill</span>',
             plan:               '<span class="role-badge role-plan">\uD83D\uDCCB Plan</span>',
-            interrupt:          '<span class="role-badge role-interrupt">\u23F9 Interrumpido</span>',
-            continuation:       '<span class="role-badge role-cont">\u21BB Continuaci\u00F3n</span>',
+            interrupt:          '<span class="role-badge role-interrupt">\u23F9 Interrupted</span>',
+            continuation:       '<span class="role-badge role-cont">\u21BB Continuation</span>',
         };
         const prefix = prefixMap[cl.category] || '';
 
@@ -8688,7 +8688,7 @@ document.getElementById('messages-container').addEventListener('click', e => {
             const sections = step.querySelectorAll('.ts-section');
             const anyOpen = [...sections].some(s => s.open);
             sections.forEach(s => { s.open = !anyOpen; });
-            tsToggleBtn.textContent = anyOpen ? '▸ Desplegar todo' : '▾ Plegar todo';
+            tsToggleBtn.textContent = anyOpen ? '▸ Expand all' : '▾ Collapse all';
             tsToggleBtn.dataset.tsToggle = anyOpen ? 'expand' : 'collapse';
         }
         return;
@@ -8835,8 +8835,8 @@ function updateChartsToggle(hidden = loadHiddenCharts()) {
     if (!btn) return;
     const ids = allChartIds();
     const allHidden = ids.length > 0 && ids.every(id => hidden.has(id));
-    btn.textContent = allHidden ? 'Mostrar todas' : 'Ocultar todas';
-    btn.title = allHidden ? 'Mostrar todas las gráficas del dashboard' : 'Ocultar todas las gráficas del dashboard';
+    btn.textContent = allHidden ? 'Show all' : 'Hide all';
+    btn.title = allHidden ? 'Show all dashboard charts' : 'Hide all dashboard charts';
     btn.classList.toggle('is-show', allHidden);
 }
 function hideChart(id) {
@@ -8904,7 +8904,7 @@ document.getElementById('turns-expand-all').addEventListener('click', () => {
 function setAllToolStepSections(open) {
     document.querySelectorAll('#chat-col .tool-step.v2 .ts-section').forEach(s => { s.open = open; });
     document.querySelectorAll('#chat-col .tool-step.v2 .ts-toggle-all').forEach(btn => {
-        btn.textContent = open ? '▾ Plegar todo' : '▸ Desplegar todo';
+        btn.textContent = open ? '▾ Collapse all' : '▸ Expand all';
         btn.dataset.tsToggle = open ? 'collapse' : 'expand';
     });
 }
@@ -9177,16 +9177,16 @@ function showDataSourceWizard(opts = {}) {
         <div style="max-width:760px;margin:60px auto;padding:32px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;box-shadow:0 2px 8px rgba(15,23,42,0.04);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
             <div style="text-align:center;margin-bottom:22px">
                 <div style="font-size:42px;margin-bottom:8px">📂</div>
-                <h1 style="margin:0 0 8px;font-size:22px;color:#0f172a">¿Dónde están tus sesiones de Claude Code?</h1>
-                <p style="color:#475569;margin:0">Elige una opción. Podrás cambiarla en cualquier momento desde la cabecera.</p>
+                <h1 style="margin:0 0 8px;font-size:22px;color:#0f172a">Where are your Claude Code sessions?</h1>
+                <p style="color:#475569;margin:0">Choose an option. You can change it anytime from the header.</p>
             </div>
             <div id="wizard-cards" style="display:grid;grid-template-columns:1fr;gap:12px">
                 <button id="opt-default" type="button" style="${configCardStyle()}">
                     <div style="display:flex;align-items:center;gap:10px">
                         <div style="font-size:22px">🏠</div>
                         <div>
-                            <div style="font-weight:700;color:#0f172a;font-size:14px">Usar la carpeta por defecto de Claude Code</div>
-                            <div style="color:#64748b;font-size:12px">Leerá <code style="font-family:'SF Mono',monospace">~/.claude/projects/</code> en sólo-lectura.</div>
+                            <div style="font-weight:700;color:#0f172a;font-size:14px">Use Claude Code's default folder</div>
+                            <div style="color:#64748b;font-size:12px">Reads <code style="font-family:'SF Mono',monospace">~/.claude/projects/</code> in read-only.</div>
                         </div>
                     </div>
                 </button>
@@ -9194,8 +9194,8 @@ function showDataSourceWizard(opts = {}) {
                     <div style="display:flex;align-items:center;gap:10px">
                         <div style="font-size:22px">🗂️</div>
                         <div>
-                            <div style="font-weight:700;color:#0f172a;font-size:14px">Mi histórico está en otra carpeta</div>
-                            <div style="color:#64748b;font-size:12px">Se abrirá un diálogo para que selecciones la carpeta.</div>
+                            <div style="font-weight:700;color:#0f172a;font-size:14px">My history is in another folder</div>
+                            <div style="color:#64748b;font-size:12px">A dialog will open for you to select the folder.</div>
                         </div>
                     </div>
                 </button>
@@ -9203,18 +9203,18 @@ function showDataSourceWizard(opts = {}) {
                     <div style="display:flex;align-items:center;gap:10px">
                         <div style="font-size:22px">📥</div>
                         <div>
-                            <div style="font-weight:700;color:#0f172a;font-size:14px">Arrastrar / subir mis ficheros .jsonl</div>
-                            <div style="color:#64748b;font-size:12px">Se copiarán dentro del panel y se usarán como fuente local.</div>
+                            <div style="font-weight:700;color:#0f172a;font-size:14px">Drag / upload my .jsonl files</div>
+                            <div style="color:#64748b;font-size:12px">They will be copied into the panel and used as the local source.</div>
                         </div>
                     </div>
                     <div id="drop-zone" style="margin-top:10px;border:2px dashed #cbd5e1;border-radius:10px;padding:18px;text-align:center;color:#64748b;background:#fff">
-                        Arrastra aquí una carpeta o ficheros <code>.jsonl</code>, o <span style="color:var(--accent);text-decoration:underline">selecciónalos</span>.
+                        Drag a folder or <code>.jsonl</code> files here, or <span style="color:var(--accent);text-decoration:underline">select them</span>.
                     </div>
                     <input id="upload-input" type="file" accept=".jsonl" multiple webkitdirectory directory style="display:none">
                 </label>
             </div>
             <div id="wizard-status" style="margin-top:14px;color:#64748b;font-size:12px;min-height:1.2em"></div>
-            ${opts.first ? '' : '<div style="text-align:center;margin-top:14px"><button id="wizard-cancel" style="background:none;border:none;color:#64748b;cursor:pointer;text-decoration:underline;font:inherit">Cancelar</button></div>'}
+            ${opts.first ? '' : '<div style="text-align:center;margin-top:14px"><button id="wizard-cancel" style="background:none;border:none;color:#64748b;cursor:pointer;text-decoration:underline;font:inherit">Cancel</button></div>'}
         </div>`;
     wireWizard(opts);
 }
@@ -9236,23 +9236,23 @@ function wireWizard(opts) {
 
     document.getElementById('opt-default')?.addEventListener('click', async () => {
         try {
-            setStatus('Guardando preferencia…');
+            setStatus('Saving preference…');
             await saveConfig({ mode: 'default' });
-            setStatus('Hecho. Cargando sesiones…', '#059669');
+            setStatus('Done. Loading sessions…', '#059669');
             setTimeout(() => location.reload(), 400);
         } catch (e) { setStatus('Error: ' + e.message, '#b91c1c'); }
     });
 
     document.getElementById('opt-custom')?.addEventListener('click', async () => {
         try {
-            setStatus('Abriendo selector de carpeta…');
+            setStatus('Opening folder picker…');
             const r = await fetch('/config/pick-folder', { method: 'POST' });
             if (!r.ok) throw new Error(await r.text());
             const { path } = await r.json();
-            if (!path) { setStatus('Selección cancelada.'); return; }
-            setStatus('Guardando ' + path + ' …');
+            if (!path) { setStatus('Selection cancelled.'); return; }
+            setStatus('Saving ' + path + ' …');
             await saveConfig({ mode: 'custom_path', projects_dir: path });
-            setStatus('Hecho. Cargando sesiones…', '#059669');
+            setStatus('Done. Loading sessions…', '#059669');
             setTimeout(() => location.reload(), 400);
         } catch (e) { setStatus('Error: ' + e.message, '#b91c1c'); }
     });
@@ -9319,31 +9319,31 @@ function walkEntry(entry, path, acc) {
 
 async function uploadFiles(files, setStatus) {
     const jsonl = files.filter(({ file }) => file.name.toLowerCase().endsWith('.jsonl'));
-    if (!jsonl.length) { setStatus('No se encontraron ficheros .jsonl', '#b45309'); return; }
-    setStatus(`Leyendo ${jsonl.length} fichero(s)…`);
+    if (!jsonl.length) { setStatus('No .jsonl files found', '#b45309'); return; }
+    setStatus(`Reading ${jsonl.length} file(s)…`);
     const payload = { files: [] };
     for (let i = 0; i < jsonl.length; i++) {
         const { file, relpath } = jsonl[i];
-        setStatus(`Leyendo ${i+1}/${jsonl.length} · ${file.name}…`);
+        setStatus(`Reading ${i+1}/${jsonl.length} · ${file.name}…`);
         const b64 = await fileToBase64(file);
         payload.files.push({ name: file.name, relpath: relpath || file.name, content_b64: b64 });
     }
-    setStatus(`Subiendo ${jsonl.length} fichero(s)…`);
+    setStatus(`Uploading ${jsonl.length} file(s)…`);
     const up = await fetch('/upload-sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
     });
-    if (!up.ok) { setStatus('Error subiendo: ' + await up.text(), '#b91c1c'); return; }
+    if (!up.ok) { setStatus('Upload error: ' + await up.text(), '#b91c1c'); return; }
     const { saved, errors } = await up.json();
-    setStatus(`Guardados ${saved.length} de ${jsonl.length}. ${errors.length ? errors.length + ' errores.' : ''} Guardando preferencia…`, '#059669');
+    setStatus(`Saved ${saved.length} of ${jsonl.length}. ${errors.length ? errors.length + ' errors.' : ''} Saving preference…`, '#059669');
     const cfgR = await fetch('/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode: 'local_copy' }),
     });
-    if (!cfgR.ok) { setStatus('Error guardando preferencia: ' + await cfgR.text(), '#b91c1c'); return; }
-    setStatus('Listo. Cargando sesiones…', '#059669');
+    if (!cfgR.ok) { setStatus('Error saving preference: ' + await cfgR.text(), '#b91c1c'); return; }
+    setStatus('Ready. Loading sessions…', '#059669');
     setTimeout(() => location.reload(), 600);
 }
 
@@ -9365,24 +9365,24 @@ function showWelcomeScreen(health) {
     if (!list) return;
     const cfg = health && health.config || {};
     const glob = (health && health.data_glob) || '~/.claude/projects/*/*.jsonl';
-    const mode = cfg.mode === 'default' ? 'carpeta por defecto'
-        : cfg.mode === 'custom_path' ? `carpeta personalizada · ${cfg.projects_dir || ''}`
-        : cfg.mode === 'local_copy' ? 'ficheros importados al panel'
-        : 'desconocida';
+    const mode = cfg.mode === 'default' ? 'default folder'
+        : cfg.mode === 'custom_path' ? `custom folder · ${cfg.projects_dir || ''}`
+        : cfg.mode === 'local_copy' ? 'files imported into the panel'
+        : 'unknown';
     list.innerHTML = `
         <div style="max-width:680px;margin:60px auto;padding:32px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
             <div style="font-size:42px;margin-bottom:12px">👋</div>
-            <h1 style="margin:0 0 12px;font-size:20px;color:#0f172a">No hemos encontrado sesiones de Claude Code</h1>
+            <h1 style="margin:0 0 12px;font-size:20px;color:#0f172a">We couldn't find any Claude Code sessions</h1>
             <p style="color:#475569;line-height:1.5;margin:0 0 14px">
-                Fuente configurada: <strong>${escapeHtml(mode)}</strong>
+                Configured source: <strong>${escapeHtml(mode)}</strong>
             </p>
             <code style="display:inline-block;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:6px 10px;color:#1e293b;font-size:12px">${escapeHtml(glob)}</code>
             <p style="color:#94a3b8;font-size:12px;margin:14px 0 22px">
-                Asegúrate de haber tenido alguna conversación en Claude Code, o cambia la carpeta de origen.
+                Make sure you've had at least one conversation in Claude Code, or change the source folder.
             </p>
             <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap">
-                <button id="welcome-refresh" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer">🔄 Volver a buscar</button>
-                <button id="welcome-change" style="background:#fff;color:#0f172a;border:1px solid #cbd5e1;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer">📂 Cambiar carpeta</button>
+                <button id="welcome-refresh" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer">🔄 Search again</button>
+                <button id="welcome-change" style="background:#fff;color:#0f172a;border:1px solid #cbd5e1;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer">📂 Change folder</button>
             </div>
         </div>`;
     document.getElementById('welcome-refresh')?.addEventListener('click', () => location.reload());
@@ -9406,9 +9406,9 @@ function renderDataSourceChip(health) {
     const cfg = health.config || {};
     // The resolved glob is the source of truth — same one clickhouse-local sees.
     const fullPath = health.data_glob || '';
-    const modeLabel = cfg.mode === 'custom_path' ? '📂 Carpeta personalizada'
-        : cfg.mode === 'local_copy' ? '📥 Sesiones importadas'
-        : '🏠 Carpeta por defecto';
+    const modeLabel = cfg.mode === 'custom_path' ? '📂 Custom folder'
+        : cfg.mode === 'local_copy' ? '📥 Imported sessions'
+        : '🏠 Default folder';
     // Shorten the middle of long paths so the chip stays readable.
     function shortenPath(p) {
         if (!p) return '';
@@ -9417,7 +9417,7 @@ function renderDataSourceChip(health) {
         return '/' + parts[0] + '/…/' + parts.slice(-3).join('/');
     }
     const shortPath = shortenPath(fullPath);
-    const tip = `Modo: ${cfg.mode || 'auto'}\nGlob leído por clickhouse-local:\n${fullPath}`;
+    const tip = `Mode: ${cfg.mode || 'auto'}\nGlob read by clickhouse-local:\n${fullPath}`;
     const chip = document.createElement('span');
     chip.id = 'data-source-chip';
     chip.title = tip;
@@ -9426,7 +9426,7 @@ function renderDataSourceChip(health) {
         <span style="color:#64748b;font-weight:500">${escapeHtml(modeLabel)}</span>
         <span style="color:#cbd5e1">·</span>
         <code style="font-family:'SF Mono',Consolas,monospace;color:#0f172a;background:transparent;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:340px">${escapeHtml(shortPath)}</code>
-        <span style="color:var(--accent);text-decoration:underline">cambiar</span>`;
+        <span style="color:var(--accent);text-decoration:underline">change</span>`;
     chip.addEventListener('click', () => openChangeFolder());
     bar.appendChild(chip);
 }
@@ -9444,15 +9444,15 @@ updateScrollTopButton();
 
 // Shutdown button — politely kills the local server process.
 document.getElementById('shutdown-btn')?.addEventListener('click', async () => {
-    if (!confirm('¿Apagar el panel? El servidor local se cerrará y esta pestaña dejará de funcionar.')) return;
+    if (!confirm('Power off the panel? The local server will close and this tab will stop working.')) return;
     try {
         await fetch('/shutdown', { method: 'POST' });
     } catch (e) { /* server closed before responding — expected */ }
     document.body.innerHTML = `
         <div style="max-width:480px;margin:120px auto;padding:32px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
             <div style="font-size:48px;margin-bottom:12px">⏻</div>
-            <h1 style="margin:0 0 8px;font-size:18px;color:#0f172a">Panel apagado</h1>
-            <p style="color:#475569">Puedes cerrar esta pestaña. Para volver a abrirlo, doble-clic en <code>claude-panel</code>.</p>
+            <h1 style="margin:0 0 8px;font-size:18px;color:#0f172a">Panel powered off</h1>
+            <p style="color:#475569">You can close this tab. To open it again, double-click <code>claude-panel</code>.</p>
         </div>`;
 });
 </script>
