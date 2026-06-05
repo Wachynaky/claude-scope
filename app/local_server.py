@@ -24,7 +24,6 @@ import glob
 import json
 import os
 import re
-import shutil
 import sys
 import threading
 import time
@@ -43,28 +42,9 @@ HOME_DATA_GLOB = os.environ.get("CLAUDE_SCOPE_HOME_GLOB") or str(Path.home() / "
 # (Windows runs inside WSL, so it lands on the Linux branch like any other host.)
 if sys.platform == "darwin":
     _APP_DIR = Path.home() / "Library" / "Application Support" / "ClaudeScope"
-    _LEGACY_APP_DIR = Path.home() / "Library" / "Application Support" / "ClaudeCodePanel"
 else:
-    _DATA_HOME = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local" / "share")))
-    _APP_DIR = _DATA_HOME / "claude-scope"
-    _LEGACY_APP_DIR = _DATA_HOME / "claude-panel"
+    _APP_DIR = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local" / "share"))) / "claude-scope"
 CONFIG_FILE = Path(os.environ.get("CLAUDE_SCOPE_CONFIG_FILE") or (_APP_DIR / "config.json"))
-
-
-def _migrate_legacy_config() -> None:
-    """Carry over config.json from the former "claude-panel" location so users
-    keep their data-source preference instead of seeing the first-run wizard
-    again. Copies (never deletes) and only when the new file is absent."""
-    legacy = _LEGACY_APP_DIR / "config.json"
-    if legacy.exists() and not CONFIG_FILE.exists():
-        try:
-            CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(legacy, CONFIG_FILE)
-        except OSError:
-            pass
-
-
-_migrate_legacy_config()
 
 VALID_MODES = {"default", "custom_path", "local_copy"}
 
