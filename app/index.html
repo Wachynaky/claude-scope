@@ -8510,13 +8510,27 @@ function renderTranscript() {
 
 function updateStickyOffset() {
     const bar = document.getElementById('filters-bar');
-    if (bar) {
-        const h = bar.offsetHeight + 'px';
-        document.getElementById('messages-container').style.setProperty('--filters-height', h);
-        document.getElementById('sticky-prompt').style.setProperty('--filters-height', h);
-        // El panel de detalles sticky se ancla bajo la barra de filtros.
-        const chatLayout = document.getElementById('chat-layout');
-        if (chatLayout) chatLayout.style.setProperty('--filters-height', h);
+    if (!bar) return;
+    const fh = bar.offsetHeight;
+    const h = fh + 'px';
+    document.getElementById('messages-container')?.style.setProperty('--filters-height', h);
+    document.getElementById('sticky-prompt')?.style.setProperty('--filters-height', h);
+    // El panel de detalles sticky se ancla bajo la barra de filtros.
+    const chatLayout = document.getElementById('chat-layout');
+    if (chatLayout) chatLayout.style.setProperty('--filters-height', h);
+    // Fija top y max-height del panel de detalles en píxeles reales. Si el calc()
+    // con var(--filters-height) recibe un valor sin unidad, toda la regla
+    // max-height se invalida (max-height:none) y el panel crece hasta su contenido
+    // sin overflow ni scroll. Calcularlo aquí en px lo hace inmune a ese fallo.
+    const det = document.getElementById('chat-details');
+    if (det) {
+        if (window.innerWidth > 1100) {
+            det.style.top = (fh + 10) + 'px';
+            det.style.maxHeight = (window.innerHeight - fh - 22) + 'px';
+        } else {
+            det.style.top = '';
+            det.style.maxHeight = '';
+        }
     }
 }
 
