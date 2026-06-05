@@ -1,5 +1,7 @@
 # Claude Scope
 
+![Dashboard de Claude Scope](img/claude-scope.png)
+
 Dashboard local de observabilidad para sesiones de Claude Code. Lee tus
 JSONL en `~/.claude/projects/` con ClickHouse embebido (chdb) y los explora en
 un navegador. **Nada sale de tu equipo.**
