@@ -2,27 +2,24 @@
 
 ![Claude Scope dashboard](img/claude-scope.png)
 
-Local observability dashboard for Claude Code sessions. It reads your JSONL
-files in `~/.claude/projects/` with embedded ClickHouse (chdb) and explores them
-in a browser. **Nothing leaves your machine.**
+A local observability dashboard for Claude Code sessions. Claude Scope reads the JSONL files in `~/.claude/projects/`, analyzes them with embedded ClickHouse via [chdb](https://github.com/chdb-io/chdb), and lets you explore everything in your browser.
+
+**Nothing leaves your machine.**
 
 Features:
 
-- **Traces and observations** by session, turn and "trace" (grouped turns).
-- **Real billable cost** per model: input, output, cache R/W 5m + 1h and server
-  tools, adjusted by service tier. Cost deduplicated by `requestId`.
-- **Per-turn and per-session detail**: prompt, response, tool calls
-  (input/output) and tokens for each step.
-- **Filters**: date, project, model, tool.
+* **Traces and observations** grouped by session, turn, and trace.
+* **Real billable cost** by model, including input, output, cache reads/writes, server tools, and service-tier adjustments. Costs are deduplicated by `requestId`.
+* **Per-turn and per-session details**, including prompts, responses, tool calls, tool inputs/outputs, and token usage for each step.
+* **Filters** by date, project, model, and tool.
 
-> Want to see it first? Jump to [The panel views](#the-panel-views) at the end.
+> Want a preview? Jump to [The panel views](#the-panel-views) below.
 
 ## How to run it
 
-You only need **Python 3.9 or newer**. The data engine is
-[**chdb**](https://github.com/chdb-io/chdb) (embedded ClickHouse), installed with
-`pip`: no binary to download, nothing to configure. The panel opens the browser
-on its own.
+You only need **Python 3.9 or newer**. Claude Scope uses [**chdb**](https://github.com/chdb-io/chdb), an embedded ClickHouse engine installed through `pip`: no separate binary, no server, and no extra configuration.
+
+The dashboard opens automatically in your browser.
 
 ### Linux and macOS
 
@@ -37,20 +34,29 @@ pip install -r requirements.txt
 python3 claude-scope/local_server.py
 ```
 
-That's it: `http://127.0.0.1:8765` opens in your browser with the panel.
+That’s it. The dashboard opens at `http://127.0.0.1:8765`.
 
-> The first time, `pip install` downloads chdb (it bundles the ClickHouse
-> engine, takes a moment). After that it starts instantly and works offline.
+> The first time, `pip install` downloads chdb, which bundles the ClickHouse engine and may take a moment. After that, Claude Scope starts instantly and works offline.
 
-If you don't have Python: on Debian/Ubuntu `sudo apt install python3 python3-venv`;
-on macOS install it from [python.org](https://www.python.org/downloads/) or with
-Homebrew (`brew install python`).
+If you don’t have Python installed:
+
+On Debian/Ubuntu:
+
+```bash
+sudo apt install python3 python3-venv
+```
+
+On macOS, install Python from [python.org](https://www.python.org/downloads/) or with Homebrew:
+
+```bash
+brew install python
+```
 
 ### Windows
 
-chdb (ClickHouse) has no native Windows build, so the panel runs **inside WSL**
-(Windows Subsystem for Linux), where everything works the same as on Linux. You
-only need to enable WSL once:
+chdb does not currently provide a native Windows build, so Claude Scope runs inside **WSL** (Windows Subsystem for Linux), where it works the same as on Linux.
+
+Enable WSL once:
 
 ```powershell
 # PowerShell as Administrator, first time only
@@ -58,8 +64,7 @@ wsl --install
 # Reboot when prompted.
 ```
 
-Then open an **Ubuntu/WSL** terminal and, inside WSL, copy and paste the exact
-same block as on Linux:
+Then open an **Ubuntu/WSL** terminal and run the same commands as on Linux:
 
 ```bash
 git clone https://github.com/Wachynaky/claude-scope.git
@@ -70,22 +75,24 @@ pip install -r requirements.txt
 python3 claude-scope/local_server.py
 ```
 
-If Python is missing inside WSL: `sudo apt install python3 python3-venv`.
+If Python is missing inside WSL:
 
----
+```bash
+sudo apt install python3 python3-venv
+```
 
-- Next time (everything already installed), just enter the folder and run:
-  ```bash
-  source .venv/bin/activate
-  python3 claude-scope/local_server.py
-  ```
-- To **stop** the panel: press `Ctrl + C` in the terminal (or use the power-off
-  button inside the panel itself).
+Next time, once everything is already installed, just enter the folder and run:
 
-## The initial screen: where to read your sessions from
+```bash
+source .venv/bin/activate
+python3 claude-scope/local_server.py
+```
 
-The first time you open the panel it asks **where to read the session files
-from** (Claude Code's `.jsonl` files):
+To stop the dashboard, press `Ctrl + C` in the terminal, or use the power-off button inside the panel.
+
+## The initial screen: choosing where to read sessions from
+
+The first time you open Claude Scope, it asks where it should read Claude Code session files from. These are Claude Code’s `.jsonl` files.
 
 <table>
   <tr>
@@ -95,37 +102,33 @@ from** (Claude Code's `.jsonl` files):
 
 You have three options:
 
-- **Use Claude Code's default folder**: reads `~/.claude/projects/` in read-only.
-  The usual choice if you use Claude Code on this same machine.
-- **My history is in another folder**: opens a dialog to pick the folder where
-  your `.jsonl` files are.
-- **Drag / upload my .jsonl files**: they are copied into the panel and used as
-  the local source; handy if someone sent you the sessions from another machine.
+* **Use Claude Code’s default folder**: reads `~/.claude/projects/` in read-only mode. Choose this if you use Claude Code on this machine.
+* **My history is in another folder**: opens a dialog so you can select the folder that contains your `.jsonl` files.
+* **Drag / upload my .jsonl files**: copies the files into Claude Scope’s local data folder and uses them as the data source. This is useful when someone sends you sessions from another machine.
 
-You can change the option anytime from the header. The panel **only reads** these
-files, it never modifies them.
+You can change the selected source at any time from the header. Claude Scope **only reads** these files; it never modifies them.
 
-## What's in the folder
+## What’s in the folder
 
-These are the only files needed to run the panel:
+These are the only files needed to run the dashboard:
 
-```
+```text
 requirements.txt         # Dependency: chdb (embedded ClickHouse)
 
-claude-scope/            # The panel itself
+claude-scope/            # The dashboard itself
 ├─ index.html            # Single-page app
-├─ local_server.py       # HTTP server + chdb queries (opens the browser)
+├─ local_server.py       # HTTP server + chdb queries; opens the browser
 ├─ pricing.json          # Anthropic pricing
-└─ assets/vendor/        # marked + ansi_up vendored (offline)
+└─ assets/vendor/        # Vendored marked + ansi_up dependencies for offline use
 ```
 
 ## Startup options
 
-`local_server.py` takes a few parameters:
+`local_server.py` accepts a few parameters:
 
 ```bash
-python3 claude-scope/local_server.py --port 9000   # another port (default 8765)
-python3 claude-scope/local_server.py --no-open      # don't auto-open the browser
+python3 claude-scope/local_server.py --port 9000   # Use another port; default is 8765
+python3 claude-scope/local_server.py --no-open     # Do not open the browser automatically
 ```
 
 ## The panel views
@@ -134,47 +137,40 @@ python3 claude-scope/local_server.py --no-open      # don't auto-open the browse
 
 ![Claude Scope dashboard](img/claude-scope.png)
 
-The main screen. At the very top, in the header:
+The dashboard is the main screen.
 
-- **Search** to filter by message content.
-- **Token mode** (toggle on the right), which changes how tokens are counted
-  across every metric:
-  - **All & Real data**: input + output + cache, deduplicated per request. This
-    is what you actually consume.
-  - **Same as Claude Code**: raw input + output only, like the «Total tokens» in
-    `/config` → Stats (usually higher because it doesn't deduplicate or count cache).
-- **Data source** (the folder you're reading) and panel **zoom**.
+At the top, in the header, you’ll find:
 
-Right below you choose **how to group** the data:
+* **Search**, to filter by message content.
+* **Token mode**, a toggle on the right that changes how tokens are counted across all metrics:
 
-- **Group by trace** (default): each session is a trace row with all its turns
-  nested below. The best view to walk through a full session.
-- **Group by turn**: one row per prompt (turn), to compare individual turns.
-- **Group by session**: one row per session, summary view.
+  * **All & Real data**: input + output + cache, deduplicated per request. This reflects what you actually consume.
+  * **Same as Claude Code**: raw input + output only, like the “Total tokens” shown in `/config` → Stats. This is usually higher because it does not deduplicate requests or account for cache behavior in the same way.
+* **Data source**, showing the folder currently being read.
+* **Panel zoom**, to adjust the interface scale.
 
-And you filter by **project, model, tool and time range** (with «Clear filters»
-to reset them). The stats bar sums up traces, tokens, total cost, API time and
-permissions, and below there are charts for **daily tokens, tokens per tool,
-token mix (input/output/cache), cost mix, cost per model, tool calls, MCP servers
-and projects**.
+Below the header, you choose how to group the data:
+
+* **Group by trace**: the default view. Each session appears as a trace row, with all its turns nested below. This is the best view for walking through a full session.
+* **Group by turn**: one row per prompt, useful for comparing individual turns.
+* **Group by session**: one row per session, useful as a summary view.
+
+You can also filter by **project, model, tool, and time range**, with a **Clear filters** option to reset everything.
+
+The stats bar summarizes traces, tokens, total cost, API time, and permissions. Below it, charts show **daily tokens, tokens per tool, token mix, cost mix, cost per model, tool calls, MCP servers, and projects**.
 
 ### The conversation
 
-Click a trace to open the session as a **chat**: System / You / Assistant bubbles
-with the tokens and cost of each turn, and the rendered content (markdown, code
-blocks, ASCII...).
+Click a trace to open the session as a **chat**: System / You / Assistant bubbles, with the tokens and cost for each turn, plus rendered content such as Markdown, code blocks, and ASCII output.
 
-Selecting a turn opens the **«Details of invocation»** panel on the right, with
-cards for Cost, **Total** tokens, Input and Output (same colors as the session
-cards), a **spans** diagram of the invocation and all its metadata. The divider
-between the chat and the panel is **draggable**: pull it to widen whichever side
-you need at any moment.
+Selecting a turn opens the **Details of invocation** panel on the right. It includes cards for cost, **total** tokens, input, and output, using the same colors as the session cards. It also shows a **spans** diagram of the invocation and its metadata.
+
+The divider between the chat and the details panel is **draggable**, so you can widen whichever side you need.
 
 ![Conversation with the details panel](img/conversacion-detalle.png)
 
-Each **tool call** (WebSearch, WebFetch, Read, Bash...) expands with its **Input /
-Output / Metadata** tabs to inspect exactly what went in and what came out:
+Each **tool call** (WebSearch, WebFetch, Read, Bash, and others) can be expanded to inspect its **Input**, **Output**, and **Metadata** tabs, so you can see exactly what was sent and what came back.
 
 ## License
 
-Apache 2.0, see `LICENSE`.
+Apache 2.0. See `LICENSE`.
