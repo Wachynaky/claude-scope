@@ -3844,18 +3844,22 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 }
 .cd-chip .mono { font-family: var(--mono, ui-monospace, monospace); color: var(--text-dim); }
 
-.cd-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+.cd-metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; margin-bottom: 16px; }
 .cd-metric {
     border: 1px solid var(--line); border-radius: 11px;
     padding: 9px 10px; background: var(--surface-2);
+    min-width: 0;
 }
 .cd-metric .cm-h { display: flex; align-items: center; gap: 6px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim); font-weight: 700; }
-.cd-metric .cm-ic { width: 16px; height: 16px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; }
-.cd-metric .cm-n { font-size: 16px; font-weight: 800; color: var(--text); margin-top: 4px; letter-spacing: -0.02em; }
-.cd-metric.cost .cm-ic { background: #fef3c7; color: #b45309; }
-.cd-metric.in   .cm-ic { background: #dbeafe; color: #1d4ed8; }
-.cd-metric.out  .cm-ic { background: #ede9fe; color: #6d28d9; }
-.cd-metric.dur  .cm-ic { background: #dcfce7; color: #15803d; }
+.cd-metric .cm-ic { width: 16px; height: 16px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; flex: 0 0 auto; }
+.cd-metric .cm-n { font-size: 16px; font-weight: 800; color: var(--text); margin-top: 4px; letter-spacing: -0.02em; overflow: hidden; text-overflow: ellipsis; }
+/* Mismos colores que las session-cards: cost (naranja), tokens/total (acento),
+   input (ámbar), output (verde), cache/duration (morado). */
+.cd-metric.cost .cm-ic { background: #fff3e0; color: #d97706; }
+.cd-metric.tot  .cm-ic { background: var(--accent-soft); color: var(--accent); }
+.cd-metric.in   .cm-ic { background: #fffbeb; color: #f59e0b; }
+.cd-metric.out  .cm-ic { background: #ecfdf5; color: #059669; }
+.cd-metric.dur  .cm-ic { background: #f5f3ff; color: #7c3aed; }
 
 .cd-section-title {
     font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
@@ -7456,20 +7460,25 @@ function chatSessionTitle(sessionId) {
 }
 function chatTotals(sessionId, turns) {
     const session = sessions.find(s => s.session_id === sessionId);
-    let cost = 0, input = 0, output = 0;
+    let cost = 0, input = 0, output = 0, cacheRead = 0, cacheCreate = 0;
     const models = new Set();
     for (const t of turns) {
         cost += turnCost(t.tokens, t.model);
         input += t.tokens.input;
         output += t.tokens.output;
+        cacheRead += t.tokens.cacheRead;
+        cacheCreate += t.tokens.cacheCreate;
         if (t.model) models.add(shortModel(t.model));
     }
     if (session) {
         if (Number(session.cost)) cost = Number(session.cost);
         if (Number(session.input_tokens)) input = Number(session.input_tokens);
         if (Number(session.output_tokens)) output = Number(session.output_tokens);
+        if (Number(session.cache_read_tokens)) cacheRead = Number(session.cache_read_tokens);
+        if (Number(session.cache_creation_tokens)) cacheCreate = Number(session.cache_creation_tokens);
     }
-    return { cost, input, output, models: models.size, modelName: models.size === 1 ? [...models][0] : (session ? shortModel(session.model) : '') };
+    const total = input + output + cacheRead + cacheCreate;
+    return { cost, input, output, cacheRead, cacheCreate, total, models: models.size, modelName: models.size === 1 ? [...models][0] : (session ? shortModel(session.model) : '') };
 }
 // Mapa tool_use_id -> ts del resultado (para medir la duración del span).
 function chatResultTsMap() {
@@ -7758,10 +7767,11 @@ function renderInvocationDetails() {
         v.kindChip = 'tool'; v.kindCls = 'tool'; v.ipTitle = o.name;
         v.chips = [o.name, formatTime(o.ts), t ? ('turno #' + t.idx) : ''];
         v.metrics = [
-            ['dur', '⏱', 'Duration', chatDur(o.durMs)],
+            ['cost', '≡', 'Lines', formatNumber(o.outLines)],
+            ['tot', '∑', 'Total', formatNumber((o.parentTokens.input || 0) + (o.parentTokens.output || 0) + (o.parentTokens.cacheRead || 0))],
             ['in', '↓', 'Input', formatNumber(o.inputLen)],
             ['out', '↑', 'Output', formatNumber(o.outLen)],
-            ['cost', '≡', 'Lines', formatNumber(o.outLines)],
+            ['dur', '⏱', 'Duration', chatDur(o.durMs)],
         ];
         v.winStart = ws; v.winEnd = Math.max(we, ws + 1);
         v.ganttRows = [];
@@ -7788,6 +7798,7 @@ function renderInvocationDetails() {
         v.chips = [o.role, formatTime(o.ts), t ? ('turno #' + t.idx) : ''];
         v.metrics = [
             ['cost', '$', 'Cost', formatCost(turnCost(o.tokens, o.model))],
+            ['tot', '∑', 'Total', formatNumber((o.tokens.input || 0) + (o.tokens.output || 0) + (o.tokens.cacheRead || 0) + (o.tokens.cacheCreate || 0))],
             ['in', '↓', 'Input', formatNumber(o.tokens.input)],
             ['out', '↑', 'Output', formatNumber(o.tokens.output)],
             ['dur', '⇊', 'Cache R', formatNumber(o.tokens.cacheRead)],
@@ -7827,6 +7838,7 @@ function renderInvocationDetails() {
         v.chips = [`${spans.length} ${spans.length === 1 ? 'call' : 'calls'}`, formatTime(turn.started), sessionId.slice(0, 8) + '… #' + turn.idx];
         v.metrics = [
             ['cost', '$', 'Cost', formatCost(turnCost(tok, turn.model))],
+            ['tot', '∑', 'Total', formatNumber((tok.input || 0) + (tok.output || 0) + (tok.cacheRead || 0) + (tok.cacheCreate || 0))],
             ['in', '↓', 'Input', formatNumber(tok.input)],
             ['out', '↑', 'Output', formatNumber(tok.output)],
             ['dur', '⏱', 'Duration', chatDur(v.winEnd - v.winStart)],
@@ -7861,6 +7873,7 @@ function renderInvocationDetails() {
         v.chips = [`${turns.length} ${turns.length === 1 ? 'trace' : 'traces'}`, formatTime(turns.length ? turns[0].started : (session && session.started)), sessionId.slice(0, 12) + '…'];
         v.metrics = [
             ['cost', '$', 'Cost', formatCost(totals.cost)],
+            ['tot', '∑', 'Total', formatNumber(totals.total)],
             ['in', '↓', 'Input', formatNumber(totals.input)],
             ['out', '↑', 'Output', formatNumber(totals.output)],
             ['dur', '⏱', 'Duration', chatDur(v.winEnd - v.winStart)],
