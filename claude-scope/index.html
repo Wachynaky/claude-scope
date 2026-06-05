@@ -3143,127 +3143,169 @@ tbody td + td { border-left: 1px solid var(--line); }
 .trace-title { color: #1f2937; }
 .trace-tools, .trace-num, .execution-meta { color: #64748b; }
 
-/* Grupo trace + turnos: cada bloque (la fila del trace + las filas de sus
-   turnos) se acota con una barra de acento a la izquierda y un borde superior
-   marcado, y se separa del siguiente grupo con una fila-espaciador. Así la
-   barra queda contenida en UN trace y no parece englobar a todos. */
-.trace-group-row > td:first-child {
-    border-left: 3px solid var(--accent);
+/* ───────── Tabla "Traces grouped with turns" — rediseño basado en el ejemplo
+   del usuario: tarjeta con cabecera clara translúcida sticky, traces colapsables
+   con chevron, micro-barra de magnitud de tokens, rail de anidamiento y detalle
+   de turno expandible. Usa el acento del app (sin fuentes externas) y va scopeado
+   a #trace-group-wrap para no colisionar con clases genéricas. */
+#trace-group-wrap {
+    --tg-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    --tg-faint: #a8a4b0;
+    --tg-softer: rgba(232, 42, 107, 0.045);
+    --tg-line2: #f4f2f7;
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 18px 50px -28px rgba(163, 19, 74, .18), 0 8px 30px -12px rgba(20, 19, 26, .08);
 }
-/* La primera fila del bloque (la fila del trace) se presenta como una cabecera:
-   banda con degradado, texto reforzado y una sombra interior que la separa de
-   los turnos. Especificidad reforzada para que el rayado par/impar no la pinte. */
-#trace-group-tbody .trace-group-row {
-    background: linear-gradient(180deg, #eef3fb 0%, #e4ecf7 100%);
-}
-#trace-group-tbody .trace-group-row > td { font-weight: 600; }
-#trace-group-tbody .trace-group-row .col-summary-inner { font-weight: 700; }
-/* Sin borde inferior: la fila del trace se funde con la cabecera de sus turnos.
-   No se ponen bordes superiores por celda (chocaban con la píldora de Project);
-   la separación entre grupos la da la fila-espaciador. */
-.trace-group-row > td { border-bottom: none; }
-
-.trace-turns-cell {
-    padding: 0 !important;
-    background: #f8fafc;
-    border-left: 3px solid var(--accent);
+#trace-group-wrap::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 1px; z-index: 6;
+    background: linear-gradient(90deg, transparent, var(--accent-line), transparent);
 }
 
-/* Espaciador entre grupos: separa visualmente un trace del siguiente y cierra
-   el grupo anterior con una línea de acento a todo lo ancho (sin chocar con
-   ninguna celda). */
-.trace-group-gap > td {
-    padding: 0 !important;
-    height: 12px;
-    background: #fff;
-    border: none !important;
-    border-top: 2px solid var(--accent-line) !important;
-}
-.trace-group-gap { cursor: default; }
-.trace-group-gap:hover > td { background: #fff; }
-
-/* Resaltado de grupo: al pasar el ratón por la fila del trace o por cualquiera
-   de sus turnos se ilumina todo el bloque, reforzando que están unidos. */
-#trace-group-tbody .trace-group-row.group-hover { background: var(--accent-soft); }
-.trace-group-row.group-hover > td:first-child { border-left-color: var(--accent-strong); }
-.trace-group-detail.group-hover .trace-turns-cell {
-    background: #eef4ff;
-    border-left-color: var(--accent-strong);
-}
-.trace-group-detail.group-hover .nested-group-caption { background: rgba(232, 42, 107, 0.16); }
-
-.nested-turns {
+/* Cabecera de columnas clara, translúcida y sticky (misma rejilla que las filas). */
+#trace-group-head, #trace-group-wrap .row-trace {
     display: grid;
-    grid-template-columns: 56px minmax(280px, 1fr) 120px 120px 120px 120px 110px;
-    gap: 0;
-}
-
-/* Cabecera del grupo de turnos: rótulo a ancho completo que conecta los turnos
-   con su trace ("↳ Turnos de esta sesión"). */
-.nested-group-caption {
-    grid-column: 1 / -1;
-    display: flex;
+    grid-template-columns: minmax(300px, 2.5fr) minmax(150px, 1.3fr) 96px 64px 92px 132px 104px 104px;
     align-items: center;
-    gap: 8px;
-    padding: 7px 12px;
-    background: var(--accent-soft);
-    color: var(--accent-dim);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--accent-line);
 }
-.nested-group-caption .nested-group-title {
-    color: #475569;
-    font-weight: 600;
-    text-transform: none;
-    letter-spacing: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+#trace-group-head {
+    position: sticky; top: 0; z-index: 5;
+    background: rgba(250, 249, 252, .9);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+    padding: 11px 20px;
+    font-size: 9.5px; letter-spacing: .12em; color: var(--tg-faint); font-weight: 700; text-transform: uppercase;
 }
+#trace-group-head > div { cursor: pointer; user-select: none; white-space: nowrap; }
+#trace-group-head > div:hover { color: var(--accent-dim); }
+#trace-group-head .r { text-align: right; }
+#trace-group-head .sorted-asc, #trace-group-head .sorted-desc { color: var(--accent); }
+#trace-group-head .sorted-asc::after { content: ' \25B2'; }
+#trace-group-head .sorted-desc::after { content: ' \25BC'; }
 
-.nested-turn-detail {
-    grid-column: 1 / -1;
-    border-bottom: 1px solid #e5ebf2;
+/* Bloque de trace + fila del trace. */
+#trace-group-wrap .trace { position: relative; }
+#trace-group-wrap .row-trace {
+    padding: 15px 20px; cursor: pointer; position: relative;
+    border-bottom: 1px solid var(--tg-line2); transition: background .15s;
 }
-
-.nested-turns > div {
-    padding: 8px 10px;
-    border-bottom: 1px solid #e5ebf2;
-    color: #475569;
-    font-size: 12px;
+#trace-group-wrap .row-trace::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--accent); opacity: 0; transition: opacity .18s;
 }
-
-.nested-turns .nested-turn-cell {
-    cursor: pointer;
+#trace-group-wrap .row-trace:hover { background: var(--tg-softer); }
+#trace-group-wrap .row-trace:hover::before { opacity: .4; }
+#trace-group-wrap .trace.open > .row-trace { background: linear-gradient(90deg, var(--tg-softer), transparent 55%); }
+#trace-group-wrap .trace.open > .row-trace::before {
+    opacity: 1;
+    background: linear-gradient(180deg, var(--accent-strong), var(--accent) 40%, var(--accent-dim));
 }
+#trace-group-wrap .trace:last-child > .row-trace { border-bottom: 0; }
 
-.nested-turns .nested-turn-cell:hover {
-    background: #eef6ff;
+#trace-group-wrap .tcell-title { display: flex; align-items: flex-start; gap: 11px; padding-right: 18px; min-width: 0; }
+#trace-group-wrap .chev { flex: none; width: 16px; height: 16px; margin-top: 2px; color: var(--tg-faint); transition: transform .2s, color .15s; }
+#trace-group-wrap .trace.open .chev { transform: rotate(90deg); color: var(--accent); }
+#trace-group-wrap .row-trace:hover .chev { color: var(--accent); }
+#trace-group-wrap .tg-body { min-width: 0; }
+#trace-group-wrap .title {
+    font-weight: 500; font-size: 13px; color: var(--text); line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-
-.nested-turns .nested-head {
-    background: #eef2f8;
-    color: #475569;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    border-bottom: 1px solid #d8e0ea;
+#trace-group-wrap .tags { display: flex; gap: 7px; margin-top: 8px; flex-wrap: wrap; }
+#trace-group-wrap .tag { font-family: var(--tg-mono); font-size: 10.5px; padding: 2px 8px; border-radius: 6px; background: var(--tg-line2); color: var(--text-soft); }
+#trace-group-wrap .tag.cost { background: var(--accent-soft); color: var(--accent-dim); font-weight: 700; }
+#trace-group-wrap .tag.err { background: #fde8e8; color: #c0392b; font-weight: 600; }
+/* Botón "Open session trace" en la cabecera del grupo (sin desplegar). */
+#trace-group-wrap .tg-open {
+    font: inherit; font-size: 10.5px; font-weight: 600; line-height: 1;
+    color: var(--accent-dim); background: var(--surface);
+    border: 1px solid var(--accent-line); border-radius: 7px;
+    padding: 4px 10px; cursor: pointer; white-space: nowrap; transition: .15s;
 }
+#trace-group-wrap .tg-open:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-.nested-turn-prompt {
-    color: #1f2937 !important;
-    font-weight: 500;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+#trace-group-wrap .proj { font-family: var(--tg-mono); font-size: 10.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+#trace-group-wrap .proj svg { width: 12px; height: 12px; flex: none; color: var(--tg-faint); }
+#trace-group-wrap .proj .p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+#trace-group-wrap .started { font-size: 11.5px; color: var(--muted); }
+#trace-group-wrap .started b { display: block; font-family: var(--tg-mono); color: var(--text-soft); font-weight: 500; }
+#trace-group-wrap .cell-r { text-align: right; }
+#trace-group-wrap .tnum { font-family: var(--tg-mono); font-variant-numeric: tabular-nums; font-size: 12px; color: var(--text-soft); }
+#trace-group-wrap .cost-strong { font-weight: 700; color: var(--accent-dim); }
+
+/* micro-barra de magnitud de tokens (ancho calculado en el render). */
+#trace-group-wrap .tokcell { text-align: right; }
+#trace-group-wrap .tokcell .v { font-family: var(--tg-mono); font-variant-numeric: tabular-nums; font-size: 12px; display: block; color: var(--text-soft); }
+#trace-group-wrap .tokcell .bar { height: 3px; border-radius: 99px; background: var(--line); margin-top: 5px; margin-left: auto; overflow: hidden; max-width: 80px; }
+#trace-group-wrap .tokcell .bar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent-dim)); }
+
+/* panel de turns (expandible con el truco de grid-template-rows). */
+#trace-group-wrap .turns-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .28s cubic-bezier(.4, 0, .2, 1); background: var(--surface-2); }
+#trace-group-wrap .trace.open .turns-wrap { grid-template-rows: 1fr; }
+#trace-group-wrap .turns-inner { overflow: hidden; }
+#trace-group-wrap .turns-head {
+    display: flex; align-items: center; gap: 8px; padding: 12px 20px 10px 28px;
+    font-size: 10.5px; letter-spacing: .05em; color: var(--accent-dim); font-weight: 700; text-transform: uppercase;
+    background: linear-gradient(90deg, var(--accent-soft), transparent 70%);
+    border-top: 1px solid var(--accent-line); border-bottom: 1px solid var(--line);
 }
+#trace-group-wrap .turns-head .q { color: var(--muted); font-weight: 500; text-transform: none; letter-spacing: 0; }
 
-.trace-group-row {
-    font-weight: 500;
+/* fila de turn. */
+#trace-group-wrap .row-turn, #trace-group-wrap .turn-head-row {
+    display: grid; grid-template-columns: 54px minmax(240px, 1fr) 96px 132px 104px;
+    align-items: center; padding: 0 20px 0 28px;
+}
+#trace-group-wrap .turn-head-row { padding-top: 9px; padding-bottom: 7px; font-size: 9px; letter-spacing: .12em; color: var(--tg-faint); font-weight: 700; text-transform: uppercase; }
+#trace-group-wrap .turn-head-row .r { text-align: right; }
+#trace-group-wrap .turn { border-top: 1px solid var(--tg-line2); position: relative; }
+#trace-group-wrap .turn:first-of-type { border-top: 0; }
+#trace-group-wrap .row-turn { padding-top: 11px; padding-bottom: 11px; cursor: pointer; transition: background .13s; position: relative; }
+#trace-group-wrap .row-turn:hover, #trace-group-wrap .turn.open .row-turn { background: #fff; }
+#trace-group-wrap .turn-rail { position: absolute; left: 34px; top: 0; bottom: 0; width: 1.5px; background: var(--accent-line); opacity: .5; }
+#trace-group-wrap .tno { font-family: var(--tg-mono); font-size: 11px; color: var(--tg-faint); display: flex; align-items: center; gap: 7px; }
+#trace-group-wrap .tno .mchev { width: 12px; height: 12px; flex: none; color: var(--tg-faint); transition: transform .18s; }
+#trace-group-wrap .turn.open .mchev { transform: rotate(90deg); color: var(--accent); }
+#trace-group-wrap .tno b { color: var(--text-soft); font-weight: 500; }
+#trace-group-wrap .tprompt { font-size: 12px; color: var(--text-soft); padding-right: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#trace-group-wrap .tprompt code, #trace-group-wrap .tprompt .mono { font-family: var(--tg-mono); font-size: 11px; background: var(--tg-line2); padding: 1px 5px; border-radius: 5px; }
+#trace-group-wrap .tstarted { font-size: 11px; color: var(--muted); font-family: var(--tg-mono); }
+#trace-group-wrap .tcost { font-family: var(--tg-mono); font-variant-numeric: tabular-nums; font-size: 12px; text-align: right; color: var(--text-soft); }
+#trace-group-wrap .tcost.zero { color: var(--tg-faint); }
+#trace-group-wrap .cost-pill { font-family: var(--tg-mono); font-size: 12px; background: var(--accent-soft); color: var(--accent-dim); font-weight: 700; padding: 2px 9px; border-radius: 7px; }
+
+/* detalle de turno (expandible). */
+#trace-group-wrap .detail-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .28s cubic-bezier(.4, 0, .2, 1); }
+#trace-group-wrap .turn.open .detail-wrap { grid-template-rows: 1fr; }
+#trace-group-wrap .detail-inner { overflow: hidden; }
+#trace-group-wrap .detail { margin: 4px 22px 18px 50px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: 0 6px 24px -8px rgba(20, 19, 26, .12); overflow: hidden; position: relative; }
+#trace-group-wrap .detail::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-strong), var(--accent-dim)); }
+#trace-group-wrap .detail-top { padding: 14px 18px 4px; }
+#trace-group-wrap .detail-top .lbl { font-size: 9.5px; letter-spacing: .13em; color: var(--tg-faint); font-weight: 700; text-transform: uppercase; }
+#trace-group-wrap .detail-prompt { font-size: 12.5px; color: var(--text); margin: 8px 0 14px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+#trace-group-wrap .detail-prompt code { font-family: var(--tg-mono); font-size: 11.5px; background: var(--accent-soft); color: var(--accent-dim); padding: 1px 6px; border-radius: 5px; }
+#trace-group-wrap .mgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--tg-line2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+#trace-group-wrap .metric { background: var(--surface); padding: 10px 13px; min-width: 0; }
+#trace-group-wrap .metric .mk { font-size: 9px; letter-spacing: .08em; color: var(--tg-faint); font-weight: 700; white-space: nowrap; text-transform: uppercase; }
+#trace-group-wrap .metric .mv { font-family: var(--tg-mono); font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 500; margin-top: 5px; color: var(--text); overflow: hidden; text-overflow: ellipsis; }
+#trace-group-wrap .metric.accent .mv { color: var(--accent); }
+#trace-group-wrap .metric.dim .mv { color: var(--tg-faint); }
+#trace-group-wrap .detail-foot { display: flex; align-items: center; gap: 14px; padding: 12px 18px; flex-wrap: wrap; }
+#trace-group-wrap .tools { font-size: 11.5px; color: var(--muted); }
+#trace-group-wrap .tools b { color: var(--text-soft); }
+#trace-group-wrap .tool-tag { font-family: var(--tg-mono); font-size: 10.5px; background: var(--tg-line2); color: var(--text-soft); padding: 2px 8px; border-radius: 6px; margin-left: 5px; }
+#trace-group-wrap .btn-trace { margin-left: auto; border: 1px solid var(--accent); background: var(--accent); color: #fff; font: inherit; font-size: 11.5px; font-weight: 600; padding: 8px 15px; border-radius: 8px; cursor: pointer; transition: .15s; }
+#trace-group-wrap .btn-trace:hover { background: var(--accent-dim); }
+#trace-group-wrap .tg-empty { padding: 30px 20px; text-align: center; color: var(--muted); }
+
+@media (max-width: 1100px) {
+    #trace-group-head, #trace-group-wrap .row-trace { grid-template-columns: minmax(200px, 2.5fr) 90px 58px 84px 120px 96px 96px; }
+    #trace-group-head .h-proj, #trace-group-wrap .proj { display: none; }
+    #trace-group-wrap .mgrid { grid-template-columns: repeat(4, 1fr); }
 }
 
 .turn-detail-row.hidden { display: none; }
@@ -4178,24 +4220,18 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
             <h2>Traces grouped with turns</h2>
             <span id="trace-group-summary">One trace row with all prompt turns nested below</span>
         </div>
-        <div class="table-wrap hidden" id="trace-group-wrap">
-            <table id="trace-group-table">
-                <thead>
-                    <tr>
-                        <th data-trace-sort="summary">Trace / Session · Total cost</th>
-                        <th data-trace-sort="project">Project</th>
-                        <th data-trace-sort="started">Started</th>
-                        <th data-trace-sort="turns" class="align-right">Turns</th>
-                        <th data-trace-sort="generations" class="align-right">Generations</th>
-                        <th data-trace-sort="tokens" class="align-right">Tokens</th>
-                        <th data-trace-sort="cacheRead" class="align-right">Cache read $</th>
-                        <th data-trace-sort="cacheWrite" class="align-right">Cache write $</th>
-                        <th data-trace-sort="cost" class="align-right">Cost</th>
-                        <th data-trace-sort="model">Model</th>
-                    </tr>
-                </thead>
-                <tbody id="trace-group-tbody"></tbody>
-            </table>
+        <div class="hidden" id="trace-group-wrap">
+            <div id="trace-group-head">
+                <div data-trace-sort="summary">Trace / Session</div>
+                <div class="h-proj" data-trace-sort="project">Project</div>
+                <div data-trace-sort="started">Started</div>
+                <div class="r" data-trace-sort="turns">Turns</div>
+                <div class="r" data-trace-sort="generations">Gener.</div>
+                <div class="r" data-trace-sort="tokens">Tokens</div>
+                <div class="r" data-trace-sort="cacheRead">Cache R $</div>
+                <div class="r" data-trace-sort="cost">Cost</div>
+            </div>
+            <div id="trace-group-tbody"></div>
         </div>
         <div id="list-loading" class="loading">Loading sessions...</div>
         <div id="list-error" class="error-msg hidden"></div>
@@ -6042,11 +6078,68 @@ function turnDetailHtml(t) {
     </div>`;
 }
 
+// Iconos SVG y helpers del rediseño de la tabla "Traces grouped with turns".
+const TG_CHEV = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg>';
+const TG_MCHEV = '<svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg>';
+const TG_FOLDER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+const TG_ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+
+// Devuelve {day, time}: "Today"/fecha + HH:MM. (En el navegador Date sí está disponible.)
+function traceStarted(iso) {
+    const d = new Date(iso);
+    if (isNaN(d)) return { day: '', time: String(iso || '') };
+    const pad = n => String(n).padStart(2, '0');
+    const now = new Date();
+    const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    const day = d.toDateString() === now.toDateString()
+        ? 'Today'
+        : `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    return { day, time };
+}
+
+// Tarjeta de detalle de un turno (grid de métricas + tools + abrir traza).
+function traceTurnDetail(t) {
+    const bd = costBreakdown(t);
+    const sid = String(t.session_id || '');
+    const tools = String(t.tools || '').trim();
+    const toolTags = tools
+        ? tools.split(/\s*[,·]\s*/).filter(Boolean).map(x => `<span class="tool-tag">${escapeHtml(x)}</span>`).join('')
+        : '<span class="tool-tag">—</span>';
+    const cacheWrite = (Number(t.cache_creation_5m_tokens) || 0) + (Number(t.cache_creation_1h_tokens) || 0);
+    const m = (k, v, cls) => `<div class="metric${cls ? ' ' + cls : ''}"><div class="mk">${k}</div><div class="mv">${v}</div></div>`;
+    return `<div class="detail">
+        <div class="detail-top">
+            <div class="lbl">Prompt</div>
+            <div class="detail-prompt">${escapeHtml(String(t.prompt || '(empty prompt)'))}</div>
+        </div>
+        <div class="mgrid">
+            ${m('Session', escapeHtml(sid.slice(0, 8)))}
+            ${m('Turn', Number(t.turn_no) || '')}
+            ${m('Model', escapeHtml(shortModel(t.model) || '-'), 'accent')}
+            ${m('Service tier', escapeHtml(t.service_tier || 'standard'))}
+            ${m('Generations', formatNumber(t.generations || 0))}
+            ${m('Input tok.', tokenViewRow(t, 'input'))}
+            ${m('Output tok.', tokenViewRow(t, 'output'))}
+            ${m('Cache read', formatNumber(t.cache_read_tokens || 0))}
+            ${m('Cache write', formatNumber(cacheWrite))}
+            ${m('Total tok.', tokenViewRow(t, 'total'))}
+            ${m('Cost', formatCost(t.cost || 0), 'accent')}
+            ${m('Input cost', formatCost(bd.input), 'dim')}
+            ${m('Output cost', formatCost(bd.output))}
+            ${m('Cache R cost', formatCost(bd.cacheRead))}
+        </div>
+        <div class="detail-foot">
+            <span class="tools"><b>Tools:</b> ${toolTags}</span>
+            <button class="btn-trace open-turn-session" data-session="${escapeHtml(sid)}">Open session trace</button>
+        </div>
+    </div>`;
+}
+
 function renderTraceGroupList() {
     const tbody = document.getElementById('trace-group-tbody');
     if (!tbody) return;
     if (!turnsLoaded) {
-        tbody.innerHTML = `<tr><td colspan="10" class="empty-state">Select Group by trace to load grouped turns</td></tr>`;
+        tbody.innerHTML = `<div class="tg-empty">Select Group by trace to load grouped turns</div>`;
         setText('trace-group-summary', 'Select Group by trace to load trace totals');
         return;
     }
@@ -6054,7 +6147,7 @@ function renderTraceGroupList() {
     const filteredTurns = getFilteredTurns();
     const filteredSessions = getFilteredSessions();
     if (!filteredSessions.length) {
-        tbody.innerHTML = `<tr><td colspan="10" class="empty-state">No traces found</td></tr>`;
+        tbody.innerHTML = `<div class="tg-empty">No traces found</div>`;
         setText('trace-group-summary', '0 traces');
         return;
     }
@@ -6115,86 +6208,87 @@ function renderTraceGroupList() {
     const allTraceTokensReal = rows.reduce((s, g) => s + (Number(g.session.total_tokens) || 0), 0);
     const allBreakdown = sumCostBreakdown(filteredSessions);
     setHTML('trace-group-summary', `${rows.length} traces · ${filteredTurns.length} turns · ${tokenView(allTraceTokens, allTraceTokensReal)} tokens · ${formatCost(allTraceCost)} total · cache R ${formatCost(allBreakdown.cacheRead)} · cache W 5m ${formatCost(allBreakdown.cacheCreation5m)} · cache W 1h ${formatCost(allBreakdown.cacheCreation1h)} · server tools ${formatCost(allBreakdown.serverTools)}`);
-    tbody.innerHTML = rows.map(g => {
+    const maxTraceTok = Math.max(1, ...rows.map(g => displayTotalTokens(g.session) || 0));
+    tbody.innerHTML = rows.map((g, gi) => {
         const summary = getSummaryText(g.session || { first_question: g.turns[0]?.prompt || '' });
         const gTokensDisp = displayTotalTokens(g.session);
         const gTokensReal = Number(g.session.total_tokens) || 0;
-        const turnsTokensDisp = g.turns.reduce((s, t) => s + displayTotalTokens(t), 0);
-        const otherTokensDisp = Math.max(0, gTokensDisp - turnsTokensDisp);
-        const turnsHtml = g.turns.map(t => {
-                const bd = costBreakdown(t);
-                const turnNo = escapeHtml(String(t.turn_no || ''));
-                const sid = escapeHtml(g.session_id);
-                return `
-                    <div class="col-number nested-turn-cell" data-session="${sid}" data-turn="${turnNo}">#${Number(t.turn_no) || ''}</div>
-                    <div class="nested-turn-prompt nested-turn-cell" data-session="${sid}" data-turn="${turnNo}" title="${escapeHtml(t.prompt || '')}">${escapeHtml(t.prompt || '(empty prompt)')}</div>
-                    <div class="nested-turn-cell" data-session="${sid}" data-turn="${turnNo}">${escapeHtml(formatTime(t.started))}</div>
-                    <div class="col-number nested-turn-cell" data-session="${sid}" data-turn="${turnNo}">${tokenViewRow(t, 'total')}</div>
-                    <div class="col-number nested-turn-cell" data-session="${sid}" data-turn="${turnNo}">${formatCost(bd.cacheRead)}</div>
-                    <div class="col-number nested-turn-cell" data-session="${sid}" data-turn="${turnNo}" title="5m ${formatCost(bd.cacheCreation5m)} · 1h ${formatCost(bd.cacheCreation1h)}">${formatCost(bd.cacheCreation)}</div>
-                    <div class="col-number nested-turn-cell" data-session="${sid}" data-turn="${turnNo}">${formatCost(t.cost || 0)}</div>
-                    <div class="nested-turn-detail hidden" data-nested-turn-detail="${sid}:${turnNo}">${turnDetailHtml(t)}</div>
-                `;
-            }).join('');
-        // When session cost > Σ turn cost there are assistant messages outside any
-        // user→assistant turn (continuations, plan iterations, task notifications…).
-        // Surface them explicitly so the breakdown sums to session.cost.
-        const otherHtml = g.otherCost > 0.0001 || g.otherTokens > 0 ? `
-            <div class="col-number">–</div>
-            <div class="nested-turn-prompt" title="Assistant messages outside a numbered turn (continuations, plan iterations, task notifications). Counted in session totals but not assigned to a turn.">(out-of-turn assistant messages)</div>
-            <div></div>
-            <div class="col-number">${tokenView(otherTokensDisp, g.otherTokens)}</div>
-            <div class="col-number"></div>
-            <div class="col-number"></div>
-            <div class="col-number">${formatCost(g.otherCost)}</div>
-        ` : '';
-        const errBadge = g.apiErrors ? `<span class="cost-pill high" title="API errors during this session">${g.apiErrors} err</span>` : '';
-        const sidechainBadge = g.sidechainGenerations ? `<span class="quality-pill" title="sidechain (subagent) generations">${g.sidechainGenerations} sub</span>` : '';
-        const cacheWriteCost = g.cacheCreation5mCost + g.cacheCreation1hCost;
+        const sid = escapeHtml(g.session_id);
+        const sid8 = escapeHtml(String(g.session_id).slice(0, 8));
+        const st = traceStarted(g.started);
+        const tokPct = Math.max(2, Math.min(100, Math.round((gTokensDisp / maxTraceTok) * 100)));
+        const errTag = g.apiErrors ? `<span class="tag err" title="API errors during this session">${g.apiErrors} err</span>` : '';
+        const subTag = g.sidechainGenerations ? `<span class="tag" title="sidechain (subagent) generations">${g.sidechainGenerations} sub</span>` : '';
         const turnsTitle = g.turns.length
             ? `Session cost ${formatCost(g.cost)} = Σ turns ${formatCost(g.turnsCost)}${g.otherCost > 0.0001 ? ` + out-of-turn ${formatCost(g.otherCost)}` : ''}`
             : 'No conversational turns detected';
-        return `
-            <tr class="trace-group-row" data-session="${escapeHtml(g.session_id)}">
-                <td>
-                    <div class="summary-with-hint">
-                        <div class="col-summary-inner" title="${escapeHtml(summary)}">${escapeHtml(summary)}</div>
-                        <div class="summary-meta">
-                            <span class="cost-pill ${costLevel(g.cost)}" title="${escapeHtml(turnsTitle)}">${formatCost(g.cost)} total</span>
-                            <span class="quality-pill">${g.turns.length} turns</span>
-                            <span class="quality-pill">${tokenView(gTokensDisp, gTokensReal)} tokens</span>
-                            ${sidechainBadge}
-                            ${errBadge}
+
+        const turnsTokensDisp = g.turns.reduce((s, t) => s + displayTotalTokens(t), 0);
+        const turnsHtml = g.turns.map(t => {
+            const turnNo = Number(t.turn_no) || '';
+            const tst = traceStarted(t.started);
+            const cost = Number(t.cost) || 0;
+            const costHtml = cost <= 0
+                ? `<div class="tcost zero">${formatCost(0)}</div>`
+                : cost >= 0.8
+                    ? `<div class="tcost"><span class="cost-pill">${formatCost(cost)}</span></div>`
+                    : `<div class="tcost">${formatCost(cost)}</div>`;
+            return `<div class="turn" data-session="${sid}" data-turn="${escapeHtml(String(t.turn_no || ''))}">
+                <div class="turn-rail"></div>
+                <div class="row-turn">
+                    <div class="tno">${TG_MCHEV}<b>#${turnNo}</b></div>
+                    <div class="tprompt" title="${escapeHtml(t.prompt || '')}">${escapeHtml(t.prompt || '(empty prompt)')}</div>
+                    <div class="tstarted">${escapeHtml(tst.time)}</div>
+                    <div class="tokcell"><span class="v">${tokenViewRow(t, 'total')}</span></div>
+                    ${costHtml}
+                </div>
+                <div class="detail-wrap"><div class="detail-inner">${traceTurnDetail(t)}</div></div>
+            </div>`;
+        }).join('');
+
+        // Asistente fuera de turno (continuations, planes, notificaciones): se
+        // muestra como fila informativa para que el desglose cuadre con el coste.
+        const otherHtml = (g.otherCost > 0.0001 || g.otherTokens > 0) ? `<div class="turn">
+            <div class="turn-rail"></div>
+            <div class="row-turn" style="cursor:default">
+                <div class="tno"><b>—</b></div>
+                <div class="tprompt" title="Mensajes del asistente fuera de un turno numerado (continuations, planes, notificaciones).">(out-of-turn assistant messages)</div>
+                <div class="tstarted"></div>
+                <div class="tokcell"><span class="v">${tokenView(Math.max(0, gTokensDisp - turnsTokensDisp), g.otherTokens)}</span></div>
+                <div class="tcost">${formatCost(g.otherCost)}</div>
+            </div>
+        </div>` : '';
+
+        return `<div class="trace${gi === 0 ? ' open' : ''}" data-session="${sid}">
+            <div class="row-trace">
+                <div class="tcell-title">
+                    ${TG_CHEV}
+                    <div class="tg-body">
+                        <div class="title" title="${escapeHtml(summary)}">${escapeHtml(summary)}</div>
+                        <div class="tags">
+                            <span class="tag cost" title="${escapeHtml(turnsTitle)}">${formatCost(g.cost)}</span>
+                            <span class="tag">${g.turns.length} turns</span>
+                            <span class="tag">${tokenView(gTokensDisp, gTokensReal)} tokens</span>
+                            ${subTag}${errTag}
+                            <button class="tg-open open-turn-session" data-session="${sid}" title="Abrir la traza completa de la sesión">Open session trace ↗</button>
                         </div>
                     </div>
-                </td>
-                <td class="col-model" title="${escapeHtml(g.project)}">${escapeHtml(g.project)}</td>
-                <td class="col-time">${formatTime(g.started)}</td>
-                <td class="col-number align-right">${g.turns.length}</td>
-                <td class="col-number align-right">${formatNumber(g.generations)}</td>
-                <td class="col-number align-right">${tokenView(gTokensDisp, gTokensReal)}</td>
-                <td class="col-number align-right">${formatCost(g.cacheReadCost)}</td>
-                <td class="col-number align-right" title="5m ${formatCost(g.cacheCreation5mCost)} · 1h ${formatCost(g.cacheCreation1hCost)}">${formatCost(cacheWriteCost)}</td>
-                <td class="col-cost" title="${escapeHtml(turnsTitle)}">${formatCost(g.cost)}</td>
-                <td class="col-model" title="${escapeHtml([...g.serviceTiers].join(', ') || 'standard')}">${escapeHtml([...g.models].slice(0, 3).join(', '))}</td>
-            </tr>
-            <tr class="trace-group-detail" data-session="${escapeHtml(g.session_id)}">
-                <td colspan="10" class="trace-turns-cell">
-                    <div class="nested-turns">
-                        <div class="nested-group-caption">↳ Turnos de esta sesión<span class="nested-group-title" title="${escapeHtml(summary)}">${escapeHtml(summary)}</span></div>
-                        <div class="nested-head">Turn</div>
-                        <div class="nested-head">Prompt · session total ${formatCost(g.cost)}</div>
-                        <div class="nested-head">Started</div>
-                        <div class="nested-head">Tokens</div>
-                        <div class="nested-head">Cache R $</div>
-                        <div class="nested-head">Cache W $</div>
-                        <div class="nested-head">Cost · Σ turns ${formatCost(g.turnsCost)}</div>
-                        ${turnsHtml}
-                        ${otherHtml}
-                    </div>
-                </td>
-            </tr>
-            <tr class="trace-group-gap" aria-hidden="true"><td colspan="10"></td></tr>`;
+                </div>
+                <div class="proj">${TG_FOLDER}<span class="p" title="${escapeHtml(g.project)}">${escapeHtml(g.project)}</span></div>
+                <div class="started">${escapeHtml(st.day)}<b>${escapeHtml(st.time)}</b></div>
+                <div class="cell-r tnum">${g.turns.length}</div>
+                <div class="cell-r tnum">${formatNumber(g.generations)}</div>
+                <div class="tokcell"><span class="v">${tokenView(gTokensDisp, gTokensReal)}</span><span class="bar"><i style="width:${tokPct}%"></i></span></div>
+                <div class="cell-r tnum">${formatCost(g.cacheReadCost)}</div>
+                <div class="cell-r tnum cost-strong" title="${escapeHtml(turnsTitle)}">${formatCost(g.cost)}</div>
+            </div>
+            <div class="turns-wrap"><div class="turns-inner">
+                <div class="turns-head">${TG_ARROW} Turnos de esta sesión <span class="q">· session ${sid8}</span></div>
+                <div class="turn-head-row"><div>Turn</div><div>Prompt</div><div>Started</div><div class="r">Tokens</div><div class="r">Cost</div></div>
+                ${turnsHtml}
+                ${otherHtml}
+            </div></div>
+        </div>`;
     }).join('');
 }
 
@@ -6409,71 +6503,51 @@ function traceGroupCompare(a, b, col) {
 
 // Marca la columna activa con la flecha asc/desc (reutiliza .sorted-asc/.sorted-desc).
 function updateTraceSortIndicators() {
-    document.querySelectorAll('#trace-group-table thead th').forEach(th => {
-        th.classList.remove('sorted-asc', 'sorted-desc');
-        if (th.dataset.traceSort === traceSortCol) {
-            th.classList.add(traceSortDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+    document.querySelectorAll('#trace-group-head [data-trace-sort]').forEach(h => {
+        h.classList.remove('sorted-asc', 'sorted-desc');
+        if (h.dataset.traceSort === traceSortCol) {
+            h.classList.add(traceSortDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
         }
     });
 }
 
 // Clic en una cabecera: alterna asc/desc si ya está activa, o pasa a esa columna.
 // Las columnas de texto empiezan en asc; las numéricas y la fecha, en desc.
-document.querySelector('#trace-group-table thead').addEventListener('click', e => {
-    const th = e.target.closest('th[data-trace-sort]');
-    if (!th) return;
-    const col = th.dataset.traceSort;
+document.getElementById('trace-group-head').addEventListener('click', e => {
+    const h = e.target.closest('[data-trace-sort]');
+    if (!h) return;
+    const col = h.dataset.traceSort;
     if (traceSortCol === col) {
         traceSortDir = traceSortDir === 'asc' ? 'desc' : 'asc';
     } else {
         traceSortCol = col;
-        traceSortDir = (col === 'project' || col === 'model') ? 'asc' : 'desc';
+        traceSortDir = (col === 'project' || col === 'summary') ? 'asc' : 'desc';
     }
     renderTraceGroupList();
 });
 
+// Interacción de la tabla rediseñada: la fila del trace pliega/despliega sus
+// turnos; la fila del turno pliega/despliega su detalle; el botón "Open session
+// trace" navega a la traza completa.
 document.getElementById('trace-group-tbody').addEventListener('click', e => {
-    const openBtn = e.target.closest('.open-turn-session');
+    const openBtn = e.target.closest('.open-turn-session, .btn-trace');
     if (openBtn) {
+        e.stopPropagation();
         navigateTo('session/' + openBtn.dataset.session);
         return;
     }
-    const turnCell = e.target.closest('.nested-turn-cell');
-    if (turnCell) {
-        const key = `${turnCell.dataset.session}:${turnCell.dataset.turn}`;
-        const detail = document.querySelector(`[data-nested-turn-detail="${CSS.escape(key)}"]`);
-        if (detail) detail.classList.toggle('hidden');
+    const rowTurn = e.target.closest('.row-turn');
+    if (rowTurn) {
+        const turn = rowTurn.closest('.turn');
+        if (turn) turn.classList.toggle('open');
         return;
     }
-    const tr = e.target.closest('tr[data-session]');
-    if (!tr) return;
-    navigateTo('session/' + tr.dataset.session);
+    const rowTrace = e.target.closest('.row-trace');
+    if (rowTrace) {
+        const trace = rowTrace.closest('.trace');
+        if (trace) trace.classList.toggle('open');
+    }
 });
-
-// Resaltado de grupo al pasar el ratón: ilumina la fila del trace y todas las
-// filas de sus turnos a la vez (comparten data-session), dejando claro que
-// forman un único bloque. La fila-espaciador no tiene data-session, así que al
-// pasar por ella se limpia el resaltado.
-(function setupTraceGroupHover() {
-    const tbody = document.getElementById('trace-group-tbody');
-    if (!tbody) return;
-    let hoveredSid = null;
-    const clear = () => {
-        tbody.querySelectorAll('tr.group-hover').forEach(r => r.classList.remove('group-hover'));
-        hoveredSid = null;
-    };
-    tbody.addEventListener('mouseover', e => {
-        const tr = e.target.closest('tr[data-session]');
-        const sid = tr && tr.dataset.session;
-        if (sid === hoveredSid) return;
-        clear();
-        if (!sid) return;
-        hoveredSid = sid;
-        tbody.querySelectorAll(`tr[data-session="${CSS.escape(sid)}"]`)
-            .forEach(r => r.classList.add('group-hover'));
-    });
-    tbody.addEventListener('mouseleave', clear);
-})();
 
 // Search — always queries ClickHouse for full-text search
 let searchTimeout = null;
