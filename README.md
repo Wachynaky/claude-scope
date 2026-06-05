@@ -88,7 +88,7 @@ sesión** (los `.jsonl` de Claude Code):
 
 <table>
   <tr>
-    <td><img src="pantalla-inicial.png" alt="Pantalla inicial: ¿Dónde están tus sesiones de Claude Code?" width="520"></td>
+    <td><img src="img/pantalla-inicial.png" alt="Pantalla inicial: ¿Dónde están tus sesiones de Claude Code?" width="520"></td>
   </tr>
 </table>
 
@@ -131,7 +131,7 @@ python3 claude-scope/local_server.py --no-open      # no abrir el navegador solo
 
 ### El dashboard
 
-![Dashboard de Claude Scope](claude-scope.png)
+![Dashboard de Claude Scope](img/claude-scope.png)
 
 Es la pantalla principal. Arriba del todo, en la cabecera:
 
@@ -169,7 +169,7 @@ tarjetas de sesión), un diagrama de **spans** de la invocación y todos sus met
 El separador entre el chat y el panel es **arrastrable**: tira de él para ensanchar
 el lado que necesites en cada momento.
 
-![Conversación con el panel de detalles](conversacion-detalle.png)
+![Conversación con el panel de detalles](img/conversacion-detalle.png)
 
 Cada **llamada a herramienta** (WebSearch, WebFetch, Read, Bash…) se despliega con sus pestañas **Input / Output / Metadata** para inspeccionar exactamente qué entró y
 qué salió:
