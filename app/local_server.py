@@ -238,7 +238,7 @@ def pick_folder_dialog(initialdir: str | None = None) -> str:
         import tkinter as tk
         from tkinter import filedialog
     except Exception as exc:
-        raise RuntimeError(f"No se pudo abrir un selector de carpeta: {exc}") from exc
+        raise RuntimeError(f"Could not open a folder picker: {exc}") from exc
 
     root = tk.Tk()
     root.withdraw()
@@ -249,7 +249,7 @@ def pick_folder_dialog(initialdir: str | None = None) -> str:
         pass
     chosen = filedialog.askdirectory(
         parent=root,
-        title="Selecciona la carpeta de sesiones de Claude Code",
+        title="Select the Claude Code sessions folder",
         initialdir=initialdir or str(Path.home()),
         mustexist=True,
     )
@@ -390,15 +390,15 @@ class Handler(SimpleHTTPRequestHandler):
             payload = self._read_json_body()
             mode = payload.get("mode")
             if mode not in VALID_MODES:
-                raise ValueError(f"mode debe ser uno de {sorted(VALID_MODES)}")
+                raise ValueError(f"mode must be one of {sorted(VALID_MODES)}")
             cfg: dict[str, Any] = {"mode": mode, "saved_at": int(time.time())}
             if mode == "custom_path":
                 projects_dir = (payload.get("projects_dir") or "").strip()
                 if not projects_dir:
-                    raise ValueError("projects_dir requerido para mode=custom_path")
+                    raise ValueError("projects_dir required for mode=custom_path")
                 p = Path(projects_dir).expanduser()
                 if not p.exists() or not p.is_dir():
-                    raise ValueError(f"La carpeta no existe: {p}")
+                    raise ValueError(f"Folder does not exist: {p}")
                 cfg["projects_dir"] = str(p)
             save_config(cfg)
             self.send_json({"ok": True, "config": cfg})
@@ -429,7 +429,7 @@ class Handler(SimpleHTTPRequestHandler):
             payload = self._read_json_body()
             files = payload.get("files") or []
             if not isinstance(files, list):
-                raise ValueError("'files' debe ser una lista")
+                raise ValueError("'files' must be a list")
             saved: list[dict] = []
             errors: list[str] = []
             for entry in files:
@@ -439,7 +439,7 @@ class Handler(SimpleHTTPRequestHandler):
                 relpath = str(entry.get("relpath") or name)
                 b64 = entry.get("content_b64")
                 if not name or not b64:
-                    errors.append(f"{name or '(sin nombre)'}: faltan campos")
+                    errors.append(f"{name or '(no name)'}: missing fields")
                     continue
                 if not name.lower().endswith(".jsonl"):
                     continue
