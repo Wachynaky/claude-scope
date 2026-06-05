@@ -163,21 +163,16 @@ Haz clic en una traza para abrir la sesión como un **chat**: burbujas
 System / You / Assistant con los tokens y el coste de cada turno, y el contenido
 renderizado (markdown, bloques de código, ASCII…).
 
-![Vista de conversación tipo chat](conversacion-chat.png)
-
 Al seleccionar un turno se abre a la derecha el panel **«Details of invocation»**,
 con tarjetas de Coste, **Total** de tokens, Input y Output (mismos colores que las
-tarjetas de sesión), un diagrama de **spans** de la invocación y todos sus metadatos.
+tarjetas de sesión), un diagrama de **spans** de la invocación y todos sus metadatos. 
 El separador entre el chat y el panel es **arrastrable**: tira de él para ensanchar
 el lado que necesites en cada momento.
 
 ![Conversación con el panel de detalles](conversacion-detalle.png)
 
-Cada **llamada a herramienta** (WebSearch, WebFetch, Read, Bash…) se despliega con
-sus pestañas **Input / Output / Metadata** para inspeccionar exactamente qué entró y
+Cada **llamada a herramienta** (WebSearch, WebFetch, Read, Bash…) se despliega con sus pestañas **Input / Output / Metadata** para inspeccionar exactamente qué entró y
 qué salió:
-
-![Detalle de llamadas a herramientas](conversacion-tools.png)
 
 ## Licencia
 
