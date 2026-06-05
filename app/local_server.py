@@ -24,6 +24,7 @@ import glob
 import json
 import os
 import re
+import shutil
 import sys
 import threading
 import time
@@ -33,18 +34,37 @@ from pathlib import Path
 from typing import Any
 
 
-BASE_DIR = Path(os.environ.get("CLAUDE_PANEL_BASE_DIR") or Path(__file__).resolve().parent)
-LOCAL_DATA_ROOT = Path(os.environ.get("CLAUDE_PANEL_LOCAL_DATA_DIR") or (BASE_DIR / "local-data" / "projects"))
-LOCAL_DATA_GLOB = os.environ.get("CLAUDE_PANEL_LOCAL_GLOB") or str(LOCAL_DATA_ROOT / "*" / "*.jsonl")
-HOME_DATA_GLOB = os.environ.get("CLAUDE_PANEL_HOME_GLOB") or str(Path.home() / ".claude" / "projects" / "*" / "*.jsonl")
+BASE_DIR = Path(os.environ.get("CLAUDE_SCOPE_BASE_DIR") or Path(__file__).resolve().parent)
+LOCAL_DATA_ROOT = Path(os.environ.get("CLAUDE_SCOPE_LOCAL_DATA_DIR") or (BASE_DIR / "local-data" / "projects"))
+LOCAL_DATA_GLOB = os.environ.get("CLAUDE_SCOPE_LOCAL_GLOB") or str(LOCAL_DATA_ROOT / "*" / "*.jsonl")
+HOME_DATA_GLOB = os.environ.get("CLAUDE_SCOPE_HOME_GLOB") or str(Path.home() / ".claude" / "projects" / "*" / "*.jsonl")
 
 # Persistent panel configuration (config.json) in a per-user data dir.
 # (Windows runs inside WSL, so it lands on the Linux branch like any other host.)
 if sys.platform == "darwin":
-    _APP_DIR = Path.home() / "Library" / "Application Support" / "ClaudeCodePanel"
+    _APP_DIR = Path.home() / "Library" / "Application Support" / "ClaudeScope"
+    _LEGACY_APP_DIR = Path.home() / "Library" / "Application Support" / "ClaudeCodePanel"
 else:
-    _APP_DIR = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local" / "share"))) / "claude-panel"
-CONFIG_FILE = Path(os.environ.get("CLAUDE_PANEL_CONFIG_FILE") or (_APP_DIR / "config.json"))
+    _DATA_HOME = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local" / "share")))
+    _APP_DIR = _DATA_HOME / "claude-scope"
+    _LEGACY_APP_DIR = _DATA_HOME / "claude-panel"
+CONFIG_FILE = Path(os.environ.get("CLAUDE_SCOPE_CONFIG_FILE") or (_APP_DIR / "config.json"))
+
+
+def _migrate_legacy_config() -> None:
+    """Carry over config.json from the former "claude-panel" location so users
+    keep their data-source preference instead of seeing the first-run wizard
+    again. Copies (never deletes) and only when the new file is absent."""
+    legacy = _LEGACY_APP_DIR / "config.json"
+    if legacy.exists() and not CONFIG_FILE.exists():
+        try:
+            CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(legacy, CONFIG_FILE)
+        except OSError:
+            pass
+
+
+_migrate_legacy_config()
 
 VALID_MODES = {"default", "custom_path", "local_copy"}
 
@@ -297,7 +317,7 @@ def store_uploaded_jsonl(filename: str, data: bytes, relpath: str = "") -> str:
 # ---------------------------------------------------------------------------
 
 class Handler(SimpleHTTPRequestHandler):
-    server_version = "ClaudeCodeLocalPanel/1.0"
+    server_version = "ClaudeScope/1.0"
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, directory=str(BASE_DIR), **kwargs)
