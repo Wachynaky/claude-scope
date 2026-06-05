@@ -1,32 +1,32 @@
 # Claude Scope
 
-![Dashboard de Claude Scope](img/claude-scope.png)
+![Claude Scope dashboard](img/claude-scope.png)
 
-Dashboard local de observabilidad para sesiones de Claude Code. Lee tus
-JSONL en `~/.claude/projects/` con ClickHouse embebido (chdb) y los explora en
-un navegador. **Nada sale de tu equipo.**
+Local observability dashboard for Claude Code sessions. It reads your JSONL
+files in `~/.claude/projects/` with embedded ClickHouse (chdb) and explores them
+in a browser. **Nothing leaves your machine.**
 
-Funcionalidades:
+Features:
 
-- **Trazas y observaciones** por sesión, turno y "trace" (turnos agrupados).
-- **Coste real facturable** por modelo: input, output, cache R/W 5m + 1h y
-  server tools, ajustado por service tier. Coste deduplicado por `requestId`.
-- **Detalle por turno y sesión**: prompt, respuesta, llamadas a herramientas
-  (entrada/salida) y tokens de cada paso.
-- **Filtros**: fecha, proyecto, modelo, herramienta.
+- **Traces and observations** by session, turn and "trace" (grouped turns).
+- **Real billable cost** per model: input, output, cache R/W 5m + 1h and server
+  tools, adjusted by service tier. Cost deduplicated by `requestId`.
+- **Per-turn and per-session detail**: prompt, response, tool calls
+  (input/output) and tokens for each step.
+- **Filters**: date, project, model, tool.
 
-> ¿Prefieres ver primero qué pinta tiene? Salta a [Las vistas del panel](#las-vistas-del-panel) al final.
+> Want to see it first? Jump to [The panel views](#the-panel-views) at the end.
 
-## Cómo ejecutarlo
+## How to run it
 
-Sólo necesitas **Python 3.9 o superior**. El motor de datos es
-[**chdb**](https://github.com/chdb-io/chdb) (ClickHouse embebido), que se
-instala con `pip`: no hay que descargar ningún binario ni configurar nada. El
-panel abre el navegador solo.
+You only need **Python 3.9 or newer**. The data engine is
+[**chdb**](https://github.com/chdb-io/chdb) (embedded ClickHouse), installed with
+`pip`: no binary to download, nothing to configure. The panel opens the browser
+on its own.
 
-### Linux y macOS
+### Linux and macOS
 
-Copia y pega este bloque en una terminal:
+Copy and paste this block into a terminal:
 
 ```bash
 git clone https://github.com/Wachynaky/claude-scope.git
@@ -37,29 +37,29 @@ pip install -r requirements.txt
 python3 claude-scope/local_server.py
 ```
 
-Eso es todo: se abre `http://127.0.0.1:8765` en tu navegador con el panel.
+That's it: `http://127.0.0.1:8765` opens in your browser with the panel.
 
-> La primera vez, `pip install` descarga chdb (incluye el motor de ClickHouse,
-> tarda un poco). Después arranca al instante y funciona sin conexión.
+> The first time, `pip install` downloads chdb (it bundles the ClickHouse
+> engine, takes a moment). After that it starts instantly and works offline.
 
-Si no tienes Python: en Debian/Ubuntu `sudo apt install python3 python3-venv`;
-en macOS instálalo desde [python.org](https://www.python.org/downloads/) o con
+If you don't have Python: on Debian/Ubuntu `sudo apt install python3 python3-venv`;
+on macOS install it from [python.org](https://www.python.org/downloads/) or with
 Homebrew (`brew install python`).
 
 ### Windows
 
-chdb (ClickHouse) no tiene versión nativa para Windows, así que el panel se
-ejecuta **dentro de WSL** (Windows Subsystem for Linux), donde todo funciona
-igual que en Linux. Sólo necesitas activar WSL una vez:
+chdb (ClickHouse) has no native Windows build, so the panel runs **inside WSL**
+(Windows Subsystem for Linux), where everything works the same as on Linux. You
+only need to enable WSL once:
 
 ```powershell
-# PowerShell como Administrador, sólo la primera vez
+# PowerShell as Administrator, first time only
 wsl --install
-# Reinicia el equipo cuando lo pida.
+# Reboot when prompted.
 ```
 
-Después abre una terminal de **Ubuntu/WSL** y, ya dentro de WSL, copia y pega
-exactamente el mismo bloque que en Linux:
+Then open an **Ubuntu/WSL** terminal and, inside WSL, copy and paste the exact
+same block as on Linux:
 
 ```bash
 git clone https://github.com/Wachynaky/claude-scope.git
@@ -70,112 +70,111 @@ pip install -r requirements.txt
 python3 claude-scope/local_server.py
 ```
 
-Si dentro de WSL falta Python: `sudo apt install python3 python3-venv`.
+If Python is missing inside WSL: `sudo apt install python3 python3-venv`.
 
 ---
 
-- Cuando vuelvas a usarlo (ya con todo instalado), basta con entrar en la
-  carpeta y ejecutar:
+- Next time (everything already installed), just enter the folder and run:
   ```bash
   source .venv/bin/activate
   python3 claude-scope/local_server.py
   ```
-- Para **parar** el panel: pulsa `Ctrl + C` en la terminal (o usa el botón de
-  apagado dentro del propio panel).
+- To **stop** the panel: press `Ctrl + C` in the terminal (or use the power-off
+  button inside the panel itself).
 
-## La pantalla inicial: ¿de dónde leer tus sesiones?
+## The initial screen: where to read your sessions from
 
-La primera vez que abres el panel te preguntará **de dónde leer los ficheros de
-sesión** (los `.jsonl` de Claude Code):
+The first time you open the panel it asks **where to read the session files
+from** (Claude Code's `.jsonl` files):
 
 <table>
   <tr>
-    <td><img src="img/pantalla-inicial.png" alt="Pantalla inicial: ¿Dónde están tus sesiones de Claude Code?" width="520"></td>
+    <td><img src="img/pantalla-inicial.png" alt="Initial screen: Where are your Claude Code sessions?" width="520"></td>
   </tr>
 </table>
 
-Tienes tres opciones:
+You have three options:
 
-- **Usar la carpeta por defecto de Claude Code**: lee `~/.claude/projects/` en
-  sólo-lectura. Lo normal si usas Claude Code en este mismo equipo.
-- **Mi histórico está en otra carpeta**: abres un diálogo y eliges la carpeta
-  donde tienes los `.jsonl`.
-- **Arrastrar / subir mis ficheros .jsonl**: se copian dentro del panel y se
-  usan como fuente local; útil si te han pasado las sesiones desde otro equipo.
+- **Use Claude Code's default folder**: reads `~/.claude/projects/` in read-only.
+  The usual choice if you use Claude Code on this same machine.
+- **My history is in another folder**: opens a dialog to pick the folder where
+  your `.jsonl` files are.
+- **Drag / upload my .jsonl files**: they are copied into the panel and used as
+  the local source; handy if someone sent you the sessions from another machine.
 
-Puedes cambiar la opción cuando quieras desde la cabecera. El panel **solo lee**
-esos ficheros, nunca los modifica.
+You can change the option anytime from the header. The panel **only reads** these
+files, it never modifies them.
 
-## Qué contiene la carpeta
+## What's in the folder
 
-Estos son los únicos ficheros necesarios para ejecutar el panel:
+These are the only files needed to run the panel:
 
 ```
-requirements.txt         # Dependencia: chdb (ClickHouse embebido)
+requirements.txt         # Dependency: chdb (embedded ClickHouse)
 
-claude-scope/            # El panel propiamente dicho
-├─ index.html            # SPA single-page
-├─ local_server.py       # Servidor HTTP + consultas con chdb (abre el navegador)
-├─ pricing.json          # Tarifas Anthropic
-└─ assets/vendor/        # marked + ansi_up vendorizados (offline)
+claude-scope/            # The panel itself
+├─ index.html            # Single-page app
+├─ local_server.py       # HTTP server + chdb queries (opens the browser)
+├─ pricing.json          # Anthropic pricing
+└─ assets/vendor/        # marked + ansi_up vendored (offline)
 ```
 
-## Opciones de arranque
+## Startup options
 
-`local_server.py` acepta algunos parámetros:
+`local_server.py` takes a few parameters:
 
 ```bash
-python3 claude-scope/local_server.py --port 9000   # otro puerto (por defecto 8765)
-python3 claude-scope/local_server.py --no-open      # no abrir el navegador solo
+python3 claude-scope/local_server.py --port 9000   # another port (default 8765)
+python3 claude-scope/local_server.py --no-open      # don't auto-open the browser
 ```
 
-## Las vistas del panel
+## The panel views
 
-### El dashboard
+### The dashboard
 
-![Dashboard de Claude Scope](img/claude-scope.png)
+![Claude Scope dashboard](img/claude-scope.png)
 
-Es la pantalla principal. Arriba del todo, en la cabecera:
+The main screen. At the very top, in the header:
 
-- **Buscador** para filtrar por contenido de los mensajes.
-- **Modo de tokens** (interruptor a la derecha), que cambia cómo se cuentan los
-  tokens en todas las métricas:
-  - **All & Real data**: input + output + cache, deduplicado por petición. Es lo
-    que de verdad consumes.
-  - **Same as Claude Code**: solo input + output en crudo, igual que el «Total
-    tokens» de `/config` → Stats (suele dar más porque no deduplica ni cuenta cache).
-- **Fuente de datos** (la carpeta que estás leyendo) y **zoom** del panel.
+- **Search** to filter by message content.
+- **Token mode** (toggle on the right), which changes how tokens are counted
+  across every metric:
+  - **All & Real data**: input + output + cache, deduplicated per request. This
+    is what you actually consume.
+  - **Same as Claude Code**: raw input + output only, like the «Total tokens» in
+    `/config` → Stats (usually higher because it doesn't deduplicate or count cache).
+- **Data source** (the folder you're reading) and panel **zoom**.
 
-Justo debajo eliges **cómo agrupar** los datos:
+Right below you choose **how to group** the data:
 
-- **Group by trace** (por defecto): cada sesión es una fila-traza con todos sus
-  turnos anidados debajo. La mejor vista para recorrer una sesión completa.
-- **Group by turn**: una fila por cada prompt (turno), para comparar turnos sueltos.
-- **Group by session**: una fila por sesión, vista resumida.
+- **Group by trace** (default): each session is a trace row with all its turns
+  nested below. The best view to walk through a full session.
+- **Group by turn**: one row per prompt (turn), to compare individual turns.
+- **Group by session**: one row per session, summary view.
 
-Y filtras por **proyecto, modelo, herramienta y rango temporal** (con «Clear filters»
-para reiniciarlos). La barra de stats resume traces, tokens, coste total, tiempo de
-API y permisos, y más abajo hay gráficas de **tokens diarios, tokens por herramienta,
-token mix (input/output/cache), cost mix, coste por modelo, llamadas a herramientas,
-servidores MCP y proyectos**.
+And you filter by **project, model, tool and time range** (with «Clear filters»
+to reset them). The stats bar sums up traces, tokens, total cost, API time and
+permissions, and below there are charts for **daily tokens, tokens per tool,
+token mix (input/output/cache), cost mix, cost per model, tool calls, MCP servers
+and projects**.
 
-### La conversación
+### The conversation
 
-Haz clic en una traza para abrir la sesión como un **chat**: burbujas
-System / You / Assistant con los tokens y el coste de cada turno, y el contenido
-renderizado (markdown, bloques de código, ASCII…).
+Click a trace to open the session as a **chat**: System / You / Assistant bubbles
+with the tokens and cost of each turn, and the rendered content (markdown, code
+blocks, ASCII...).
 
-Al seleccionar un turno se abre a la derecha el panel **«Details of invocation»**,
-con tarjetas de Coste, **Total** de tokens, Input y Output (mismos colores que las
-tarjetas de sesión), un diagrama de **spans** de la invocación y todos sus metadatos. 
-El separador entre el chat y el panel es **arrastrable**: tira de él para ensanchar
-el lado que necesites en cada momento.
+Selecting a turn opens the **«Details of invocation»** panel on the right, with
+cards for Cost, **Total** tokens, Input and Output (same colors as the session
+cards), a **spans** diagram of the invocation and all its metadata. The divider
+between the chat and the panel is **draggable**: pull it to widen whichever side
+you need at any moment.
 
-![Conversación con el panel de detalles](img/conversacion-detalle.png)
+![Conversation with the details panel](img/conversacion-detalle.png)
 
-Cada **llamada a herramienta** (WebSearch, WebFetch, Read, Bash…) se despliega con sus pestañas **Input / Output / Metadata** para inspeccionar exactamente qué entró y
-qué salió:
+Each **tool call** (WebSearch, WebFetch, Read, Bash...) expands with its **Input /
+Output / Metadata** tabs to inspect exactly what went in and what came out:
 
-## Licencia
+## License
 
-Apache 2.0, ver `LICENSE`.
+Apache 2.0, see `LICENSE`.
