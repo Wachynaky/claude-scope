@@ -31,7 +31,7 @@ cd claude-scope
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python3 claude-scope/local_server.py
+python3 app/local_server.py
 ```
 
 That’s it. The dashboard opens at `http://127.0.0.1:8765`.
@@ -72,7 +72,7 @@ cd claude-scope
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python3 claude-scope/local_server.py
+python3 app/local_server.py
 ```
 
 If Python is missing inside WSL:
@@ -85,7 +85,7 @@ Next time, once everything is already installed, just enter the folder and run:
 
 ```bash
 source .venv/bin/activate
-python3 claude-scope/local_server.py
+python3 app/local_server.py
 ```
 
 To stop the dashboard, press `Ctrl + C` in the terminal, or use the power-off button inside the panel.
@@ -115,7 +115,7 @@ These are the only files needed to run the dashboard:
 ```text
 requirements.txt         # Dependency: chdb (embedded ClickHouse)
 
-claude-scope/            # The dashboard itself
+app/                     # The dashboard itself
 ├─ index.html            # Single-page app
 ├─ local_server.py       # HTTP server + chdb queries; opens the browser
 ├─ pricing.json          # Anthropic pricing
@@ -127,8 +127,8 @@ claude-scope/            # The dashboard itself
 `local_server.py` accepts a few parameters:
 
 ```bash
-python3 claude-scope/local_server.py --port 9000   # Use another port; default is 8765
-python3 claude-scope/local_server.py --no-open     # Do not open the browser automatically
+python3 app/local_server.py --port 9000   # Use another port; default is 8765
+python3 app/local_server.py --no-open     # Do not open the browser automatically
 ```
 
 ## The panel views
