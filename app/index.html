@@ -8056,6 +8056,10 @@ function renderInvocationDetails() {
                 ${bodyHtml}
             </div>
         </div>`;
+    // Re-fija el límite de alto del panel en px tras cada render (también en los
+    // del scroll-spy, que no pasan por renderTranscript) para que cualquier estado
+    // —no solo el inicial "session"— conserve su scroll propio.
+    updateStickyOffset();
 }
 
 function renderTranscript() {
