@@ -7,7 +7,7 @@ invocation"). Está en un fichero aparte para no tocar el original.
 - **Fichero nuevo:** `claude-scope/index-nuevo-diseno.html` (copia de `index.html`
   + el rediseño). El `index.html` original **no se modifica**.
 - **Idea de referencia:** `conversacion-detalle.png` (orientativa, no se calcan los
-  campos). Diseño anterior: `conversacion-chat.png` / `conversacion-tools.png`.
+  campos).
 
 ## Cómo se comporta
 
