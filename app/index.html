@@ -3632,7 +3632,8 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 @media (max-width: 1100px) {
     .chat-layout { grid-template-columns: 1fr; }
     .chat-resizer { display: none; }
-    .chat-details { position: static !important; }
+    .chat-details { position: static !important; max-height: none; overflow: visible; }
+    .chat-details .cd-head { position: static; }
 }
 
 /* ---- Columna izquierda: stream de chat ---- */
@@ -3838,12 +3839,15 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
     border-radius: 16px;
     background: var(--surface);
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
     max-height: calc(100vh - var(--filters-height, 92px) - 22px);
-    display: flex; flex-direction: column;
 }
-.cd-scroll { flex: 1 1 auto; min-height: 0; }
 .cd-head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
     display: flex; align-items: center; gap: 9px;
     padding: 13px 16px;
     border-bottom: 1px solid var(--line);
@@ -3875,7 +3879,7 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 .cd-head .cd-spy-toggle { margin-left: auto; }
 .cd-head .cd-spy-toggle ~ .cd-refresh { margin-left: 6px; }
 
-.cd-scroll { overflow: auto; padding: 14px 16px 20px; }
+.cd-scroll { padding: 14px 16px 20px; }
 
 .cd-summary-row {
     display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
