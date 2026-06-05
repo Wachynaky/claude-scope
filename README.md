@@ -4,8 +4,6 @@ Dashboard local de observabilidad para sesiones de Claude Code. Lee tus
 JSONL en `~/.claude/projects/` con ClickHouse embebido (chdb) y los explora en
 un navegador. **Nada sale de tu equipo.**
 
-![Ejemplo del dashboard de Claude Scope](claude-scope.png)
-
 Funcionalidades:
 
 - **Trazas y observaciones** por sesión, turno y "trace" (turnos agrupados).
@@ -15,7 +13,7 @@ Funcionalidades:
   (entrada/salida) y tokens de cada paso.
 - **Filtros**: fecha, proyecto, modelo, herramienta.
 
-![Observabilidad sobre cada ejecución](Claude-Code-Scope.png)
+> ¿Prefieres ver primero qué pinta tiene? Salta a [Las vistas del panel](#las-vistas-del-panel) al final.
 
 ## Cómo ejecutarlo
 
@@ -128,6 +126,58 @@ claude-scope/            # El panel propiamente dicho
 python3 claude-scope/local_server.py --port 9000   # otro puerto (por defecto 8765)
 python3 claude-scope/local_server.py --no-open      # no abrir el navegador solo
 ```
+
+## Las vistas del panel
+
+### El dashboard
+
+![Dashboard de Claude Scope](claude-scope.png)
+
+Es la pantalla principal. Arriba del todo, en la cabecera:
+
+- **Buscador** para filtrar por contenido de los mensajes.
+- **Modo de tokens** (interruptor a la derecha), que cambia cómo se cuentan los
+  tokens en todas las métricas:
+  - **All & Real data**: input + output + cache, deduplicado por petición. Es lo
+    que de verdad consumes.
+  - **Same as Claude Code**: solo input + output en crudo, igual que el «Total
+    tokens» de `/config` → Stats (suele dar más porque no deduplica ni cuenta cache).
+- **Fuente de datos** (la carpeta que estás leyendo) y **zoom** del panel.
+
+Justo debajo eliges **cómo agrupar** los datos:
+
+- **Group by trace** (por defecto): cada sesión es una fila-traza con todos sus
+  turnos anidados debajo. La mejor vista para recorrer una sesión completa.
+- **Group by turn**: una fila por cada prompt (turno), para comparar turnos sueltos.
+- **Group by session**: una fila por sesión, vista resumida.
+
+Y filtras por **proyecto, modelo, herramienta y rango temporal** (con «Clear filters»
+para reiniciarlos). La barra de stats resume traces, tokens, coste total, tiempo de
+API y permisos, y más abajo hay gráficas de **tokens diarios, tokens por herramienta,
+token mix (input/output/cache), cost mix, coste por modelo, llamadas a herramientas,
+servidores MCP y proyectos**.
+
+### La conversación
+
+Haz clic en una traza para abrir la sesión como un **chat**: burbujas
+System / You / Assistant con los tokens y el coste de cada turno, y el contenido
+renderizado (markdown, bloques de código, ASCII…).
+
+![Vista de conversación tipo chat](conversacion-chat.png)
+
+Al seleccionar un turno se abre a la derecha el panel **«Details of invocation»**,
+con tarjetas de Coste, **Total** de tokens, Input y Output (mismos colores que las
+tarjetas de sesión), un diagrama de **spans** de la invocación y todos sus metadatos.
+El separador entre el chat y el panel es **arrastrable**: tira de él para ensanchar
+el lado que necesites en cada momento.
+
+![Conversación con el panel de detalles](conversacion-detalle.png)
+
+Cada **llamada a herramienta** (WebSearch, WebFetch, Read, Bash…) se despliega con
+sus pestañas **Input / Output / Metadata** para inspeccionar exactamente qué entró y
+qué salió:
+
+![Detalle de llamadas a herramientas](conversacion-tools.png)
 
 ## Licencia
 
