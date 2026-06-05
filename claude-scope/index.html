@@ -3520,6 +3520,400 @@ tbody td + td { border-left: 1px solid var(--line); }
     cursor: pointer;
     font-weight: 650;
 }
+
+/* ============================================================
+   NUEVO DISEÑO · Conversación estilo chat + panel de detalles
+   Inspirado en el inspector de invocaciones (ejemplo-diseñn-tabla).
+   Layout de dos columnas: stream de burbujas a la izquierda,
+   "Details of invocation" (gantt de spans + metadatos) a la derecha.
+   ============================================================ */
+.chat-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+    gap: 18px;
+    align-items: start;
+    padding: 8px 2px 40px;
+}
+.chat-layout.hidden { display: none; }
+@media (max-width: 1100px) {
+    .chat-layout { grid-template-columns: 1fr; }
+    .chat-details { position: static !important; }
+}
+
+/* ---- Columna izquierda: stream de chat ---- */
+.chat-col { min-width: 0; }
+
+.chat-head-card {
+    background: linear-gradient(180deg, var(--surface), var(--surface-2));
+    border: 1px solid var(--line-strong);
+    border-radius: 16px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.chat-head-title {
+    font-size: 15px;
+    font-weight: 750;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    margin-bottom: 12px;
+    line-height: 1.3;
+}
+.chat-head-metrics { display: flex; flex-wrap: wrap; gap: 10px; }
+.chat-metric {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 13px 6px 8px;
+    font-size: 12.5px;
+    color: var(--text-soft);
+}
+.chat-metric .cm-ic {
+    width: 22px; height: 22px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    font-size: 12px;
+    flex: none;
+}
+.chat-metric .cm-lab { font-weight: 600; color: var(--text-dim); }
+.chat-metric .cm-val { font-weight: 750; color: var(--text); }
+.chat-metric.cost .cm-ic { background: #fef3c7; color: #b45309; }
+.chat-metric.in   .cm-ic { background: #dbeafe; color: #1d4ed8; }
+.chat-metric.out  .cm-ic { background: #ede9fe; color: #6d28d9; }
+.chat-metric.dur  .cm-ic { background: #dcfce7; color: #15803d; }
+.chat-metric.models {
+    background: var(--surface-2);
+    color: var(--text-dim);
+    font-weight: 650;
+    padding: 6px 14px;
+}
+
+.chat-stream { display: flex; flex-direction: column; gap: 14px; }
+
+/* Fila de mensaje: avatar + burbuja. */
+.msg-row { display: flex; gap: 10px; align-items: flex-start; scroll-margin-top: 120px; }
+.msg-row.right { flex-direction: row-reverse; }
+.msg-row.selected .msg-bubble {
+    box-shadow: 0 0 0 2px var(--accent-line), 0 4px 14px rgba(232,42,107,0.10);
+}
+
+.msg-avatar {
+    width: 34px; height: 34px; flex: none;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.10);
+}
+.msg-avatar.sys { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+.msg-avatar.bot { background: linear-gradient(150deg, var(--accent-strong), var(--accent)); color: #fff; }
+.msg-avatar.you { background: #1f2937; color: #fff; }
+
+.msg-bubble {
+    min-width: 0;
+    max-width: 86%;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    padding: 11px 14px 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    cursor: pointer;
+    transition: box-shadow .12s ease, border-color .12s ease;
+}
+.msg-bubble:hover { border-color: var(--line-strong); }
+.msg-bubble.sys { background: var(--surface-2); }
+.msg-bubble.bot { background: var(--surface); }
+/* "You": tarjeta clara con acento (antes era oscura sobre texto oscuro). */
+.msg-bubble.you {
+    background: linear-gradient(180deg, #ffffff, var(--accent-soft));
+    border-color: var(--accent-line);
+    color: var(--text);
+}
+.msg-bubble.you .msg-role { color: var(--accent-dim); }
+.msg-bubble.you .msg-time { color: var(--text-dim); }
+.msg-bubble.you .msg-body { color: var(--text); }
+
+.msg-head {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 6px;
+}
+.msg-row.right .msg-head { justify-content: flex-end; }
+.msg-role { font-size: 12.5px; font-weight: 750; color: var(--text); }
+.msg-time { font-size: 11px; color: var(--text-dim); font-weight: 500; }
+.msg-kind-tag {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    padding: 1px 7px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent-dim);
+}
+
+.msg-body { font-size: 13.5px; line-height: 1.55; color: var(--text); word-break: break-word; }
+.msg-body p { margin: 0 0 8px; }
+.msg-body p:last-child { margin-bottom: 0; }
+.msg-body ul, .msg-body ol { margin: 4px 0 8px; padding-left: 20px; }
+.msg-body li { margin: 2px 0; }
+.msg-body pre {
+    background: #0f172a;
+    border: 1px solid var(--line);
+    border-radius: 8px; padding: 8px 10px;
+    overflow: auto; font-size: 12px;
+    color: #e2e8f0;
+}
+/* Código: fondo oscuro y fuente clara (antes coincidían y no se leía). */
+.msg-body pre code { background: transparent; color: #e2e8f0; padding: 0; }
+.msg-body code {
+    font-size: 12px;
+    background: var(--surface-sunk);
+    color: var(--accent-dim);
+    border: 1px solid var(--line);
+    border-radius: 5px; padding: 1px 5px;
+}
+.msg-bubble.you .msg-body pre { background: #0f172a; color: #e2e8f0; }
+.msg-bubble.you .msg-body code { color: var(--accent-dim); }
+
+/* Plegado "Read more" */
+.msg-body.clampable { position: relative; }
+.msg-body.clampable.clamped {
+    max-height: 168px; overflow: hidden;
+    -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent);
+            mask-image: linear-gradient(180deg, #000 70%, transparent);
+}
+.msg-readmore {
+    display: inline-flex; align-items: center; gap: 5px;
+    margin-top: 8px;
+    background: none; border: none; cursor: pointer;
+    color: var(--accent-dim); font-size: 12px; font-weight: 650;
+    padding: 0;
+}
+.msg-readmore:hover { text-decoration: underline; }
+.msg-bubble.you .msg-readmore { color: var(--accent-dim); }
+
+/* Las burbujas del Assistant con herramientas ocupan todo el ancho disponible
+   para que las tool calls desplegadas no queden estrechas. */
+.msg-row.left .msg-bubble.bot:has(.chat-tools) { width: 100%; max-width: 100%; }
+
+/* Tool calls / thinking dentro del assistant */
+.chat-tools { margin-top: 10px; display: flex; flex-direction: column; gap: 7px; }
+.chat-tool {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-2);
+    overflow: hidden;
+}
+.chat-tool > summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 9px;
+    padding: 8px 11px;
+    font-size: 12.5px; font-weight: 650; color: var(--text-soft);
+}
+.chat-tool > summary::-webkit-details-marker { display: none; }
+.chat-tool > summary::before {
+    content: '▸'; color: var(--text-dim); font-size: 10px;
+    transition: transform .12s ease;
+}
+.chat-tool[open] > summary::before { transform: rotate(90deg); }
+.chat-tool .ct-ic { font-size: 13px; }
+.chat-tool .ct-name { font-weight: 750; color: var(--text); font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
+.chat-tool .ct-count {
+    margin-left: auto;
+    font-size: 11px; font-weight: 650; color: var(--text-dim);
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 999px; padding: 1px 9px;
+}
+.chat-tool.thinking { background: #faf5ff; border-color: #e9d5ff; }
+.chat-tool.thinking .ct-name { color: #6d28d9; }
+.chat-tool-body { padding: 0 11px 11px; }
+.chat-tool-body .tool-step.v2 { margin: 0; }
+.chat-tool-think-text {
+    white-space: pre-wrap; font-size: 12.5px; line-height: 1.5;
+    color: #581c87; padding: 4px 2px;
+}
+
+/* ---- Columna derecha: Details of invocation ---- */
+.chat-details {
+    position: sticky;
+    /* Se ancla justo debajo de la barra de filtros sticky (su alto va en
+       --filters-height) para que esta no le tape la cabecera. */
+    top: calc(var(--filters-height, 92px) + 10px);
+    z-index: 5;
+    border: 1px solid var(--line-strong);
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    overflow: hidden;
+    max-height: calc(100vh - var(--filters-height, 92px) - 22px);
+    display: flex; flex-direction: column;
+}
+.cd-scroll { flex: 1 1 auto; min-height: 0; }
+.cd-head {
+    display: flex; align-items: center; gap: 9px;
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-2);
+}
+.cd-head .cd-back {
+    background: none; border: 1px solid var(--line-strong);
+    border-radius: 8px; width: 26px; height: 26px;
+    display: none; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-soft); font-size: 14px; flex: none;
+}
+.cd-head.has-back .cd-back { display: inline-flex; }
+.cd-head .cd-title { font-size: 14px; font-weight: 750; color: var(--text); display: flex; align-items: center; flex-wrap: wrap; gap: 5px; min-width: 0; }
+.cd-title .cd-turn-no { color: var(--accent-dim); font-weight: 800; white-space: nowrap; }
+.cd-title .cd-turn-sep { color: var(--text-dim); font-weight: 400; }
+.cd-title .cd-turn-preview { color: var(--text-soft); font-weight: 500; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; min-width: 0; }
+.cd-head .cd-title .cd-kind {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--accent-soft); color: var(--accent-dim);
+    border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 700;
+}
+.cd-head .cd-refresh {
+    margin-left: auto;
+    background: none; border: 1px solid var(--line-strong);
+    border-radius: 8px; width: 28px; height: 28px;
+    cursor: pointer; color: var(--text-dim); font-size: 14px;
+}
+.cd-head .cd-refresh:hover { color: var(--accent); border-color: var(--accent-line); }
+.cd-head .cd-spy-toggle { margin-left: auto; }
+.cd-head .cd-spy-toggle ~ .cd-refresh { margin-left: 6px; }
+
+.cd-scroll { overflow: auto; padding: 14px 16px 20px; }
+
+.cd-summary-row {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    margin-bottom: 14px;
+}
+.cd-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 999px; padding: 4px 11px;
+    font-size: 11.5px; color: var(--text-soft); font-weight: 600;
+}
+.cd-chip .mono { font-family: var(--mono, ui-monospace, monospace); color: var(--text-dim); }
+
+.cd-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+.cd-metric {
+    border: 1px solid var(--line); border-radius: 11px;
+    padding: 9px 10px; background: var(--surface-2);
+}
+.cd-metric .cm-h { display: flex; align-items: center; gap: 6px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim); font-weight: 700; }
+.cd-metric .cm-ic { width: 16px; height: 16px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; }
+.cd-metric .cm-n { font-size: 16px; font-weight: 800; color: var(--text); margin-top: 4px; letter-spacing: -0.02em; }
+.cd-metric.cost .cm-ic { background: #fef3c7; color: #b45309; }
+.cd-metric.in   .cm-ic { background: #dbeafe; color: #1d4ed8; }
+.cd-metric.out  .cm-ic { background: #ede9fe; color: #6d28d9; }
+.cd-metric.dur  .cm-ic { background: #dcfce7; color: #15803d; }
+
+.cd-section-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+    color: var(--text-dim); font-weight: 750; margin: 4px 0 9px;
+}
+
+/* Gantt de spans */
+.gantt { margin-bottom: 18px; }
+.gantt-row {
+    display: grid;
+    grid-template-columns: 130px 1fr 56px;
+    align-items: center; gap: 8px;
+    padding: 4px 0;
+}
+.gantt-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11.5px; color: var(--text-soft); font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.gantt-label .g-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.gantt-track {
+    position: relative; height: 14px;
+    background: repeating-linear-gradient(90deg, var(--surface-sunk) 0 1px, transparent 1px 25%);
+    border-radius: 4px;
+}
+.gantt-bar {
+    position: absolute; top: 2px; height: 10px;
+    border-radius: 4px; min-width: 3px;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25);
+}
+.gantt-dur { font-size: 10.5px; color: var(--text-dim); font-weight: 650; text-align: right; font-variant-numeric: tabular-nums; }
+.gantt-row.clickable { cursor: pointer; border-radius: 6px; }
+.gantt-row.clickable:hover { background: var(--accent-soft); }
+.gantt-axis {
+    display: grid; grid-template-columns: 130px 1fr 56px; gap: 8px;
+    margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--line);
+}
+.gantt-axis .ga-ticks { display: flex; justify-content: space-between; font-size: 9.5px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+
+/* Bloque Invocation: meta key/value */
+.inv-panel { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.inv-panel-head {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px; background: var(--surface-2);
+    border-bottom: 1px solid var(--line);
+}
+.inv-panel-head .ip-ic {
+    width: 22px; height: 22px; border-radius: 6px;
+    background: var(--accent-soft); color: var(--accent-dim);
+    display: inline-flex; align-items: center; justify-content: center; font-size: 12px;
+}
+.inv-panel-head .ip-title { font-size: 13px; font-weight: 750; color: var(--text); }
+.inv-toggle { margin-left: auto; display: inline-flex; border: 1px solid var(--line-strong); border-radius: 8px; overflow: hidden; }
+.inv-toggle button {
+    background: var(--surface); border: none; cursor: pointer;
+    padding: 4px 11px; font-size: 11px; font-weight: 700; color: var(--text-dim);
+}
+.inv-toggle button.active { background: var(--accent); color: #fff; }
+.inv-badge {
+    display: inline-block; margin: 11px 12px 4px;
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 8px; padding: 5px 11px;
+    font-size: 11.5px; font-weight: 700; color: var(--text-soft);
+}
+.inv-meta { padding: 6px 12px 14px; }
+.inv-row {
+    display: grid; grid-template-columns: 120px 1fr;
+    gap: 10px; align-items: baseline;
+    padding: 7px 0; border-bottom: 1px solid var(--line);
+}
+.inv-row:last-child { border-bottom: none; }
+.inv-k { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text-dim); font-weight: 650; }
+.inv-k .ik-ic { color: var(--text-dim); opacity: .8; }
+.inv-v { font-size: 12px; color: var(--text); word-break: break-all; }
+.inv-v.mono { font-family: var(--mono, ui-monospace, monospace); }
+.inv-v.accent { color: var(--accent-dim); font-weight: 700; }
+.inv-json {
+    margin: 4px 12px 14px; padding: 11px 12px;
+    background: #0f172a; color: #e2e8f0;
+    border-radius: 10px; font-family: var(--mono, ui-monospace, monospace);
+    font-size: 11.5px; line-height: 1.5; white-space: pre-wrap; word-break: break-word;
+    max-height: 360px; overflow: auto;
+}
+.cd-empty { color: var(--text-dim); font-size: 12.5px; text-align: center; padding: 30px 12px; }
+/* Observación / tool seleccionado dentro del Assistant */
+.chat-tool.selected { border-color: var(--accent-line); box-shadow: 0 0 0 2px var(--accent-soft); }
+.chat-tool.selected > summary { background: var(--accent-soft); color: var(--accent-dim); }
+.cd-kind.obs { background: #ede9fe; color: #6d28d9; }
+.cd-kind.tool { background: #fff7ed; color: #9a3412; }
+.cd-followhint { font-size: 10.5px; color: var(--text-dim); margin-left: 6px; font-weight: 600; }
+/* Navegación a la observación anterior / siguiente */
+.cd-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.cd-nav button {
+    flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    background: var(--surface-2); border: 1px solid var(--line-strong);
+    border-radius: 9px; padding: 7px 10px; cursor: pointer;
+    font-size: 12px; font-weight: 650; color: var(--text-soft);
+}
+.cd-nav button:hover:not(:disabled) { border-color: var(--accent-line); color: var(--accent-dim); background: var(--accent-soft); }
+.cd-nav button:disabled { opacity: 0.4; cursor: default; }
+.cd-nav .cd-nav-pos { flex: none; font-size: 11px; color: var(--text-dim); font-weight: 700; min-width: 64px; text-align: center; }
+
+/* Diseño viejo retirado: los filtros por rol y el control de "Turns" actuaban
+   sobre el render clásico (ya no existe), así que se ocultan para no inflar la
+   barra (que tapaba el panel sticky de la derecha). Se conservan la búsqueda,
+   el selector de vistas y el control "Input / Output data" (reaprovechado para
+   plegar/desplegar las tool calls del chat). */
+.filters-bar .filters-toggles > label { display: none; }
+.turn-bulk-controls:has(#turns-expand-all) { display: none; }
 </style>
 </head>
 <body>
@@ -3812,6 +4206,10 @@ tbody td + td { border-left: 1px solid var(--line); }
         <div id="trace-full-table" class="trace-index"></div>
         <div id="sticky-prompt"></div>
         <div class="messages" id="messages-container"></div>
+        <div id="chat-layout" class="chat-layout hidden">
+            <div class="chat-col" id="chat-col"></div>
+            <aside class="chat-details" id="chat-details"></aside>
+        </div>
         <div id="transcript-loading" class="hidden" style="text-align:center;padding:40px;color:#555">Loading transcript...</div>
         <div id="transcript-error" class="hidden" style="color:#dc3545;padding:12px 16px"></div>
     </div>
@@ -3983,6 +4381,16 @@ let traceSortCol = 'started';
 let traceSortDir = 'desc';
 let searchText = '';
 let fullTextSessionIds = null; // null = no full-text filter; Map session_id -> relevance rank (lower = better)
+// Estado del nuevo diseño de Conversación (chat + panel "Details of invocation").
+let chatActiveSessionId = null;   // sesión cuyo transcript se muestra
+// Selección del panel derecho. kind: 'session' | 'turn' | 'message' | 'tool'.
+//   turn    -> { kind, turnIdx }
+//   message -> { kind, msgIdx }            (una observación: un mensaje del stream)
+//   tool    -> { kind, msgIdx, toolUseId } (una ejecución concreta de herramienta)
+let chatSel = { kind: 'session' };
+let chatBackSel = null;           // a dónde sube el botón ← (lo calcula el render)
+let chatDetailsViewMode = 'ui';   // 'ui' | 'json' para el bloque de detalle
+let chatSpyEnabled = true;        // el panel sigue al elemento centrado al hacer scroll
 let transcriptData = null;
 let toolStats = [];
 let sessionToolRows = [];
@@ -3994,7 +4402,11 @@ let homeViewMode = 'turns';
 // Modo de cálculo del total de tokens: 'real' (in+out+cache, deduplicado) o
 // 'cc' (in+out crudos, como /config Stats de Claude Code).
 let tokenMode = (() => { try { return localStorage.getItem('ccpanel-token-mode') || 'real'; } catch (e) { return 'real'; } })();
-let traceViewMode = 'all';
+// Vistas visibles del transcript. Multi-selección: cada clave puede estar activa
+// a la vez. La "Conversación" (transcript) es el nuevo chat; el render clásico
+// (messages-container) queda retirado y nunca se muestra.
+const TRACE_VIEW_ALL_KEYS = ['timeline', 'turns', 'observations', 'flow', 'transcript'];
+let traceViews = new Set(['transcript']); // por defecto solo la Conversación (el chat)
 let currentFlowNodes = [];
 let modalMessageIdx = null;
 
@@ -6097,6 +6509,8 @@ FROM (
 ORDER BY ts`;
         transcriptData = await queryClickHouse(sql);
         loading.classList.add('hidden');
+        chatActiveSessionId = sessionId;
+        chatSel = { kind: 'session' };
         renderTranscriptMeta(sessionId);
         renderTranscript();
     } catch (e) {
@@ -6111,14 +6525,23 @@ function renderSessionCards(session) {
     if (!el) return;
     if (!session) { el.innerHTML = ''; return; }
     const bd = costBreakdown(session);
-    const inT = Number(session.input_tokens) || 0;
-    const outT = Number(session.output_tokens) || 0;
     const cR = Number(session.cache_read_tokens) || 0;
     const cW = Number(session.cache_creation_tokens) || 0;
     const cache = cR + cW;
-    const total = inT + outT + cache;
     const turnsCount = Number(session.user_msgs) || 0;
     const gens = Number(session.assistant_msgs) || Number(session.assistant_request_count) || 0;
+    // Los tokens mostrados respetan el modo del selector (real / cc), igual que la
+    // tabla del home, para que «Same as Claude Code» se arrastre también al detalle.
+    const showCC = tokenMode === 'cc';
+    const totalSub = `${turnsCount} prompts · ${gens} llamadas API`;
+    const totalTitle = showCC
+        ? 'Same as Claude Code: input + output en crudo (sin cache, sin deduplicar).'
+        : 'Suma de input + output + cache (todos los tokens que pasan por la API).';
+    const totalHint = showCC ? 'in+out · como /config Stats' : 'incluye contexto reusado';
+    const inputTitle = showCC
+        ? 'Tokens de entrada en crudo (sin deduplicar), como /config Stats.'
+        : 'Tokens de entrada únicos por llamada (sin cache).';
+    const outputTitle = 'Tokens generados por el modelo (lo que produce la API).';
     el.innerHTML = `
         <div class="session-card accent-cost" title="Coste total facturable: input + output + cache (R+W 5m+1h) + server tools, ajustado por service tier.">
             <div class="card-label"><span class="card-icon">💲</span>Coste total</div>
@@ -6128,30 +6551,30 @@ function renderSessionCards(session) {
             ${bd.serverTools ? `<div class="card-sub">server tools ${formatCost(bd.serverTools)}</div>` : ''}
             <div class="card-hint">facturado por Anthropic</div>
         </div>
-        <div class="session-card accent-tokens" title="Suma de input + output + cache (todos los tokens que pasan por la API).">
+        <div class="session-card accent-tokens" title="${totalTitle}">
             <div class="card-label"><span class="card-icon">∑</span>Tokens totales</div>
-            <div class="card-value">${formatNumber(total)}</div>
-            <div class="card-sub">${turnsCount} prompts · ${gens} llamadas API</div>
-            <div class="card-hint">incluye contexto reusado</div>
+            <div class="card-value">${tokenViewRow(session, 'total')}</div>
+            <div class="card-sub">${totalSub}</div>
+            <div class="card-hint">${totalHint}</div>
         </div>
-        <div class="session-card accent-input" title="Tokens de entrada únicos por llamada (sin cache).">
+        <div class="session-card accent-input" title="${inputTitle}">
             <div class="card-label"><span class="card-icon">↓</span>Input</div>
-            <div class="card-value">${formatNumber(inT)}</div>
+            <div class="card-value">${tokenViewRow(session, 'input')}</div>
             <div class="card-sub">${formatCost(bd.input)}</div>
             <div class="card-hint">prompt nuevo del usuario</div>
         </div>
-        <div class="session-card accent-output" title="Tokens generados por el modelo (lo que produce la API).">
+        <div class="session-card accent-output" title="${outputTitle}">
             <div class="card-label"><span class="card-icon">↑</span>Output</div>
-            <div class="card-value">${formatNumber(outT)}</div>
+            <div class="card-value">${tokenViewRow(session, 'output')}</div>
             <div class="card-sub">${formatCost(bd.output)}</div>
             <div class="card-hint">respuestas + thinking + tool calls</div>
         </div>
-        <div class="session-card accent-cache" title="Cache read = contexto previo reutilizado y barato. Cache write = nuevo contexto que se guarda para reutilizarlo.">
+        <div class="session-card accent-cache" title="Cache read = contexto previo reutilizado y barato. Cache write = nuevo contexto que se guarda para reutilizarlo.${showCC ? ' No se cuenta en «Same as Claude Code».' : ''}">
             <div class="card-label"><span class="card-icon">⇊</span>Cache</div>
             <div class="card-value">${formatNumber(cache)}</div>
             <div class="card-sub">R ${formatNumber(cR)} · W ${formatNumber(cW)}</div>
             <div class="card-sub">R ${formatCost(bd.cacheRead)} · W ${formatCost(bd.cacheCreation)}</div>
-            <div class="card-hint">contexto reusado entre prompts</div>
+            <div class="card-hint">${showCC ? 'no incluido en el total cc' : 'contexto reusado entre prompts'}</div>
         </div>
     `;
 }
@@ -6180,7 +6603,7 @@ function renderTranscriptMeta(sessionId) {
         <span><span class="label">Model: </span><span class="val">${escapeHtml(shortModel(session.model))}</span></span>
         ${tierBit}
         <span title="Input ${formatCost(bd.input)} \u00B7 Output ${formatCost(bd.output)} \u00B7 Cache R ${formatCost(bd.cacheRead)} \u00B7 Cache W 5m ${formatCost(bd.cacheCreation5m)} \u00B7 Cache W 1h ${formatCost(bd.cacheCreation1h)} \u00B7 Server tools ${formatCost(bd.serverTools)}"><span class="label">Cost: </span><span class="val">${formatCost(session.cost)}</span></span>
-        <span title="Input / Output / Cache read / Cache create tokens"><span class="val">\u2193${formatNumber(session.input_tokens)} \u2191${formatNumber(session.output_tokens)} \u21CA${formatNumber(session.cache_read_tokens)} \u21C8${formatNumber(session.cache_creation_tokens)}</span></span>
+        <span title="Input / Output / Cache read / Cache create tokens${tokenMode === 'cc' ? ' \u00B7 Input/Output en modo \u00ABSame as Claude Code\u00BB (crudo)' : ''}"><span class="val">\u2193${tokenViewRow(session, 'input')} \u2191${tokenViewRow(session, 'output')} \u21CA${formatNumber(session.cache_read_tokens)} \u21C8${formatNumber(session.cache_creation_tokens)}</span></span>
         ${webBit}
         ${errBit}
         ${sidechainBit}
@@ -6870,13 +7293,12 @@ function renderTraceMap() {
 
 function applyTraceViewMode() {
     const visible = {
-        timeline: traceViewMode === 'timeline' || traceViewMode === 'all',
-        // Map is heavy and only shown when explicitly selected.
-        map: traceViewMode === 'map',
-        turns: traceViewMode === 'turns' || traceViewMode === 'all',
-        flow: traceViewMode === 'flow' || traceViewMode === 'all',
-        observations: traceViewMode === 'observations' || traceViewMode === 'all',
-        transcript: traceViewMode === 'transcript' || traceViewMode === 'all',
+        timeline: traceViews.has('timeline'),
+        map: traceViews.has('map'),
+        turns: traceViews.has('turns'),
+        flow: traceViews.has('flow'),
+        observations: traceViews.has('observations'),
+        transcript: traceViews.has('transcript'),
     };
     const set = (id, show) => {
         const el = document.getElementById(id);
@@ -6887,18 +7309,546 @@ function applyTraceViewMode() {
     set('trace-index', visible.turns);
     set('execution-tree', visible.flow);
     set('trace-full-table', visible.observations);
-    set('messages-container', visible.transcript);
+    // El render clásico de la conversación queda retirado: la "Conversación" es
+    // siempre el nuevo chat. messages-container nunca se muestra.
+    set('messages-container', false);
+    set('chat-layout', visible.transcript);
+    // Botones: cada uno activo según su vista; "Todo" activo cuando están todas.
+    const allOn = TRACE_VIEW_ALL_KEYS.every(k => traceViews.has(k));
     document.querySelectorAll('#trace-view-switcher button').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.traceView === traceViewMode);
+        const v = btn.dataset.traceView;
+        btn.classList.toggle('active', v === 'all' ? allOn : traceViews.has(v));
     });
+    updateStickyOffset();
     updateStickyPrompt();
     updateScrollMetrics();
+}
+
+/* ============================================================
+   NUEVO DISEÑO · helpers del chat + panel "Details of invocation".
+   El panel muestra el alcance seleccionado: la sesión completa
+   (gantt de turnos) o una invocación concreta (gantt de su tool calls)
+   más sus metadatos. Los campos son orientativos, no calcan el ejemplo.
+   ============================================================ */
+function chatTsMs(ts) {
+    if (!ts) return null;
+    let d = new Date(ts);
+    if (isNaN(d)) d = new Date(String(ts).replace(' ', 'T'));
+    return isNaN(d) ? null : d.getTime();
+}
+function chatDur(ms) {
+    ms = Number(ms) || 0;
+    if (ms <= 0) return '0s';
+    if (ms < 10) return '<0.01s';
+    if (ms < 10000) return (ms / 1000).toFixed(2).replace(/0+$/, '').replace(/\.$/, '') + 's';
+    return formatMs(ms);
+}
+function chatPalette(i) {
+    const p = ['#e82a6b', '#7c3aed', '#2563eb', '#0891b2', '#16a34a', '#d97706', '#dc2626', '#9333ea'];
+    return p[((i % p.length) + p.length) % p.length];
+}
+function chatSessionTitle(sessionId) {
+    const s = sessions.find(x => x.session_id === sessionId);
+    if (s && s.summary) return s.summary;
+    const turns = buildTurns();
+    if (turns.length && turns[0].prompt) return turns[0].prompt.replace(/\s+/g, ' ').slice(0, 100);
+    return sessionId ? sessionId.slice(0, 8) + '…' : 'Sesión';
+}
+function chatTotals(sessionId, turns) {
+    const session = sessions.find(s => s.session_id === sessionId);
+    let cost = 0, input = 0, output = 0;
+    const models = new Set();
+    for (const t of turns) {
+        cost += turnCost(t.tokens, t.model);
+        input += t.tokens.input;
+        output += t.tokens.output;
+        if (t.model) models.add(shortModel(t.model));
+    }
+    if (session) {
+        if (Number(session.cost)) cost = Number(session.cost);
+        if (Number(session.input_tokens)) input = Number(session.input_tokens);
+        if (Number(session.output_tokens)) output = Number(session.output_tokens);
+    }
+    return { cost, input, output, models: models.size, modelName: models.size === 1 ? [...models][0] : (session ? shortModel(session.model) : '') };
+}
+// Mapa tool_use_id -> ts del resultado (para medir la duración del span).
+function chatResultTsMap() {
+    const m = new Map();
+    for (const msg of transcriptData) {
+        if (msg.type !== 'user') continue;
+        for (const b of parseContentBlocks(msg.content)) {
+            const id = b && b.type === 'tool_result' ? (b.tool_use_id || b.id) : null;
+            if (id && !m.has(id)) {
+                const txt = typeof b.content === 'string' ? b.content
+                    : Array.isArray(b.content) ? b.content.map(c => c.text || '').join('\n')
+                    : JSON.stringify(b.content || '');
+                m.set(id, { ts: chatTsMs(msg.ts), isError: b.is_error === true || b.is_error === 'true' || b.is_error === 1, len: txt.length, lines: txt ? txt.split('\n').length : 0 });
+            }
+        }
+    }
+    return m;
+}
+// Spans (tool calls) de una invocación/turno, con identificadores y tamaños
+// para poder seleccionar cada ejecución concreta en el panel derecho.
+function chatTurnSpans(turn) {
+    const resMap = chatResultTsMap();
+    const spans = [];
+    for (let i = turn.startIdx; i <= turn.endIdx && i < transcriptData.length; i++) {
+        const msg = transcriptData[i];
+        if (msg.type !== 'assistant') continue;
+        const startMs = chatTsMs(msg.ts);
+        for (const b of parseContentBlocks(msg.content)) {
+            if (b.type !== 'tool_use') continue;
+            const res = b.id ? resMap.get(b.id) : null;
+            const endMs = res && res.ts ? res.ts : startMs;
+            const inputKeys = (b.input && typeof b.input === 'object') ? Object.keys(b.input) : [];
+            const inputLen = (typeof b.input === 'string') ? b.input.length : JSON.stringify(b.input || '').length;
+            spans.push({
+                name: b.name || 'tool', startMs, durMs: Math.max(0, (endMs || 0) - (startMs || 0)),
+                isError: res ? res.isError : false, msgIdx: i, toolUseId: b.id || '',
+                inputKeys, inputLen, outLen: res ? res.len : 0, outLines: res ? res.lines : 0,
+            });
+        }
+    }
+    return spans;
+}
+function chatGanttHtml(rows, winStart, winEnd) {
+    if (!rows.length) return '<div class="cd-empty" style="padding:14px">Sin spans temporales.</div>';
+    const span = Math.max(1, winEnd - winStart);
+    let body = rows.map((r, i) => {
+        const color = r.color || chatPalette(i);
+        const left = Math.max(0, Math.min(99, ((r.startMs - winStart) / span) * 100));
+        const width = Math.max(1.5, Math.min(100 - left, (r.durMs / span) * 100));
+        let clickable = false, attr = '';
+        if (r.turnIdx != null) { clickable = true; attr = ` data-gantt-turn="${r.turnIdx}"`; }
+        else if (r.tool) { clickable = true; attr = ` data-gantt-tool-msg="${r.tool.msgIdx}" data-gantt-tool-id="${escapeHtml(r.tool.toolUseId)}"`; }
+        return `<div class="gantt-row${clickable ? ' clickable' : ''}"${attr}>
+            <span class="gantt-label" title="${escapeHtml(r.label)}"><i class="g-dot" style="background:${color}"></i>${escapeHtml(r.label)}</span>
+            <div class="gantt-track"><div class="gantt-bar" style="left:${left.toFixed(1)}%;width:${width.toFixed(1)}%;background:${color}"></div></div>
+            <span class="gantt-dur">${chatDur(r.durMs)}</span>
+        </div>`;
+    }).join('');
+    const ticks = [];
+    for (let k = 0; k <= 4; k++) ticks.push(`<span>${chatDur(span * k / 4)}</span>`);
+    body += `<div class="gantt-axis"><span></span><div class="ga-ticks">${ticks.join('')}</div><span></span></div>`;
+    return `<div class="gantt">${body}</div>`;
+}
+function chatMetaRow(icon, key, value, cls) {
+    return `<div class="inv-row"><span class="inv-k"><span class="ik-ic">${icon}</span>${escapeHtml(key)}</span><span class="inv-v ${cls || ''}">${escapeHtml(String(value))}</span></div>`;
+}
+function chatBubble(side, variant, role, ts, turnIdx, msgIdx, inner, kindTag) {
+    const glyph = variant === 'you' ? '🧑' : (variant === 'bot' ? '✦' : '⚙');
+    const av = `<div class="msg-avatar ${variant}">${glyph}</div>`;
+    const tag = kindTag ? `<span class="msg-kind-tag">${escapeHtml(kindTag)}</span>` : '';
+    const head = side === 'right'
+        ? `<div class="msg-head">${tag}<span class="msg-time">${escapeHtml(formatTime(ts))}</span><span class="msg-role">${role}</span></div>`
+        : `<div class="msg-head"><span class="msg-role">${role}</span>${tag}<span class="msg-time">${escapeHtml(formatTime(ts))}</span></div>`;
+    const bub = `<div class="msg-bubble ${variant}">${head}${inner}</div>`;
+    return `<div class="msg-row ${side}" data-turn="${turnIdx}" data-msg-idx="${msgIdx}">${av}${bub}</div>`;
+}
+function chatClampWrap(innerHtml) {
+    const text = innerHtml.replace(/<[^>]*>/g, '');
+    if (text.length <= 420) return `<div class="msg-body">${innerHtml}</div>`;
+    return `<div class="msg-body clampable clamped">${innerHtml}</div><button type="button" class="msg-readmore" data-more="▾ Read more" data-less="▴ Read less">▾ Read more</button>`;
+}
+// El turno que contiene un índice de mensaje.
+function chatTurnOf(turns, msgIdx) {
+    for (const t of turns) if (msgIdx >= t.startIdx && msgIdx <= t.endIdx) return t;
+    return null;
+}
+// Datos de una observación = un mensaje del stream (rol, modelo, tokens, bloques).
+function chatMessageObservation(turns, msgIdx) {
+    const msg = transcriptData[msgIdx];
+    const cl = classifyMessage(msg);
+    const t = chatTurnOf(turns, msgIdx);
+    const role = msg.type === 'assistant' ? 'Assistant'
+        : cl.category === 'user' ? 'You'
+        : (cl.category.charAt(0).toUpperCase() + cl.category.slice(1));
+    let nText = 0, nThink = 0, nTool = 0, textLen = 0;
+    for (const b of cl.blocks) {
+        if (b.type === 'text' && b.text) { nText++; textLen += b.text.length; }
+        else if (b.type === 'thinking' && b.thinking) nThink++;
+        else if (b.type === 'tool_use') nTool++;
+    }
+    const tokens = {
+        input: Number(msg.input_tokens) || 0, output: Number(msg.output_tokens) || 0,
+        cacheRead: Number(msg.cache_read_tokens) || 0, cacheCreate: Number(msg.cache_creation_tokens) || 0,
+    };
+    return { msg, cl, turn: t, role, category: cl.category, model: msg.model || '', ts: msg.ts, tokens, nText, nThink, nTool, textLen, sidechain: cl.isSidechain };
+}
+// Datos de una ejecución concreta de herramienta (tool_use + su tool_result).
+function chatToolObservation(turns, msgIdx, toolUseId) {
+    const msg = transcriptData[msgIdx];
+    const t = chatTurnOf(turns, msgIdx);
+    const blocks = parseContentBlocks(msg.content);
+    const tb = blocks.find(b => b.type === 'tool_use' && b.id === toolUseId) || {};
+    const inputKeys = (tb.input && typeof tb.input === 'object') ? Object.keys(tb.input) : [];
+    const inputLen = (typeof tb.input === 'string') ? tb.input.length : JSON.stringify(tb.input || '').length;
+    const res = chatResultTsMap().get(toolUseId);
+    const startMs = chatTsMs(msg.ts);
+    const endMs = res && res.ts ? res.ts : startMs;
+    return {
+        msg, turn: t, name: tb.name || 'tool', toolUseId, inputKeys, inputLen,
+        outLen: res ? res.len : 0, outLines: res ? res.lines : 0, isError: res ? res.isError : false,
+        startMs, durMs: Math.max(0, (endMs || 0) - (startMs || 0)), ts: msg.ts, model: msg.model || '',
+        parentTokens: { input: Number(msg.input_tokens) || 0, output: Number(msg.output_tokens) || 0, cacheRead: Number(msg.cache_read_tokens) || 0 },
+    };
+}
+function chatHighlightSelection() {
+    document.querySelectorAll('#chat-col .msg-row').forEach(r => r.classList.remove('selected'));
+    document.querySelectorAll('#chat-col .chat-tool.selected').forEach(t => t.classList.remove('selected'));
+    if (chatSel.kind === 'turn') {
+        document.querySelectorAll(`#chat-col .msg-row[data-turn="${chatSel.turnIdx}"]`).forEach(r => r.classList.add('selected'));
+    } else if (chatSel.kind === 'message' || chatSel.kind === 'tool') {
+        const r = document.querySelector(`#chat-col .msg-row[data-msg-idx="${chatSel.msgIdx}"]`);
+        if (r) r.classList.add('selected');
+        if (chatSel.kind === 'tool') {
+            document.querySelectorAll('#chat-col .chat-tool').forEach(t => { if (t.dataset.toolUseId === chatSel.toolUseId) t.classList.add('selected'); });
+        }
+    }
+}
+function chatSelect(sel, opts) {
+    chatSel = sel;
+    chatHighlightSelection();
+    renderInvocationDetails();
+    if (opts && opts.scroll) {
+        const r = document.querySelector(`#chat-col .msg-row[data-msg-idx="${sel.msgIdx}"]`);
+        if (r) r.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+// El panel sigue al elemento más centrado en el viewport mientras se hace scroll,
+// salvo que el usuario haya fijado una herramienta o un turno (selección "pin").
+let chatSpyRaf = 0;
+function chatScrollSpyHandler() {
+    if (chatSpyRaf) return;
+    chatSpyRaf = requestAnimationFrame(() => {
+        chatSpyRaf = 0;
+        if (!chatSpyEnabled) return;
+        const layout = document.getElementById('chat-layout');
+        if (!layout || layout.classList.contains('hidden')) return;
+        if (chatSel.kind === 'tool' || chatSel.kind === 'turn') return; // selección fijada
+        const rows = document.querySelectorAll('#chat-col .msg-row[data-msg-idx]');
+        if (!rows.length) return;
+        const mid = window.innerHeight / 2;
+        let best = null, bestDist = Infinity;
+        for (const r of rows) {
+            const rect = r.getBoundingClientRect();
+            if (rect.bottom < 0 || rect.top > window.innerHeight) continue;
+            const d = Math.abs(rect.top + rect.height / 2 - mid);
+            if (d < bestDist) { bestDist = d; best = r; }
+        }
+        if (!best) return;
+        const msgIdx = Number(best.dataset.msgIdx);
+        if (chatSel.kind === 'message' && chatSel.msgIdx === msgIdx) return;
+        chatSel = { kind: 'message', msgIdx };
+        chatHighlightSelection();
+        renderInvocationDetails();
+    });
+}
+// Deselecciona una card (tool/mensaje): el panel vuelve a su estado inicial,
+// la vista de sesión ("Details of: session"), igual que ir hacia atrás del todo.
+function chatResetDetails() {
+    chatSelect({ kind: 'session' });
+}
+// Salta a la observación (mensaje) anterior/siguiente en el orden del stream.
+function chatNavObservation(dir) {
+    const rows = [...document.querySelectorAll('#chat-col .msg-row[data-msg-idx]')];
+    if (!rows.length) return;
+    const cur = (chatSel.kind === 'message' || chatSel.kind === 'tool') ? chatSel.msgIdx : null;
+    let pos = rows.findIndex(r => Number(r.dataset.msgIdx) === cur);
+    if (pos === -1) pos = dir > 0 ? -1 : rows.length;
+    const next = pos + dir;
+    if (next < 0 || next >= rows.length) return;
+    chatSelect({ kind: 'message', msgIdx: Number(rows[next].dataset.msgIdx) }, { scroll: true });
+}
+let chatEventsBound = false;
+function chatBindEvents() {
+    if (chatEventsBound) return;
+    chatEventsBound = true;
+    const col = document.getElementById('chat-col');
+    const det = document.getElementById('chat-details');
+    if (col) col.addEventListener('click', e => {
+        const more = e.target.closest('.msg-readmore');
+        if (more) {
+            e.stopPropagation();
+            const body = more.previousElementSibling;
+            const clamped = body.classList.toggle('clamped');
+            more.textContent = clamped ? more.dataset.more : more.dataset.less;
+            return;
+        }
+        // Clic en CUALQUIER parte de una tool call: selecciona esa ejecución en
+        // el panel derecho. Los controles internos (Plegar todo, summaries de
+        // Input/Output, enlace Metadata) siguen funcionando además de seleccionar.
+        const tool = e.target.closest('.chat-tool');
+        if (tool) {
+            if (tool.dataset.toolUseId) {
+                const onOwnHeader = (() => { const sm = e.target.closest('summary'); return sm && sm.parentElement === tool; })();
+                const already = chatSel.kind === 'tool' && chatSel.toolUseId === tool.dataset.toolUseId;
+                if (onOwnHeader && already) {
+                    // Deseleccionar la card: el panel vuelve al estado inicial (sesión).
+                    chatResetDetails();
+                } else {
+                    chatSelect({ kind: 'tool', msgIdx: Number(tool.dataset.msgIdx), toolUseId: tool.dataset.toolUseId });
+                }
+            }
+            const tsBtn = e.target.closest('.ts-toggle-all');
+            if (tsBtn) {
+                e.preventDefault();
+                const step = tsBtn.closest('.tool-step.v2');
+                if (step) {
+                    const sections = step.querySelectorAll('.ts-section');
+                    const anyOpen = [...sections].some(s => s.open);
+                    sections.forEach(s => { s.open = !anyOpen; });
+                    tsBtn.textContent = anyOpen ? '▸ Desplegar todo' : '▾ Plegar todo';
+                    tsBtn.dataset.tsToggle = anyOpen ? 'expand' : 'collapse';
+                }
+            }
+            const metaLink = e.target.closest('[data-ts-meta-open]');
+            if (metaLink) { e.preventDefault(); const step = metaLink.closest('.tool-step.v2'); const meta = step && step.querySelector('.ts-section.ts-meta'); if (meta) meta.open = true; }
+            return;
+        }
+        const row = e.target.closest('.msg-row[data-msg-idx]');
+        if (!row) return;
+        const mi = Number(row.dataset.msgIdx);
+        if (chatSel.kind === 'message' && chatSel.msgIdx === mi) {
+            // Volver a pulsar la misma burbuja la deselecciona: vuelve al inicio (sesión).
+            chatResetDetails();
+        } else {
+            chatSelect({ kind: 'message', msgIdx: mi });
+        }
+    });
+    if (det) det.addEventListener('click', e => {
+        const nav = e.target.closest('.cd-nav-prev, .cd-nav-next');
+        if (nav) { if (!nav.disabled) chatNavObservation(nav.classList.contains('cd-nav-prev') ? -1 : 1); return; }
+        if (e.target.closest('.cd-back')) { if (chatBackSel) chatSelect(chatBackSel); return; }
+        const spy = e.target.closest('.cd-spy-toggle');
+        if (spy) { chatSpyEnabled = !chatSpyEnabled; renderInvocationDetails(); return; }
+        if (e.target.closest('.cd-refresh')) { renderInvocationDetails(); return; }
+        const tog = e.target.closest('.inv-toggle button');
+        if (tog) { chatDetailsViewMode = tog.dataset.mode; renderInvocationDetails(); return; }
+        const gtool = e.target.closest('[data-gantt-tool-msg]');
+        if (gtool) { chatSelect({ kind: 'tool', msgIdx: Number(gtool.dataset.ganttToolMsg), toolUseId: gtool.dataset.ganttToolId }, { scroll: true }); return; }
+        const grow = e.target.closest('[data-gantt-turn]');
+        if (grow) { chatSelect({ kind: 'turn', turnIdx: Number(grow.dataset.ganttTurn) }); }
+    });
+    window.addEventListener('scroll', chatScrollSpyHandler, { passive: true });
+}
+function renderInvocationDetails() {
+    const panel = document.getElementById('chat-details');
+    if (!panel) return;
+    if (!transcriptData || !transcriptData.length) { panel.innerHTML = '<div class="cd-empty">Sin datos de invocación.</div>'; return; }
+    const sessionId = chatActiveSessionId || (transcriptData[0] && transcriptData[0].sid) || '';
+    const turns = buildTurns();
+    const session = sessions.find(s => s.session_id === sessionId);
+
+    // Normaliza la selección: si el mensaje/turno ya no existe, baja a sesión.
+    let sel = chatSel;
+    if (sel.kind === 'turn' && !turns.some(t => t.idx === sel.turnIdx)) sel = { kind: 'session' };
+    if ((sel.kind === 'message' || sel.kind === 'tool') && (sel.msgIdx == null || sel.msgIdx >= transcriptData.length)) sel = { kind: 'session' };
+
+    // v = vista a pintar. ganttRows opcional; si no hay, se usa altSection.
+    const v = { kindChip: 'session', kindCls: '', ipTitle: 'Session', chips: [], metrics: [], sectionTitle: 'Spans', ganttRows: null, winStart: 0, winEnd: 1, altSection: '', metaRows: [], jsonObj: {} };
+    chatBackSel = null;
+
+    if (sel.kind === 'tool') {
+        const o = chatToolObservation(turns, sel.msgIdx, sel.toolUseId);
+        const t = o.turn;
+        const ws = t ? (chatTsMs(t.started) || o.startMs) : o.startMs;
+        const we = Math.max(t ? (chatTsMs(t.ended) || ws) : ws, (o.startMs || 0) + o.durMs);
+        v.kindChip = 'tool'; v.kindCls = 'tool'; v.ipTitle = o.name;
+        v.chips = [o.name, formatTime(o.ts), t ? ('turno #' + t.idx) : ''];
+        v.metrics = [
+            ['dur', '⏱', 'Duration', chatDur(o.durMs)],
+            ['in', '↓', 'Input', formatNumber(o.inputLen)],
+            ['out', '↑', 'Output', formatNumber(o.outLen)],
+            ['cost', '≡', 'Lines', formatNumber(o.outLines)],
+        ];
+        v.winStart = ws; v.winEnd = Math.max(we, ws + 1);
+        v.ganttRows = [];
+        if (t) v.ganttRows.push({ label: `#${t.idx} ${shortModel(o.model) || 'turno'}`, startMs: ws, durMs: (we - ws), color: '#cbd5e1', turnIdx: t.idx });
+        v.ganttRows.push({ label: o.name, startMs: o.startMs, durMs: o.durMs, color: o.isError ? '#dc2626' : '#e82a6b' });
+        v.metaRows = [
+            ['🔧', 'Tool', o.name, 'accent'],
+            ['#', 'tool_use_id', o.toolUseId || '-', 'mono'],
+            ['≡', 'Turno', t ? ('#' + t.idx) : '-', ''],
+            ['◷', 'Hora', formatTime(o.ts), ''],
+            ['⏱', 'Duración', chatDur(o.durMs), ''],
+            ['⬇', 'Input', (o.inputKeys.length ? o.inputKeys.length + ' keys · ' : '') + formatNumber(o.inputLen) + ' chars', ''],
+            ['⬆', 'Output', formatNumber(o.outLen) + ' chars · ' + formatNumber(o.outLines) + ' lines', ''],
+            ['⚠', 'Error', o.isError ? 'true' : 'false', o.isError ? 'accent' : ''],
+            ['✦', 'Modelo (req)', shortModel(o.model) || '-', ''],
+            ['∑', 'Tokens (req)', `↓${formatNumber(o.parentTokens.input)} ↑${formatNumber(o.parentTokens.output)} ⇊${formatNumber(o.parentTokens.cacheRead)}`, ''],
+        ];
+        v.jsonObj = { kind: 'tool', name: o.name, tool_use_id: o.toolUseId, turn: t ? t.idx : null, time: o.ts, duration: chatDur(o.durMs), input_keys: o.inputKeys, input_chars: o.inputLen, output_chars: o.outLen, output_lines: o.outLines, is_error: o.isError, request_model: shortModel(o.model), request_tokens: o.parentTokens };
+        chatBackSel = t ? { kind: 'turn', turnIdx: t.idx } : { kind: 'session' };
+    } else if (sel.kind === 'message') {
+        const o = chatMessageObservation(turns, sel.msgIdx);
+        const t = o.turn;
+        v.kindChip = 'observation'; v.kindCls = 'obs'; v.ipTitle = o.role + ' message';
+        v.chips = [o.role, formatTime(o.ts), t ? ('turno #' + t.idx) : ''];
+        v.metrics = [
+            ['cost', '$', 'Cost', formatCost(turnCost(o.tokens, o.model))],
+            ['in', '↓', 'Input', formatNumber(o.tokens.input)],
+            ['out', '↑', 'Output', formatNumber(o.tokens.output)],
+            ['dur', '⇊', 'Cache R', formatNumber(o.tokens.cacheRead)],
+        ];
+        // En vez de gantt, un desglose del contenido del mensaje.
+        v.sectionTitle = 'Contenido';
+        v.altSection = `<div class="cd-summary-row">
+            <span class="cd-chip">📝 ${o.nText} texto</span>
+            <span class="cd-chip">💭 ${o.nThink} thinking</span>
+            <span class="cd-chip">🔧 ${o.nTool} tools</span>
+            <span class="cd-chip">${formatNumber(o.textLen)} chars</span>
+        </div>`;
+        v.metaRows = [
+            ['◆', 'Tipo', o.category, ''],
+            ['≡', 'Turno', t ? ('#' + t.idx) : '-', ''],
+            ['◷', 'Hora', formatTime(o.ts), ''],
+            ['✦', 'Modelo', shortModel(o.model) || '-', ''],
+            ['∑', 'Tokens', `↓${formatNumber(o.tokens.input)} ↑${formatNumber(o.tokens.output)} ⇊${formatNumber(o.tokens.cacheRead)} ⇈${formatNumber(o.tokens.cacheCreate)}`, ''],
+            ['🧩', 'Bloques', `${o.nText} texto · ${o.nThink} thinking · ${o.nTool} tools`, ''],
+            ['↔', 'Long. texto', formatNumber(o.textLen) + ' chars', ''],
+        ];
+        if (o.sidechain) v.metaRows.push(['↘', 'Sidechain', 'true', '']);
+        v.jsonObj = { kind: 'observation', role: o.role, category: o.category, turn: t ? t.idx : null, time: o.ts, model: shortModel(o.model), tokens: o.tokens, blocks: { text: o.nText, thinking: o.nThink, tools: o.nTool }, text_chars: o.textLen };
+        chatBackSel = t ? { kind: 'turn', turnIdx: t.idx } : { kind: 'session' };
+    } else if (sel.kind === 'turn') {
+        const turn = turns.find(t => t.idx === sel.turnIdx);
+        const startMs = chatTsMs(turn.started);
+        const endMs = chatTsMs(turn.ended) || startMs;
+        const spans = chatTurnSpans(turn);
+        const spanEnd = spans.reduce((mx, s) => Math.max(mx, (s.startMs || 0) + (s.durMs || 0)), endMs || 0);
+        v.winStart = startMs || 0;
+        v.winEnd = Math.max(spanEnd, (startMs || 0) + 1);
+        const tok = turn.tokens;
+        v.kindChip = 'invocation'; v.kindCls = ''; v.ipTitle = 'Invocation';
+        v.ganttRows = [{ label: `#${turn.idx} · ${shortModel(turn.model) || 'invocation'}`, startMs: v.winStart, durMs: v.winEnd - v.winStart, color: '#e82a6b' }]
+            .concat(spans.map((s, i) => ({ label: s.name, startMs: s.startMs, durMs: s.durMs, color: s.isError ? '#dc2626' : chatPalette(i + 1), tool: { msgIdx: s.msgIdx, toolUseId: s.toolUseId } })));
+        v.chips = [`${spans.length} ${spans.length === 1 ? 'call' : 'calls'}`, formatTime(turn.started), sessionId.slice(0, 8) + '… #' + turn.idx];
+        v.metrics = [
+            ['cost', '$', 'Cost', formatCost(turnCost(tok, turn.model))],
+            ['in', '↓', 'Input', formatNumber(tok.input)],
+            ['out', '↑', 'Output', formatNumber(tok.output)],
+            ['dur', '⏱', 'Duration', chatDur(v.winEnd - v.winStart)],
+        ];
+        const toolNames = [...turn.tools.entries()].map(([n, c]) => `${n}${c > 1 ? '×' + c : ''}`).join(', ');
+        v.metaRows = [
+            ['#', 'Trace ID', sessionId, 'mono'],
+            ['#', 'Invocation', '#' + turn.idx, 'accent'],
+            ['◷', 'Start time', formatTime(turn.started), ''],
+            ['◷', 'Finish time', formatTime(turn.ended), ''],
+            ['⏱', 'Duration', chatDur(v.winEnd - v.winStart), ''],
+            ['◆', 'Span Kind', 'invocation', ''],
+            ['✦', 'Model', shortModel(turn.model) || '-', ''],
+            ['∑', 'Tokens', `↓${formatNumber(tok.input)} ↑${formatNumber(tok.output)} ⇊${formatNumber(tok.cacheRead)}`, ''],
+            ['🔧', 'Tools', toolNames || '-', ''],
+        ];
+        v.jsonObj = { kind: 'invocation', invocation: turn.idx, trace_id: sessionId, model: shortModel(turn.model), started: turn.started, ended: turn.ended, duration: chatDur(v.winEnd - v.winStart), cost: turnCost(tok, turn.model), tokens: tok, tools: Object.fromEntries(turn.tools), spans: spans.map(s => ({ name: s.name, duration: chatDur(s.durMs), error: s.isError })) };
+        chatBackSel = { kind: 'session' };
+    } else {
+        const starts = turns.map(t => chatTsMs(t.started)).filter(x => x != null);
+        const ends = turns.map(t => chatTsMs(t.ended) || chatTsMs(t.started)).filter(x => x != null);
+        v.winStart = starts.length ? Math.min(...starts) : 0;
+        v.winEnd = ends.length ? Math.max(...ends) : v.winStart + 1;
+        const totals = chatTotals(sessionId, turns);
+        v.kindChip = 'session'; v.kindCls = ''; v.ipTitle = 'Session';
+        v.ganttRows = turns.map((t, i) => {
+            const s = chatTsMs(t.started) || v.winStart;
+            const e = chatTsMs(t.ended) || s;
+            const prev = (t.prompt || '').replace(/\s+/g, ' ').slice(0, 26);
+            return { label: `#${t.idx} ${prev}`, startMs: s, durMs: Math.max(0, e - s), color: chatPalette(i), turnIdx: t.idx };
+        });
+        v.chips = [`${turns.length} ${turns.length === 1 ? 'trace' : 'traces'}`, formatTime(turns.length ? turns[0].started : (session && session.started)), sessionId.slice(0, 12) + '…'];
+        v.metrics = [
+            ['cost', '$', 'Cost', formatCost(totals.cost)],
+            ['in', '↓', 'Input', formatNumber(totals.input)],
+            ['out', '↑', 'Output', formatNumber(totals.output)],
+            ['dur', '⏱', 'Duration', chatDur(v.winEnd - v.winStart)],
+        ];
+        v.metaRows = [
+            ['#', 'Trace ID', sessionId, 'mono'],
+            ['◷', 'Start time', formatTime(turns.length ? turns[0].started : (session && session.started)), ''],
+            ['◷', 'Finish time', formatTime(turns.length ? turns[turns.length - 1].ended : ''), ''],
+            ['⏱', 'Duration', chatDur(v.winEnd - v.winStart), ''],
+            ['◆', 'Span Kind', 'session', ''],
+            ['≡', 'Turns', String(turns.length), ''],
+            ['✦', 'Models', totals.models > 1 ? totals.models + ' models' : (totals.modelName || '-'), ''],
+            ['📁', 'Project', session ? displayProject(session) : '-', ''],
+        ];
+        v.jsonObj = { kind: 'session', trace_id: sessionId, turns: turns.length, duration: chatDur(v.winEnd - v.winStart), cost: totals.cost, input_tokens: totals.input, output_tokens: totals.output, models: totals.modelName };
+    }
+
+    const hasBack = chatBackSel != null;
+    // Cabecera: en lugar de "Details of <tipo>", mostramos el turno al que
+    // pertenece la selección + un resumen de su prompt (como hacía el sticky).
+    let headerTurn = null;
+    if (sel.kind === 'turn') headerTurn = turns.find(t => t.idx === sel.turnIdx);
+    else if (sel.kind === 'message' || sel.kind === 'tool') headerTurn = chatTurnOf(turns, sel.msgIdx);
+    const kindGlyph = v.kindChip === 'session' ? '≡' : v.kindChip === 'invocation' ? '✦' : v.kindChip === 'tool' ? '🔧' : '◉';
+    const kindChipHtml = `<span class="cd-kind ${v.kindCls}">${kindGlyph} ${v.kindChip}</span>`;
+    let titleHtml;
+    if (headerTurn) {
+        const full = (headerTurn.prompt || '').replace(/\s+/g, ' ').trim();
+        const preview = full.slice(0, 70);
+        const previewHtml = full ? ` <span class="cd-turn-sep">-</span> <span class="cd-turn-preview" title="${escapeHtml(full)}">${escapeHtml(preview)}${full.length > 70 ? '…' : ''}</span>` : '';
+        titleHtml = `Details of: <b class="cd-turn-no">Turno #${headerTurn.idx}</b>${previewHtml} ${kindChipHtml}`;
+    } else {
+        titleHtml = `Details of: ${kindChipHtml}`;
+    }
+    // Navegación a la observación anterior / siguiente (sobre el orden del stream).
+    const obsRows = [...document.querySelectorAll('#chat-col .msg-row[data-msg-idx]')];
+    const obsTotal = obsRows.length;
+    let obsPos = -1;
+    if (sel.kind === 'message' || sel.kind === 'tool') obsPos = obsRows.findIndex(r => Number(r.dataset.msgIdx) === sel.msgIdx);
+    const navPrevOff = obsTotal === 0 || obsPos === 0;
+    const navNextOff = obsTotal === 0 || (obsPos >= 0 && obsPos >= obsTotal - 1);
+    const navHtml = `<div class="cd-nav">
+        <button type="button" class="cd-nav-prev"${navPrevOff ? ' disabled' : ''} title="Observación anterior">▲ Anterior</button>
+        <span class="cd-nav-pos">${obsPos >= 0 ? `obs ${obsPos + 1}/${obsTotal}` : `${obsTotal} obs`}</span>
+        <button type="button" class="cd-nav-next"${navNextOff ? ' disabled' : ''} title="Observación siguiente">Siguiente ▼</button>
+    </div>`;
+    const chipsHtml = v.chips.filter(Boolean).map((c, i) => `<span class="cd-chip"><span class="${i === 2 ? 'mono' : ''}">${escapeHtml(String(c))}</span></span>`).join('');
+    const metricsHtml = v.metrics.map(([cls, ic, lab, val]) => `<div class="cd-metric ${cls}"><div class="cm-h"><span class="cm-ic">${ic}</span>${lab}</div><div class="cm-n">${escapeHtml(String(val))}</div></div>`).join('');
+    const sectionHtml = v.ganttRows ? chatGanttHtml(v.ganttRows, v.winStart, v.winEnd) : v.altSection;
+    const bodyHtml = chatDetailsViewMode === 'json'
+        ? `<div class="inv-json">${escapeHtml(JSON.stringify(v.jsonObj, null, 2))}</div>`
+        : `<div class="inv-badge">Claude Code · transcript</div><div class="inv-meta">${v.metaRows.map(([ic, k, val, cls]) => chatMetaRow(ic, k, val, cls)).join('')}</div>`;
+
+    panel.innerHTML = `
+        <div class="cd-head${hasBack ? ' has-back' : ''}">
+            <button type="button" class="cd-back" title="Subir un nivel">←</button>
+            <span class="cd-title">${titleHtml}</span>
+            <button type="button" class="cd-spy-toggle cd-refresh" title="${chatSpyEnabled ? 'Seguir scroll: ON' : 'Seguir scroll: OFF'}">${chatSpyEnabled ? '🧲' : '📌'}</button>
+            <button type="button" class="cd-refresh" title="Refrescar">⟳</button>
+        </div>
+        <div class="cd-scroll">
+            ${navHtml}
+            <div class="cd-summary-row">${chipsHtml}</div>
+            <div class="cd-metrics">${metricsHtml}</div>
+            <div class="cd-section-title">${escapeHtml(v.sectionTitle)}</div>
+            ${sectionHtml}
+            <div class="inv-panel">
+                <div class="inv-panel-head">
+                    <span class="ip-ic">✦</span>
+                    <span class="ip-title">${escapeHtml(v.ipTitle)}</span>
+                    <span class="inv-toggle">
+                        <button type="button" data-mode="ui" class="${chatDetailsViewMode === 'ui' ? 'active' : ''}">UI</button>
+                        <button type="button" data-mode="json" class="${chatDetailsViewMode === 'json' ? 'active' : ''}">JSON</button>
+                    </span>
+                </div>
+                ${bodyHtml}
+            </div>
+        </div>`;
 }
 
 function renderTranscript() {
     const container = document.getElementById('messages-container');
     if (!transcriptData || transcriptData.length === 0) {
         container.innerHTML = '<div style="color:#555;text-align:center;padding:60px 20px">No messages in this session</div>';
+        const cc = document.getElementById('chat-col');
+        const cd = document.getElementById('chat-details');
+        if (cc) cc.innerHTML = '<div class="cd-empty">No messages in this session</div>';
+        if (cd) cd.innerHTML = '';
         return;
     }
 
@@ -6969,7 +7919,8 @@ function renderTranscript() {
     }
     const renderedToolUseIds = new Set();
 
-    function renderToolStep(toolUse, resultEntry, allowResult) {
+    function renderToolStep(toolUse, resultEntry, allowResult, collapsed) {
+        const openAttr = collapsed ? '' : ' open';
         const toolName = toolUse.name || 'tool';
         const toolId = toolUse.id ? String(toolUse.id) : '';
         const toolIdShort = toolId ? toolId.slice(0, 12) : '';
@@ -7041,7 +7992,7 @@ function renderTranscript() {
             </div>`;
 
         const inputSection = `
-            <details class="ts-section ts-input" open${inputAnchorId ? ` id="${inputAnchorId}"` : ''}>
+            <details class="ts-section ts-input"${openAttr}${inputAnchorId ? ` id="${inputAnchorId}"` : ''}>
                 <summary class="ts-summary">
                     <span class="ts-caret">▾</span>
                     <span class="ts-section-title">Input</span>
@@ -7053,7 +8004,7 @@ function renderTranscript() {
             </details>`;
 
         const outputSection = outputBody ? `
-            <details class="ts-section ts-${outputClass.split(' ')[0]}${outputClass.includes('error') ? ' is-error' : ''}" open${outputAnchorId ? ` id="${outputAnchorId}"` : ''}>
+            <details class="ts-section ts-${outputClass.split(' ')[0]}${outputClass.includes('error') ? ' is-error' : ''}"${openAttr}${outputAnchorId ? ` id="${outputAnchorId}"` : ''}>
                 <summary class="ts-summary">
                     <span class="ts-caret">▾</span>
                     <span class="ts-section-title">${isError ? 'Output · Error' : 'Output'}</span>
@@ -7082,7 +8033,7 @@ function renderTranscript() {
                 <span class="ts-head-tool">${escapeHtml(toolName)}</span>
                 <span class="ts-head-type" title="Tipo de bloque">tool_use</span>
                 ${toolIdShort ? `<span class="ts-head-id" title="${escapeHtml(toolId)}">${escapeHtml(toolIdShort)}</span>` : ''}
-                <button type="button" class="ts-toggle-all" data-ts-toggle="collapse" title="Plegar / desplegar Input · Output · Metadata">▾ Plegar todo</button>
+                <button type="button" class="ts-toggle-all" data-ts-toggle="${collapsed ? 'expand' : 'collapse'}" title="Plegar / desplegar Input · Output · Metadata">${collapsed ? '▸ Desplegar todo' : '▾ Plegar todo'}</button>
             </div>
             ${jumpHtml}
             ${inputSection}
@@ -7137,6 +8088,76 @@ function renderTranscript() {
             Array.isArray(block.content) ? block.content.map(c => c.text || '').join('\n') :
             JSON.stringify(block.content);
         return `<div style="white-space:pre-wrap">${renderAnsi(text)}</div>`;
+    }
+
+    // NUEVO DISEÑO: construye la columna de chat (burbujas System/You/Assistant
+    // con tool calls y thinking plegados dentro del Assistant). Reutiliza los
+    // closures renderMd / renderToolStep / toolResultByUseId. Solo lee estado,
+    // no muta renderedToolUseIds (eso es exclusivo del render clásico).
+    function renderChatLayout() {
+        const col = document.getElementById('chat-col');
+        if (!col) return;
+        const sessionId = chatActiveSessionId || (transcriptData[0] && transcriptData[0].sid) || '';
+        const turns = buildTurns();
+        const idxToTurn = new Map();
+        for (const t of turns) for (let i = t.startIdx; i <= t.endIdx; i++) idxToTurn.set(i, t.idx);
+        const totals = chatTotals(sessionId, turns);
+
+        const headHtml = `<div class="chat-head-card">
+            <div class="chat-head-title">${escapeHtml(chatSessionTitle(sessionId))}</div>
+            <div class="chat-head-metrics">
+                <span class="chat-metric cost"><span class="cm-ic">$</span><span class="cm-lab">Cost</span><span class="cm-val">${formatCost(totals.cost)}</span></span>
+                <span class="chat-metric in"><span class="cm-ic">↓</span><span class="cm-lab">Input</span><span class="cm-val">${formatNumber(totals.input)} tokens</span></span>
+                <span class="chat-metric out"><span class="cm-ic">↑</span><span class="cm-lab">Output</span><span class="cm-val">${formatNumber(totals.output)} tokens</span></span>
+                ${totals.models > 1 ? `<span class="chat-metric models">${totals.models} models used</span>` : (totals.modelName ? `<span class="chat-metric models">${escapeHtml(totals.modelName)}</span>` : '')}
+            </div>
+        </div>`;
+
+        const kindTagMap = { plan: 'Plan', skill: 'Skill', interrupt: 'Interrupted', continuation: 'Continuation', agent_notification: 'Notification', summary: 'Summary' };
+        const parts = [];
+        for (let mi = 0; mi < transcriptData.length; mi++) {
+            const msg = transcriptData[mi];
+            const cl = classifyMessage(msg);
+            const turnIdx = idxToTurn.has(mi) ? idxToTurn.get(mi) : '';
+            if (cl.category === 'skip') continue;
+            if (cl.category === 'tool_result') continue; // mostrado dentro del Assistant
+
+            if (msg.type === 'assistant') {
+                let bodyMd = '';
+                const extras = [];
+                for (const b of cl.blocks) {
+                    if (b.type === 'thinking' && b.thinking) {
+                        extras.push(`<details class="chat-tool thinking"><summary><span class="ct-ic">💭</span><span class="ct-name">Thinking</span></summary><div class="chat-tool-body"><div class="chat-tool-think-text">${escapeHtml(b.thinking)}</div></div></details>`);
+                    } else if (b.type === 'text' && b.text && b.text.trim()) {
+                        bodyMd += renderMd(b.text);
+                    } else if (b.type === 'tool_use') {
+                        const useId = b.id;
+                        const resultEntry = useId ? toolResultByUseId.get(useId) : null;
+                        const step = renderToolStep(b, resultEntry, true, true);
+                        extras.push(`<details class="chat-tool" open data-msg-idx="${mi}" data-tool-use-id="${escapeHtml(useId || '')}" data-tool-name="${escapeHtml(b.name || 'tool')}"><summary><span class="ct-ic">🔧</span><span class="ct-name">${escapeHtml(b.name || 'tool')}</span><span class="ct-count">1 call</span></summary><div class="chat-tool-body">${step}</div></details>`);
+                    }
+                }
+                if (!bodyMd && !extras.length) continue;
+                const inner = (bodyMd ? chatClampWrap(bodyMd) : '') + (extras.length ? `<div class="chat-tools">${extras.join('')}</div>` : '');
+                parts.push(chatBubble('left', 'bot', 'Assistant', msg.ts, turnIdx, mi, inner));
+                continue;
+            }
+
+            if (cl.category === 'user') {
+                const txt = textFromBlocks(cl.blocks);
+                if (!txt.trim()) continue;
+                parts.push(chatBubble('right', 'you', 'You', msg.ts, turnIdx, mi, chatClampWrap(renderMd(txt))));
+                continue;
+            }
+
+            // plan / skill / interrupt / continuation / agent_notification / summary
+            const tag = kindTagMap[cl.category] || 'System';
+            const txt = cl.category === 'summary' ? (msg.summary || '') : textFromBlocks(cl.blocks);
+            if (!txt.trim()) continue;
+            parts.push(chatBubble('left', 'sys', 'System', msg.ts, turnIdx, mi, chatClampWrap(renderMd(txt)), tag));
+        }
+
+        col.innerHTML = headHtml + `<div class="chat-stream">${parts.join('') || '<div class="cd-empty">No hay mensajes visibles.</div>'}</div>`;
     }
 
     for (let mi = 0; mi < transcriptData.length; mi++) {
@@ -7259,6 +8280,12 @@ function renderTranscript() {
         }
     }
 
+    // NUEVO DISEÑO: render del chat + panel de detalles de la pestaña Conversación.
+    renderChatLayout();
+    renderInvocationDetails();
+    chatBindEvents();
+    chatHighlightSelection();
+
     // Re-apply transcript search if active
     const searchQuery = document.getElementById('transcript-search-input').value.trim();
     if (searchQuery.length >= 2) doTranscriptSearch(searchQuery);
@@ -7270,6 +8297,9 @@ function updateStickyOffset() {
         const h = bar.offsetHeight + 'px';
         document.getElementById('messages-container').style.setProperty('--filters-height', h);
         document.getElementById('sticky-prompt').style.setProperty('--filters-height', h);
+        // El panel de detalles sticky se ancla bajo la barra de filtros.
+        const chatLayout = document.getElementById('chat-layout');
+        if (chatLayout) chatLayout.style.setProperty('--filters-height', h);
     }
 }
 
@@ -7304,7 +8334,9 @@ function doTranscriptSearch(query) {
     if (!query || query.length < 2) return;
     document.querySelector('.transcript-search').classList.add('active');
 
-    const container = document.getElementById('messages-container');
+    // La conversación es el nuevo chat: la búsqueda opera sobre #chat-col.
+    const container = document.getElementById('chat-col');
+    if (!container) return;
     const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
     const matches = [];
     const lcQuery = query.toLowerCase();
@@ -7312,7 +8344,7 @@ function doTranscriptSearch(query) {
     // Collect all text nodes with matches
     while (walker.nextNode()) {
         const node = walker.currentNode;
-        if (node.parentElement.closest('.term-meta-line, .term-nav, .term-prefix')) continue;
+        if (node.parentElement.closest('.msg-head, .chat-head-metrics, .ct-count, .ts-section-badge, .ts-head, .term-meta-line, .term-nav, .term-prefix')) continue;
         const text = node.textContent.toLowerCase();
         if (text.includes(lcQuery)) matches.push(node);
     }
@@ -7351,12 +8383,15 @@ function highlightCurrentHit() {
     transcriptSearchHits.forEach((m, i) => m.classList.toggle('current', i === transcriptSearchIdx));
     if (transcriptSearchHits[transcriptSearchIdx]) {
         const hit = transcriptSearchHits[transcriptSearchIdx];
-        // Expand collapsed block if needed
-        const content = hit.closest('.term-content');
-        if (content && !content.classList.contains('expanded')) content.classList.add('expanded');
+        // Desplegar lo necesario para que el hit sea visible.
+        const clamped = hit.closest('.msg-body.clamped');
+        if (clamped) clamped.classList.remove('clamped');
+        const sec = hit.closest('.ts-section');
+        if (sec && !sec.open) sec.open = true;
+        const tool = hit.closest('.chat-tool');
+        if (tool && !tool.open) tool.open = true;
         const filtersH = document.getElementById('filters-bar')?.offsetHeight || 36;
-        const stickyH = document.getElementById('sticky-prompt')?.offsetHeight || 0;
-        const top = hit.getBoundingClientRect().top + window.scrollY - filtersH - stickyH - 40;
+        const top = hit.getBoundingClientRect().top + window.scrollY - filtersH - 40;
         window.scrollTo({ top, behavior: 'smooth' });
     }
 }
@@ -7465,23 +8500,15 @@ document.getElementById('flow-overview').addEventListener('click', e => {
 });
 
 function scrollToMessageIndex(idx) {
+    // El salto va a la burbuja del nuevo chat (que lleva data-msg-idx) y la
+    // selecciona en el panel de detalles.
     const jump = () => {
-        const target = document.querySelector(`.term-block[data-msg-idx="${idx}"]`);
+        const target = document.querySelector(`#chat-col .msg-row[data-msg-idx="${idx}"]`);
         if (!target) return;
-        // Si el turno contenedor está plegado, desplegarlo antes de hacer scroll
-        const turn = target.closest('.turn-group');
-        if (turn && turn.classList.contains('collapsed')) turn.classList.remove('collapsed');
-        // Si el bloque tiene un tool-step v2 con secciones plegadas, abrir Input y Output
-        // (Metadata se queda como estaba para no saturar al usuario)
-        target.querySelectorAll('.tool-step.v2 .ts-section.ts-input, .tool-step.v2 .ts-section.ts-output').forEach(s => { s.open = true; });
-        // Si el .term-content está colapsado, expandirlo
-        const content = target.querySelector('.term-content');
-        if (content && !content.classList.contains('expanded')) content.classList.add('expanded');
-        const filtersH = document.getElementById('filters-bar')?.offsetHeight || 36;
-        window.scrollTo({ top: target.offsetTop - filtersH - 16, behavior: 'smooth' });
+        chatSelect({ kind: 'message', msgIdx: Number(idx) }, { scroll: true });
     };
-    if (document.getElementById('messages-container')?.classList.contains('hidden')) {
-        traceViewMode = 'transcript';
+    if (!traceViews.has('transcript')) {
+        traceViews.add('transcript');
         applyTraceViewMode();
         requestAnimationFrame(jump);
         return;
@@ -7530,7 +8557,16 @@ document.getElementById('trace-full-table').addEventListener('click', e => {
 document.getElementById('trace-view-switcher').addEventListener('click', e => {
     const btn = e.target.closest('button[data-trace-view]');
     if (!btn) return;
-    traceViewMode = btn.dataset.traceView;
+    const v = btn.dataset.traceView;
+    if (v === 'all') {
+        // "Todo": si ya están todas activas, deja solo Conversación; si no, activa todas.
+        const allOn = TRACE_VIEW_ALL_KEYS.every(k => traceViews.has(k));
+        traceViews = new Set(allOn ? ['transcript'] : TRACE_VIEW_ALL_KEYS);
+    } else {
+        // Toggle individual (selección múltiple). Nunca queda vacío.
+        if (traceViews.has(v)) traceViews.delete(v); else traceViews.add(v);
+        if (traceViews.size === 0) traceViews.add('transcript');
+    }
     applyTraceViewMode();
 });
 
@@ -7652,10 +8688,10 @@ document.getElementById('turns-expand-all').addEventListener('click', () => {
     document.querySelectorAll('#messages-container .turn-group').forEach(g => g.classList.remove('collapsed'));
 });
 
-// Plegar / desplegar Input · Output · Metadata de TODOS los tool-steps
+// Plegar / desplegar Input · Output · Metadata de TODAS las tool calls del chat.
 function setAllToolStepSections(open) {
-    document.querySelectorAll('#messages-container .tool-step.v2 .ts-section').forEach(s => { s.open = open; });
-    document.querySelectorAll('#messages-container .tool-step.v2 .ts-toggle-all').forEach(btn => {
+    document.querySelectorAll('#chat-col .tool-step.v2 .ts-section').forEach(s => { s.open = open; });
+    document.querySelectorAll('#chat-col .tool-step.v2 .ts-toggle-all').forEach(btn => {
         btn.textContent = open ? '▾ Plegar todo' : '▸ Desplegar todo';
         btn.dataset.tsToggle = open ? 'collapse' : 'expand';
     });
@@ -7683,8 +8719,13 @@ document.addEventListener('keydown', e => {
 let stickyCurrentIdx = -1;
 let stickyHeight = 60; // cached height estimate
 function updateStickyPrompt() {
-    const container = document.getElementById('messages-container');
+    // El prompt fijo pertenecía al diseño clásico (retirado). En el chat, los
+    // prompts del usuario se ven como burbujas "You", así que se desactiva.
     const sticky = document.getElementById('sticky-prompt');
+    if (sticky) sticky.style.display = 'none';
+    return;
+    // eslint-disable-next-line no-unreachable
+    const container = document.getElementById('messages-container');
     const blocks = container.querySelectorAll('[data-nav="user"]');
     if (!blocks.length) { sticky.style.display = 'none'; return; }
 
@@ -7795,6 +8836,8 @@ function updateScrollMetrics() {
     if (!cumulativeMetrics || !transcriptData || window.scrollY < 10) { metricsEl.style.display = 'none'; return; }
 
     const container = document.getElementById('messages-container');
+    // El contenedor clásico está retirado (oculto): sin métricas de scroll sobre él.
+    if (container.classList.contains('hidden')) { metricsEl.style.display = 'none'; return; }
     const blocks = container.querySelectorAll('.term-block[data-msg-idx]');
     if (!blocks.length) { metricsEl.style.display = 'none'; return; }
 
