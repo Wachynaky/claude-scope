@@ -1,8 +1,8 @@
 # Claude Scope
 
 Dashboard local de observabilidad para sesiones de Claude Code. Lee tus
-JSONL en `~/.claude/projects/` con `clickhouse-local` y los explora en un
-navegador. **Nada sale de tu equipo.**
+JSONL en `~/.claude/projects/` con ClickHouse embebido (chdb) y los explora en
+un navegador. **Nada sale de tu equipo.**
 
 ![Ejemplo del dashboard de Claude Scope](claude-scope.png)
 
@@ -19,58 +19,38 @@ Funcionalidades:
 
 ## Cómo ejecutarlo
 
-Sólo necesitas **Python 3.8 o superior**. El propio panel descarga
-`clickhouse-local` automáticamente la primera vez (~150 MB) y abre el
-navegador solo.
+Sólo necesitas **Python 3.9 o superior**. El motor de datos es
+[**chdb**](https://github.com/chdb-io/chdb) (ClickHouse embebido), que se
+instala con `pip`: no hay que descargar ningún binario ni configurar nada. El
+panel abre el navegador solo.
 
-Descarga el código del repositorio. Tienes **dos opciones**, con cualquiera
-obtienes los mismos ficheros:
+### Linux y macOS
 
-### Opción 1 · Descargar el ZIP (la más sencilla)
-
-Desde esta misma página, pulsa el botón verde **Code** y luego **Download ZIP**.
-Después descomprime el archivo.
-
-<table>
-  <tr>
-    <td><img src="claude-code-panel.png" alt="Menú Code → Download ZIP en GitHub" width="460"></td>
-  </tr>
-</table>
-
-### Opción 2 · Clonar con git (si ya lo tienes instalado)
+Copia y pega este bloque en una terminal:
 
 ```bash
 git clone https://github.com/Wachynaky/claude-scope.git
+cd claude-scope
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python3 claude-scope/local_server.py
 ```
 
-Con cualquiera de las dos, al terminar abre una terminal **dentro de la
-carpeta** descargada (la que contiene `installer/` y `claude-scope/`).
-Después, según tu sistema:
+Eso es todo: se abre `http://127.0.0.1:8765` en tu navegador con el panel.
 
-### Linux
+> La primera vez, `pip install` descarga chdb (incluye el motor de ClickHouse,
+> tarda un poco). Después arranca al instante y funciona sin conexión.
 
-```bash
-python3 installer/launcher.py
-```
-
-Python ya viene en casi todas las distros. Si falta, en Debian/Ubuntu:
-`sudo apt install python3`.
-
-### macOS
-
-```bash
-python3 installer/launcher.py
-```
-
-Si no tienes Python, instálalo desde
-[python.org](https://www.python.org/downloads/) o con Homebrew
-(`brew install python`).
+Si no tienes Python: en Debian/Ubuntu `sudo apt install python3 python3-venv`;
+en macOS instálalo desde [python.org](https://www.python.org/downloads/) o con
+Homebrew (`brew install python`).
 
 ### Windows
 
-ClickHouse no tiene versión nativa para Windows, así que el panel se ejecuta
-**dentro de WSL** (Windows Subsystem for Linux), donde todo funciona igual que
-en Linux. Sólo necesitas activar WSL una vez:
+chdb (ClickHouse) no tiene versión nativa para Windows, así que el panel se
+ejecuta **dentro de WSL** (Windows Subsystem for Linux), donde todo funciona
+igual que en Linux. Sólo necesitas activar WSL una vez:
 
 ```powershell
 # PowerShell como Administrador, sólo la primera vez
@@ -78,19 +58,28 @@ wsl --install
 # Reinicia el equipo cuando lo pida.
 ```
 
-Después abre una terminal de **Ubuntu/WSL** y, ya dentro de WSL, sitúate en la
-carpeta del proyecto y lánzalo exactamente igual que en Linux:
+Después abre una terminal de **Ubuntu/WSL** y, ya dentro de WSL, copia y pega
+exactamente el mismo bloque que en Linux:
 
 ```bash
-python3 installer/launcher.py
+git clone https://github.com/Wachynaky/claude-scope.git
+cd claude-scope
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python3 claude-scope/local_server.py
 ```
 
-Si dentro de WSL falta Python: `sudo apt install python3`.
+Si dentro de WSL falta Python: `sudo apt install python3 python3-venv`.
 
 ---
 
-- La **primera ejecución** necesita internet para bajar ClickHouse; después
-  funciona sin conexión.
+- Cuando vuelvas a usarlo (ya con todo instalado), basta con entrar en la
+  carpeta y ejecutar:
+  ```bash
+  source .venv/bin/activate
+  python3 claude-scope/local_server.py
+  ```
 - Para **parar** el panel: pulsa `Ctrl + C` en la terminal (o usa el botón de
   apagado dentro del propio panel).
 
@@ -122,24 +111,22 @@ esos ficheros, nunca los modifica.
 Estos son los únicos ficheros necesarios para ejecutar el panel:
 
 ```
-installer/
-└─ launcher.py           # Arranca el panel (descarga ClickHouse + abre navegador)
+requirements.txt         # Dependencia: chdb (ClickHouse embebido)
 
 claude-scope/            # El panel propiamente dicho
 ├─ index.html            # SPA single-page
-├─ local_server.py       # Bridge HTTP → clickhouse-local
+├─ local_server.py       # Servidor HTTP + consultas con chdb (abre el navegador)
 ├─ pricing.json          # Tarifas Anthropic
 └─ assets/vendor/        # marked + ansi_up vendorizados (offline)
 ```
 
-## Alternativa avanzada (sin launcher)
+## Opciones de arranque
 
-Si ya tienes `clickhouse-local` en el `PATH` y prefieres arrancar el servidor a
-mano (no abre el navegador solo):
+`local_server.py` acepta algunos parámetros:
 
 ```bash
-python3 claude-scope/local_server.py
-# luego abre http://127.0.0.1:8765
+python3 claude-scope/local_server.py --port 9000   # otro puerto (por defecto 8765)
+python3 claude-scope/local_server.py --no-open      # no abrir el navegador solo
 ```
 
 ## Licencia

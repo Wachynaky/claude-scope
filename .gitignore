@@ -4,3 +4,5 @@ claude-scope/local-data/
 build/
 dist/
 .vscode/
+.venv/
+.venv-*/
