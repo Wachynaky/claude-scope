@@ -3953,8 +3953,8 @@ tbody td + td { border-left: 1px solid var(--line); }
     <div id="session-list-view">
         <div class="filter-strip">
             <div class="view-switcher" id="home-view-switcher">
-                <button data-home-view="turns" class="active">Group by turn</button>
-                <button data-home-view="traces">Group by trace</button>
+                <button data-home-view="traces" class="active">Group by trace</button>
+                <button data-home-view="turns">Group by turn</button>
                 <button data-home-view="sessions">Group by session</button>
             </div>
             <div class="filter-group filter-group-controls">
@@ -4398,7 +4398,7 @@ let sessionFilters = { project: '', model: '', tool: '', range: '7d', rangeFrom:
 let turns = [];
 let turnsLoaded = false;
 let turnByKey = new Map();
-let homeViewMode = 'turns';
+let homeViewMode = 'traces';
 // Modo de cálculo del total de tokens: 'real' (in+out+cache, deduplicado) o
 // 'cc' (in+out crudos, como /config Stats de Claude Code).
 let tokenMode = (() => { try { return localStorage.getItem('ccpanel-token-mode') || 'real'; } catch (e) { return 'real'; } })();
