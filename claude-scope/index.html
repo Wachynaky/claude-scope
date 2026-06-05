@@ -3704,6 +3704,7 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 }
 .msg-avatar.sys { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
 .msg-avatar.bot { background: linear-gradient(150deg, var(--accent-strong), var(--accent)); color: #fff; }
+.msg-avatar .msg-avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
 .msg-avatar.you { background: #1f2937; color: #fff; }
 
 .msg-bubble {
@@ -7645,7 +7646,7 @@ function chatMetaRow(icon, key, value, cls) {
     return `<div class="inv-row"><span class="inv-k"><span class="ik-ic">${icon}</span>${escapeHtml(key)}</span><span class="inv-v ${cls || ''}">${escapeHtml(String(value))}</span></div>`;
 }
 function chatBubble(side, variant, role, ts, turnIdx, msgIdx, inner, kindTag) {
-    const glyph = variant === 'you' ? '🧑' : (variant === 'bot' ? '✦' : '⚙');
+    const glyph = variant === 'you' ? '🧑' : (variant === 'bot' ? '<img src="assets/kresta-logo.png" alt="" class="msg-avatar-img">' : '⚙');
     const av = `<div class="msg-avatar ${variant}">${glyph}</div>`;
     const tag = kindTag ? `<span class="msg-kind-tag">${escapeHtml(kindTag)}</span>` : '';
     const head = side === 'right'
