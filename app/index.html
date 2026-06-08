@@ -2061,12 +2061,15 @@ mark.search-hit.current { background: #facc15; color: #422006; }
 .tool-step.v2 .ts-jumpbar-link.meta{ color: #64748b; }
 
 /* Sections (Input / Output / Metadata) */
+/* Secciones estilo prototipo: card con barra de summary de color + visor oscuro dentro. */
 .tool-step.v2 .ts-section {
-    margin: 0;
+    margin: 0 0 8px;
     padding: 0;
-    border-bottom: 1px solid #e2e8f0;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    overflow: hidden;
 }
-.tool-step.v2 .ts-section:last-child { border-bottom: none; }
+.tool-step.v2 .ts-section:last-child { margin-bottom: 0; }
 .tool-step.v2 .ts-summary {
     display: flex;
     align-items: center;
@@ -2074,53 +2077,37 @@ mark.search-hit.current { background: #facc15; color: #422006; }
     cursor: pointer;
     list-style: none;
     user-select: none;
-    padding: 9px 14px;
-    font-size: 13px;
+    padding: 8px 12px;
+    font-size: 12.5px;
     font-weight: 700;
-    color: #0f172a;
+    white-space: nowrap;
 }
 .tool-step.v2 .ts-summary::-webkit-details-marker { display: none; }
 .tool-step.v2 .ts-caret {
-    color: #64748b;
+    color: currentColor;
     font-size: 11px;
-    width: 12px;
+    width: 11px;
     text-align: center;
     transition: transform 0.15s;
+    flex: none;
 }
 .tool-step.v2 .ts-section[open] > .ts-summary .ts-caret { transform: rotate(0deg); }
 .tool-step.v2 .ts-section:not([open]) > .ts-summary .ts-caret { transform: rotate(-90deg); }
-.tool-step.v2 .ts-section-title {
-    font-size: 13.5px;
-    letter-spacing: 0.1px;
-}
+.tool-step.v2 .ts-section-title { font-size: 12.5px; }
 .tool-step.v2 .ts-section-badge {
     font-family: 'SF Mono', Consolas, monospace;
-    font-size: 10.5px;
-    color: #475569;
-    background: #ffffff;
-    padding: 1px 8px;
-    border-radius: 999px;
-    border: 1px solid #cbd5e1;
+    font-size: 10px;
     font-weight: 600;
-    margin-left: 4px;
+    margin-left: auto;
+    opacity: .85;
+    white-space: nowrap;
 }
-.tool-step.v2 .ts-section-body {
-    padding: 0 14px 12px 28px;
-}
+.tool-step.v2 .ts-section-body { padding: 10px 12px; }
 
 /* Input section */
-.tool-step.v2 .ts-input { background: var(--accent-soft); }
-.tool-step.v2 .ts-input > .ts-summary {
-    color: var(--accent-dim);
-    background: linear-gradient(90deg, var(--accent-soft), var(--accent-soft) 60%);
-    border-left: 4px solid var(--accent);
-}
+.tool-step.v2 .ts-input > .ts-summary { background: var(--accent-soft); color: var(--accent-dim); }
 .tool-step.v2 .ts-input > .ts-summary .ts-section-title { color: var(--accent-dim); }
-.tool-step.v2 .ts-input > .ts-summary .ts-section-badge {
-    background: var(--accent-line);
-    color: var(--accent-dim);
-    border-color: var(--accent-line);
-}
+.tool-step.v2 .ts-input > .ts-summary .ts-section-badge { color: var(--accent-dim); }
 .tool-step.v2 .ts-input-pre {
     font-family: 'SF Mono', Consolas, 'Courier New', monospace;
     font-size: 12.5px;
@@ -2135,30 +2122,12 @@ mark.search-hit.current { background: #facc15; color: #422006; }
 }
 
 /* Output section */
-.tool-step.v2 .ts-output { background: #ecfdf5; }
-.tool-step.v2 .ts-output > .ts-summary {
-    color: #064e3b;
-    background: linear-gradient(90deg, #d1fae5, #ecfdf5 60%);
-    border-left: 4px solid #059669;
-}
+.tool-step.v2 .ts-output > .ts-summary { background: #ecfdf5; color: #047857; }
 .tool-step.v2 .ts-output > .ts-summary .ts-section-title { color: #047857; }
-.tool-step.v2 .ts-output > .ts-summary .ts-section-badge {
-    background: #bbf7d0;
-    color: #047857;
-    border-color: #6ee7b7;
-}
-.tool-step.v2 .ts-output.is-error { background: #fef2f2; }
-.tool-step.v2 .ts-output.is-error > .ts-summary {
-    color: #7f1d1d;
-    background: linear-gradient(90deg, #fecaca, #fef2f2 60%);
-    border-left-color: #dc2626;
-}
+.tool-step.v2 .ts-output > .ts-summary .ts-section-badge { color: #047857; }
+.tool-step.v2 .ts-output.is-error > .ts-summary { background: #fef2f2; color: #b91c1c; }
 .tool-step.v2 .ts-output.is-error > .ts-summary .ts-section-title { color: #b91c1c; }
-.tool-step.v2 .ts-output.is-error > .ts-summary .ts-section-badge {
-    background: #fecaca;
-    color: #991b1b;
-    border-color: #fca5a5;
-}
+.tool-step.v2 .ts-output.is-error > .ts-summary .ts-section-badge { color: #b91c1c; }
 .tool-step.v2 .ts-output-pre {
     margin: 0;
     font-family: 'SF Mono', Consolas, 'Courier New', monospace;
@@ -2185,19 +2154,38 @@ mark.search-hit.current { background: #facc15; color: #422006; }
     padding: 10px 12px;
 }
 
+/* ── Visor de código (input/output de tools) ── */
+.cv-view { border: 1px solid #30363d; border-radius: 10px; overflow: hidden; background: #0d1117; box-shadow: 0 8px 24px -16px rgba(0,0,0,.6); }
+.cv-view + .cv-view { margin-top: 10px; }
+.cv-view.cv-err { border-color: #7f1d1d; }
+.cv-hd { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #161b22; border-bottom: 1px solid #30363d; }
+.cv-view.cv-err .cv-hd { background: #3b1418; }
+.cv-dots { display: inline-flex; gap: 5px; } .cv-dots i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.cv-dots i:nth-child(1){background:#ff5f57} .cv-dots i:nth-child(2){background:#febc2e} .cv-dots i:nth-child(3){background:#28c840}
+.cv-name { font-family: var(--mono, ui-monospace, Menlo, monospace); font-size: 12px; color: #e6edf3; font-weight: 600; }
+.cv-lang { margin-left: auto; font-family: var(--mono, ui-monospace, Menlo, monospace); font-size: 11px; color: #7d8590; text-transform: lowercase; }
+.cv-main { display: grid; grid-template-columns: auto 1fr; max-height: 420px; overflow: auto; background: #0d1117; }
+.cv-ln { display: flex; flex-direction: column; text-align: right; padding: 11px 12px 11px 16px; background: #0d1117; border-right: 1px solid #21262d; user-select: none; position: sticky; left: 0; }
+.cv-ln span { font-family: var(--mono, ui-monospace, Menlo, monospace); font-size: 12.5px; line-height: 1.62; color: #6e7681; }
+.cv-ln.cv-diff span { font-weight: 700; }
+.cv-body { margin: 0; padding: 11px 16px; }
+.cv-body .cv-cl { display: block; font-family: var(--mono, ui-monospace, Menlo, monospace); font-size: 12.5px; line-height: 1.62; white-space: pre; color: #c9d1d9; }
+.cv-body .cv-cl.del { background: rgba(248,81,73,.16); }
+.cv-body .cv-cl.add { background: rgba(63,185,80,.16); }
+.cv-c-str{color:#a5d6ff} .cv-c-num{color:#79c0ff} .cv-c-com{color:#8b949e;font-style:italic}
+.cv-c-key{color:#7ee787} .cv-c-bool{color:#ffa657} .cv-c-flag{color:#ffa657} .cv-c-kw{color:#ff7b72;font-weight:600}
+/* clamp "Ver todo": por defecto un máximo de líneas */
+.cv-view.cv-clampable .cv-main { max-height: 360px; overflow: hidden; }
+.cv-view.cv-clampable.cv-open .cv-main { max-height: 70vh; overflow: auto; }
+.cv-more { display: block; width: 100%; border: none; border-top: 1px solid #30363d; background: #161b22; color: #7d8590; font-size: 11.5px; padding: 7px; cursor: pointer; font-family: var(--mono, ui-monospace, Menlo, monospace); }
+.cv-more:hover { color: #e6edf3; }
+/* el contenedor de sección ya no necesita marco claro alrededor del visor */
+.tool-step.v2 .ts-input .ts-section-body, .tool-step.v2 .ts-output .ts-section-body { padding: 10px 12px; }
+
 /* Metadata section */
-.tool-step.v2 .ts-meta { background: #f8fafc; }
-.tool-step.v2 .ts-meta > .ts-summary {
-    color: #334155;
-    background: linear-gradient(90deg, #e2e8f0, #f8fafc 60%);
-    border-left: 4px solid #64748b;
-}
+.tool-step.v2 .ts-meta > .ts-summary { color: #475569; background: #f8fafc; }
 .tool-step.v2 .ts-meta > .ts-summary .ts-section-title { color: #475569; }
-.tool-step.v2 .ts-meta > .ts-summary .ts-section-badge {
-    background: #e2e8f0;
-    color: #475569;
-    border-color: #cbd5e1;
-}
+.tool-step.v2 .ts-meta > .ts-summary .ts-section-badge { color: #475569; }
 .tool-step.v2 .ts-meta-body {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -3951,19 +3939,20 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 .chat-stream { display: flex; flex-direction: column; gap: 14px; }
 
 /* Fila de mensaje: avatar + burbuja. */
-.msg-row { display: flex; gap: 10px; align-items: flex-start; scroll-margin-top: 120px; }
-.msg-row.right { flex-direction: row-reverse; }
-.msg-row.selected .msg-bubble {
-    box-shadow: 0 0 0 2px var(--accent-line), 0 4px 14px rgba(232,42,107,0.10);
-}
+/* Observación = card a todo el ancho (estilo prototipo ux-item), sin avatar ni alineación L/R. */
+.msg-row { display: block; margin-bottom: 4px; scroll-margin-top: 120px; }
+/* Alineación por emisor: usuario a la derecha, asistente/sistema a la izquierda (ancho limitado). */
+.msg-row.left .msg-bubble { margin-right: auto; }
+.msg-row.right .msg-bubble { margin-left: auto; }
+/* Selección: borde en TODO el elemento, del color de su tipo (sin ensanchar el izquierdo). */
+/* Seleccionada (igual que ux-item.selected): borde accent-line + barra de cabecera accent-soft, conservando el borde de tipo a la izquierda. */
+.msg-row.selected .msg-bubble { border-color: var(--accent-line); }
+.msg-row.selected .msg-bubble.you { border-right-color: #d97706; }
+.msg-row.selected .msg-bubble.bot { border-left-color: #059669; }
+.msg-row.selected .msg-bubble.sys { border-left-color: #94a3b8; }
+.msg-row.selected .msg-head { background: var(--accent-soft); }
 
-.msg-avatar {
-    width: 34px; height: 34px; flex: none;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 15px; font-weight: 700;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.10);
-}
+.msg-avatar { display: none; }
 .msg-avatar.sys { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
 .msg-avatar.bot { background: linear-gradient(150deg, var(--accent-strong), var(--accent)); color: #fff; }
 .msg-avatar .msg-avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
@@ -3971,33 +3960,55 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 
 .msg-bubble {
     min-width: 0;
-    max-width: 86%;
-    border-radius: 14px;
+    max-width: 80%;
+    border-radius: 10px;
     border: 1px solid var(--line);
     background: var(--surface);
-    padding: 11px 14px 12px;
+    padding: 0;
+    overflow: hidden;
     box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     cursor: pointer;
     transition: box-shadow .12s ease, border-color .12s ease;
 }
-.msg-bubble:hover { border-color: var(--line-strong); }
+.msg-content { padding: 3px 12px 11px; }
+.msg-bubble.collapsed > .msg-content { display: none; }
+.msg-bubble.collapsed > .msg-head,
+.msg-bubble > .msg-head:only-child { border-bottom: none; }
+.ux-chev { display: inline-flex; align-items: center; color: var(--text-dim); flex: none; cursor: pointer; transition: transform .12s ease; }
+.ux-chev.ux-chev-spacer { width: 14px; cursor: default; }
+.msg-bubble:not(.collapsed) > .msg-head > .ux-chev { transform: rotate(90deg); }
+.span-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 700; color: var(--text); }
+.span-side { flex: none; margin-left: auto; display: inline-flex; align-items: center; gap: 8px; padding-left: 8px; }
+.span-side .metric-s { font-size: 11.5px; color: var(--text-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.msg-bubble:hover .msg-head { background: var(--surface-sunk); }
 .msg-bubble.sys { background: var(--surface-2); }
 .msg-bubble.bot { background: var(--surface); }
-/* "You": tarjeta clara con acento (antes era oscura sobre texto oscuro). */
-.msg-bubble.you {
-    background: linear-gradient(180deg, #ffffff, var(--accent-soft));
-    border-color: var(--accent-line);
-    color: var(--text);
-}
-.msg-bubble.you .msg-role { color: var(--accent-dim); }
-.msg-bubble.you .msg-time { color: var(--text-dim); }
+/* "You": misma card blanca que las demás; lo distinguen el badge y el borde de tipo. */
+.msg-bubble.you { background: #fff7ed; color: var(--text); }
 .msg-bubble.you .msg-body { color: var(--text); }
 
+/* Cabecera de la card = barra tipo ux-row del prototipo (bleed a los bordes del bubble). */
+/* Cabecera ligera (sin barra) para que prompts/responses parezcan burbujas de chat. */
 .msg-head {
-    display: flex; align-items: center; gap: 8px;
-    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
+    background: transparent;
+    border-bottom: none;
+    margin: 0;
+    padding: 8px 12px 3px;
 }
-.msg-row.right .msg-head { justify-content: flex-end; }
+.msg-row.right .msg-head { justify-content: flex-start; }
+.msg-role { flex: none; white-space: nowrap; }
+.msg-time { margin-left: auto; white-space: nowrap; flex: none; }
+.msg-think-meta { font-size: 10.5px; color: var(--text-dim); font-weight: 600; white-space: nowrap; flex: none; }
+.msg-head .badge { flex: none; }
+/* Badge de tipo de observación (portado del prototipo): request/generation/thinking/tool/result/system. */
+.badge { font-size: 10px; font-weight: 700; letter-spacing: .03em; padding: 2px 8px; border-radius: 999px; white-space: nowrap; text-transform: uppercase; flex: none; }
+.badge.request    { background: #fde68a; color: #854d0e; }
+.badge.generation { background: #bbf7d0; color: #065f46; }
+.badge.thinking   { background: #ddd6fe; color: #5b21b6; }
+.badge.tool       { background: var(--accent-line); color: #fff; }
+.badge.result     { background: #99f6e4; color: #115e59; }
+.badge.system     { background: #cbd5e1; color: #1e293b; }
 .msg-role { font-size: 12.5px; font-weight: 750; color: var(--text); }
 .msg-time { font-size: 11px; color: var(--text-dim); font-weight: 500; }
 .msg-kind-tag {
@@ -4049,13 +4060,13 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 
 /* Las burbujas del Assistant con herramientas ocupan todo el ancho disponible
    para que las tool calls desplegadas no queden estrechas. */
-.msg-row.left .msg-bubble.bot:has(.chat-tools) { width: 100%; max-width: 100%; }
+.msg-row.left .msg-bubble.bot:has(.chat-tools) { width: 80%; max-width: 80%; }
 
 /* Tool calls / thinking dentro del assistant */
 .chat-tools { margin-top: 10px; display: flex; flex-direction: column; gap: 7px; }
 /* Tarjetas de tool sueltas: mensaje assistant solo-tool, sin bubble. Sangradas para
    alinearse con el contenido de las burbujas del asistente (avatar 34px + gap 10px). */
-.chat-tools.standalone { margin: 0 0 0 44px; }
+.chat-tools.standalone { margin: 0 0 4px; max-width: 100%; }
 .chat-tool {
     border: 1px solid var(--line);
     border-radius: 10px;
@@ -4065,27 +4076,28 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 .chat-tool > summary {
     list-style: none;
     cursor: pointer;
-    display: flex; align-items: center; gap: 9px;
-    padding: 8px 11px;
+    display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
+    padding: 8px 12px;
     font-size: 12.5px; font-weight: 650; color: var(--text-soft);
 }
+.chat-tool:hover > summary { background: var(--surface-sunk); }
 .chat-tool > summary::-webkit-details-marker { display: none; }
-.chat-tool > summary::before {
-    content: '▸'; color: var(--text-dim); font-size: 10px;
-    transition: transform .12s ease;
-}
-.chat-tool[open] > summary::before { transform: rotate(90deg); }
+/* mismo chevron SVG que las cards de mensaje */
+.chat-tool[open] > summary .ux-chev { transform: rotate(90deg); }
 .chat-tool .ct-ic { font-size: 13px; }
-.chat-tool .ct-name { font-weight: 750; color: var(--text); font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
+.chat-tool .ct-name { font-weight: 750; color: var(--text); font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace); flex: none; white-space: nowrap; }
+.chat-tool .ct-target { color: var(--text-dim); font-family: var(--mono, ui-monospace, Menlo, monospace); font-weight: 600; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1 1 auto; }
+.chat-tool[open] { box-shadow: 0 6px 18px -12px rgba(20,19,26,.18); }
 .chat-tool .ct-count {
     margin-left: auto;
     font-size: 11px; font-weight: 650; color: var(--text-dim);
     background: var(--surface); border: 1px solid var(--line);
     border-radius: 999px; padding: 1px 9px;
+    flex: none; white-space: nowrap;
 }
 .chat-tool.thinking { background: #faf5ff; border-color: #e9d5ff; }
 .chat-tool.thinking .ct-name { color: #6d28d9; }
-.chat-tool-body { padding: 0 11px 11px; }
+.chat-tool-body { padding: 11px; }
 .chat-tool-body .tool-step.v2 { margin: 0; }
 /* Anidado en .chat-tool: sin caja propia (la aporta el .chat-tool exterior). */
 .tool-step.v2.nested { border: none; border-radius: 0; box-shadow: none; background: transparent; margin: 0; }
@@ -4094,6 +4106,7 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
     white-space: pre-wrap; font-size: 12.5px; line-height: 1.5;
     color: #581c87; padding: 4px 2px;
 }
+.chat-tool-think-text.chat-tool-think-empty { color: var(--text-dim); font-style: italic; }
 
 /* ---- Columna derecha: Details of invocation ---- */
 .chat-details {
@@ -4234,6 +4247,22 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 }
 .gantt-axis .ga-ticks { display: flex; justify-content: space-between; font-size: 9.5px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
 
+/* ── Waterfall de observations ── */
+.trace-waterfall { padding: 6px 2px 22px; }
+.wf-head { font-size: 12px; color: var(--text-dim); margin: 0 0 12px; }
+.wf-head strong { color: var(--text); }
+.wf-row { display: grid; grid-template-columns: 230px 1fr 66px; gap: 12px; align-items: center; padding: 7px 8px; border-radius: 8px; }
+.wf-row:hover { background: var(--surface-sunk); }
+.wf-label { display: flex; align-items: center; gap: 7px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; font-weight: 600; color: var(--text); }
+.wf-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.wf-badge { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 999px; text-transform: uppercase; flex: none; }
+.wf-track { height: 18px; background: var(--surface-sunk); border-radius: 5px; position: relative; }
+.wf-bar { position: absolute; top: 0; bottom: 0; border-radius: 5px; min-width: 3px; display: flex; align-items: center; padding: 0 7px; color: #fff; font-size: 10.5px; font-weight: 700; white-space: nowrap; overflow: hidden; }
+.wf-dur { font-size: 11px; color: var(--text-dim); font-weight: 650; text-align: right; font-variant-numeric: tabular-nums; }
+.wf-axis { display: grid; grid-template-columns: 230px 1fr 66px; gap: 12px; padding: 8px 8px 0; margin-top: 6px; border-top: 1px solid var(--line); }
+.wf-ticks { display: flex; justify-content: space-between; font-size: 9.5px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.wf-empty { color: var(--text-dim); font-style: italic; padding: 12px; }
+
 /* Bloque Invocation: meta key/value */
 .inv-panel { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .inv-panel-head {
@@ -4280,8 +4309,16 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 }
 .cd-empty { color: var(--text-dim); font-size: 12.5px; text-align: center; padding: 30px 12px; }
 /* Observación / tool seleccionado dentro del Assistant */
-.chat-tool.selected { border-color: var(--accent-line); box-shadow: 0 0 0 2px var(--accent-soft); }
-.chat-tool.selected > summary { background: var(--accent-soft); color: var(--accent-dim); }
+.chat-tool.selected > summary { background: var(--accent-soft); }
+/* ── Perfilado por tipo de observación (como el prototipo ux-item): card con borde izq. de color ── */
+.msg-bubble.you { border-left: 1px solid var(--line); border-right: 3px solid #d97706; }  /* request (borde a la derecha) */
+.msg-bubble.sys { border-left: 3px solid #94a3b8; }            /* system   */
+.chat-tool { border-left: 3px solid var(--accent); }           /* tool     */
+.chat-tool.thinking { border-left-color: #7c3aed; }            /* thinking */
+.msg-bubble.bot { border-left: 3px solid #059669; }            /* generation (la burbuja entera, no su interior) */
+/* activo (igual que el prototipo ux-item.selected): borde accent-line, conservando el borde de tipo a la izquierda */
+.chat-tool.selected { border-color: var(--accent-line); border-left-color: var(--accent); }
+.chat-tool.thinking.selected { border-left-color: #7c3aed; }
 .cd-kind.obs { background: #ede9fe; color: #6d28d9; }
 .cd-kind.tool { background: #fff7ed; color: #9a3412; }
 .cd-followhint { font-size: 10.5px; color: var(--text-dim); margin-left: 6px; font-weight: 600; }
@@ -4564,6 +4601,7 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
                     <button data-trace-view="observations">📊 Observations</button>
                     <button data-trace-view="flow">🌳 Flow</button>
                     <button data-trace-view="timeline">⏱ Timeline</button>
+                    <button data-trace-view="waterfall">📈 Waterfall</button>
                 </div>
                 <div class="turn-bulk-group">
                     <span class="turn-bulk-controls" title="Collapse/expand all transcript traces">
@@ -4579,6 +4617,7 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
         <div id="trace-index" class="trace-index"></div>
         <div id="execution-tree" class="execution-tree"></div>
         <div id="trace-full-table" class="trace-index"></div>
+        <div id="trace-waterfall" class="trace-waterfall hidden"></div>
         <div id="sticky-prompt"></div>
         <div class="messages" id="messages-container"></div>
         <div id="chat-layout" class="chat-layout hidden">
@@ -4783,7 +4822,7 @@ let tokenMode = (() => { try { return localStorage.getItem('ccpanel-token-mode')
 // Vistas visibles del transcript. Multi-selección: cada clave puede estar activa
 // a la vez. La "Conversación" (transcript) es el nuevo chat; el render clásico
 // (messages-container) queda retirado y nunca se muestra.
-const TRACE_VIEW_ALL_KEYS = ['timeline', 'turns', 'observations', 'flow', 'transcript'];
+const TRACE_VIEW_ALL_KEYS = ['timeline', 'turns', 'observations', 'flow', 'waterfall', 'transcript'];
 let traceViews = new Set(['transcript']); // por defecto solo la Conversación (el chat)
 let currentFlowNodes = [];
 let modalMessageIdx = null;
@@ -7435,6 +7474,89 @@ function parseContentBlocks(contentStr) {
     return [{ type: 'text', text: contentStr }];
 }
 
+// ── Visor de código (portado del prototipo: oscuro + cabecera + nº de línea + resaltado) ──
+const CV_LANGS = ['python', 'bash', 'sh', 'js', 'javascript', 'json', 'sql'];
+const CV_KW = {
+    python: ['def','return','import','from','as','if','elif','else','for','while','in','not','and','or','class','with','try','except','assert','lambda','None','True','False','self','pass','raise','yield'],
+    bash: ['grep','cd','ls','cat','echo','rm','cp','mv','mkdir','python3','python','git','sudo','export','for','do','done','if','then','fi','while','case','esac','sed','awk','find'],
+    js: ['const','let','var','function','return','if','else','for','while','import','from','export','class','new','await','async','true','false','null','typeof','this'],
+    sql: ['select','from','where','group','by','order','limit','join','on','as','and','or','count','sum','distinct','having'],
+};
+const CV_EXT = { '.py':'python', '.js':'js', '.ts':'js', '.jsx':'js', '.tsx':'js', '.sh':'bash', '.bash':'bash', '.json':'json', '.sql':'sql', '.md':'markdown' };
+function cvLangKey(l) { return l === 'sh' ? 'bash' : l === 'javascript' ? 'js' : l; }
+function cvLangFor(p) { if (!p) return 'text'; const m = String(p).toLowerCase().match(/\.[a-z0-9]+$/); return m ? (CV_EXT[m[0]] || 'text') : 'text'; }
+function cvBase(p) { return String(p || '').split('/').pop() || String(p || ''); }
+function cvHlLine(line, lang) {
+    if (!line) return '&nbsp;';
+    if (!CV_LANGS.includes(lang)) return escapeHtml(line);
+    if (lang === 'json') {
+        let s = escapeHtml(line);
+        s = s.replace(/(&quot;[^&]*?&quot;)(\s*:)/g, '<span class="cv-c-key">$1</span>$2');
+        s = s.replace(/(:\s*)(&quot;[^&]*?&quot;)/g, '$1<span class="cv-c-str">$2</span>');
+        s = s.replace(/\b(true|false|null)\b/g, '<span class="cv-c-bool">$1</span>');
+        s = s.replace(/(:\s*)(-?\d+\.?\d*)/g, '$1<span class="cv-c-num">$2</span>');
+        return s;
+    }
+    return cvHlCode(line, lang);
+}
+function cvHlCode(line, lang) {
+    const kw = new Set(CV_KW[cvLangKey(lang)] || []), isW = c => /[A-Za-z0-9_]/.test(c);
+    let out = '', i = 0, n = line.length;
+    while (i < n) {
+        const c = line[i];
+        if (c === '#' || (c === '/' && line[i + 1] === '/')) { out += `<span class="cv-c-com">${escapeHtml(line.slice(i))}</span>`; break; }
+        if (c === '"' || c === "'") { let j = i + 1; while (j < n && line[j] !== c) j++; out += `<span class="cv-c-str">${escapeHtml(line.slice(i, Math.min(j + 1, n)))}</span>`; i = j + 1; continue; }
+        if (/[0-9]/.test(c)) { let j = i; while (j < n && /[0-9.eE]/.test(line[j])) j++; out += `<span class="cv-c-num">${escapeHtml(line.slice(i, j))}</span>`; i = j; continue; }
+        if (c === '-' && (i === 0 || line[i - 1] === ' ') && /[A-Za-z-]/.test(line[i + 1] || '')) { let j = i; while (j < n && /[A-Za-z0-9-]/.test(line[j])) j++; out += `<span class="cv-c-flag">${escapeHtml(line.slice(i, j))}</span>`; i = j; continue; }
+        if (isW(c)) { let j = i; while (j < n && isW(line[j])) j++; const w = line.slice(i, j); out += kw.has(w) ? `<span class="cv-c-kw">${escapeHtml(w)}</span>` : escapeHtml(w); i = j; continue; }
+        out += escapeHtml(c); i++;
+    }
+    return out || '&nbsp;';
+}
+// Por defecto el visor muestra como mucho CV_MAX_LINES líneas; el resto tras "Ver todo".
+const CV_MAX_LINES = 18;
+function cvMoreBtn(n) {
+    const l = `⌄ Show all ${n} lines`;
+    return `<button class="cv-more" data-more="${l}" onclick="cvToggleMore(this)">${l}</button>`;
+}
+function cvToggleMore(btn) {
+    const v = btn.closest('.cv-view');
+    if (!v) return;
+    const open = v.classList.toggle('cv-open');
+    btn.textContent = open ? '⌃ Show less' : btn.dataset.more;
+}
+// Construye el visor: code = texto crudo; ansi = render por ansi_up sin resaltar; err = tinte rojo.
+function codeViewer(o) {
+    const lines = String(o.code == null ? '' : o.code).split('\n');
+    const gutter = lines.map((_, i) => `<span>${i + 1}</span>`).join('');
+    const body = lines.map(l => `<span class="cv-cl">${o.ansi ? renderAnsi(l) : cvHlLine(l, o.lang)}</span>`).join('');
+    const known = CV_LANGS.includes(o.lang);
+    const langLbl = o.ansi ? 'ansi' : (known ? escapeHtml(o.lang) : 'text');
+    const clamp = lines.length > CV_MAX_LINES;
+    return `<div class="cv-view${o.err ? ' cv-err' : ''}${clamp ? ' cv-clampable' : ''}">
+        <div class="cv-hd"><span class="cv-dots"><i></i><i></i><i></i></span>
+            <span class="cv-name">${escapeHtml(o.name || '')}</span>
+            <span class="cv-lang">${langLbl} · ${lines.length} ln</span></div>
+        <div class="cv-main"><div class="cv-ln">${gutter}</div><div class="cv-body">${body}</div></div>
+        ${clamp ? cvMoreBtn(lines.length) : ''}
+    </div>`;
+}
+// Visor de diff (Edit): líneas eliminadas (rojo) y añadidas (verde).
+function diffViewer(o) {
+    const oldL = String(o.oldStr || '').split('\n'), newL = String(o.newStr || '').split('\n');
+    const rows = oldL.map(l => ({ m: '−', c: 'del', t: l })).concat(newL.map(l => ({ m: '+', c: 'add', t: l })));
+    const gutter = rows.map(r => `<span>${r.m}</span>`).join('');
+    const body = rows.map(r => `<span class="cv-cl ${r.c}">${cvHlLine(r.t, o.lang)}</span>`).join('');
+    const clamp = rows.length > CV_MAX_LINES;
+    return `<div class="cv-view${clamp ? ' cv-clampable' : ''}">
+        <div class="cv-hd"><span class="cv-dots"><i></i><i></i><i></i></span>
+            <span class="cv-name">✎ ${escapeHtml(o.name || '')}</span>
+            <span class="cv-lang">edit · −${oldL.length} +${newL.length}</span></div>
+        <div class="cv-main"><div class="cv-ln cv-diff">${gutter}</div><div class="cv-body">${body}</div></div>
+        ${clamp ? cvMoreBtn(rows.length) : ''}
+    </div>`;
+}
+
 function renderToolInput(input) {
     if (!input || typeof input !== 'object') return renderAnsi(String(input || ''));
     const lines = [];
@@ -7579,8 +7701,8 @@ function buildFlowNodes(range = null) {
             let hasGeneration = false;
             let generationPreview = '';
             for (const block of cl.blocks) {
-                if (block.type === 'thinking' && block.thinking && block.thinking.trim()) {
-                    nodes.push({ type: 'thinking', title: 'Thinking', meta: shortModel(msg.model), preview: block.thinking.slice(0, 700), idx: i, model: shortModel(msg.model) });
+                if (block.type === 'thinking' || block.type === 'redacted_thinking') {
+                    nodes.push({ type: 'thinking', title: 'Thinking', meta: shortModel(msg.model), preview: (block.thinking || '').slice(0, 700), idx: i, model: shortModel(msg.model) });
                 } else if (block.type === 'tool_use') {
                     const preview = block.input && typeof block.input === 'object' ? JSON.stringify(block.input, null, 2).slice(0, 700) : '';
                     nodes.push({ type: 'tool', title: block.name || 'Tool', meta: shortModel(msg.model), preview, idx: i, model: shortModel(msg.model) });
@@ -7599,6 +7721,36 @@ function buildFlowNodes(range = null) {
         }
     }
     return nodes;
+}
+
+// Waterfall de observations (portado del prototipo): cada observación como barra
+// posicionada por tiempo de inicio y ancho = duración, coloreada por tipo.
+const WF_COLOR = { user: '#d97706', thinking: '#7c3aed', tool: '#e82a6b', assistant: '#059669', result: '#0891b2', system: '#64748b' };
+const WF_LABEL = { user: 'Request', thinking: 'Thinking', tool: 'Tool', assistant: 'Generation', result: 'Result', system: 'System' };
+function renderWaterfall() {
+    const el = document.getElementById('trace-waterfall');
+    if (!el) return;
+    const nodes = buildFlowNodes(focusRange());
+    if (!nodes.length) { el.innerHTML = '<div class="wf-empty">No observations</div>'; return; }
+    const ts = nodes.map(n => chatTsMs(transcriptData[n.idx] && transcriptData[n.idx].ts));
+    const firstReal = ts.find(x => x != null);
+    const base = firstReal != null ? firstReal : 0;
+    const starts = ts.map((x, i) => x != null ? x - base : i * 500);
+    const ends = starts.map((s, i) => i + 1 < starts.length ? Math.max(s + 50, starts[i + 1]) : s + 500);
+    const total = Math.max(1, ...ends);
+    const rows = nodes.map((n, i) => {
+        const col = WF_COLOR[n.type] || '#64748b';
+        const left = starts[i] / total * 100, w = Math.max(1.5, (ends[i] - starts[i]) / total * 100), dur = ends[i] - starts[i];
+        const title = n.title || WF_LABEL[n.type] || n.type;
+        return `<div class="wf-row" data-flow-idx="${n.idx}">
+            <span class="wf-label" title="${escapeHtml(title)}"><i class="wf-dot" style="background:${col}"></i><span class="wf-badge" style="background:${col}22;color:${col}">${escapeHtml(WF_LABEL[n.type] || n.type)}</span>${escapeHtml(title)}</span>
+            <div class="wf-track"><div class="wf-bar" style="left:${left.toFixed(2)}%;width:${w.toFixed(2)}%;background:${col}">${w > 8 ? chatDur(dur) : ''}</div></div>
+            <span class="wf-dur">${chatDur(dur)}</span>
+        </div>`;
+    }).join('');
+    const ticks = [0, .25, .5, .75, 1].map(f => `<span>${chatDur(total * f)}</span>`).join('');
+    el.innerHTML = `<div class="wf-head"><strong>📈 Waterfall</strong> · ${nodes.length} observations · ${chatDur(total)} total</div>
+        <div class="wf">${rows}<div class="wf-axis"><span></span><div class="wf-ticks">${ticks}</div><span></span></div></div>`;
 }
 
 function renderFlowOverview() {
@@ -8351,6 +8503,7 @@ function applyTraceViewMode() {
         turns: traceViews.has('turns'),
         flow: traceViews.has('flow'),
         observations: traceViews.has('observations'),
+        waterfall: traceViews.has('waterfall'),
         transcript: traceViews.has('transcript'),
     };
     const set = (id, show) => {
@@ -8362,6 +8515,8 @@ function applyTraceViewMode() {
     set('trace-index', visible.turns);
     set('execution-tree', visible.flow);
     set('trace-full-table', visible.observations);
+    set('trace-waterfall', visible.waterfall);
+    if (visible.waterfall) renderWaterfall();
     // El render clásico de la conversación queda retirado: la "Conversación" es
     // siempre el nuevo chat. messages-container nunca se muestra.
     set('messages-container', false);
@@ -8494,15 +8649,33 @@ function chatGanttHtml(rows, winStart, winEnd) {
 function chatMetaRow(icon, key, value, cls) {
     return `<div class="inv-row"><span class="inv-k"><span class="ik-ic">${icon}</span>${escapeHtml(key)}</span><span class="inv-v ${cls || ''}">${escapeHtml(String(value))}</span></div>`;
 }
-function chatBubble(side, variant, role, ts, turnIdx, msgIdx, inner, kindTag) {
-    const glyph = variant === 'you' ? '🧑' : (variant === 'bot' ? '<img src="assets/kresta-logo.png" alt="" class="msg-avatar-img">' : '⚙');
-    const av = `<div class="msg-avatar ${variant}">${glyph}</div>`;
-    const tag = kindTag ? `<span class="msg-kind-tag">${escapeHtml(kindTag)}</span>` : '';
-    const head = side === 'right'
-        ? `<div class="msg-head">${tag}<span class="msg-time">${escapeHtml(formatTime(ts))}</span><span class="msg-role">${role}</span></div>`
-        : `<div class="msg-head"><span class="msg-role">${role}</span>${tag}<span class="msg-time">${escapeHtml(formatTime(ts))}</span></div>`;
-    const bub = `<div class="msg-bubble ${variant}">${head}${inner}</div>`;
-    return `<div class="msg-row ${side}" data-turn="${turnIdx}" data-msg-idx="${msgIdx}">${av}${bub}</div>`;
+const CHEV_SVG = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="14" height="14"><path d="M9 6l6 6-6 6"/></svg>';
+// Resumen de una línea del contenido (sin markdown) para usarlo como título de la card.
+function chatSummary(text) {
+    let t = String(text || '').replace(/```[\s\S]*?```/g, ' ').replace(/[#>*_`>\-]/g, ' ').replace(/\s+/g, ' ').trim();
+    const m = t.match(/^(.{0,90}?[.!?:])(\s|$)/);
+    let s = m ? m[1] : t.slice(0, 90);
+    if (!s) return '';
+    return (s.length < t.length && !/[.!?:]$/.test(s)) ? s + '…' : s;
+}
+// Card de observación estilo prototipo ux-item: cabecera de 1 línea (chevron + badge +
+// título/resumen + métrica lateral) y contenido completo colapsable.
+function chatBubble(o) {
+    const bMap = { you: ['request', 'Prompt'], bot: ['generation', 'Response'], sys: ['system', 'System'] };
+    const bd = bMap[o.variant] || ['system', 'System'];
+    const tag = o.kindTag ? `<span class="msg-kind-tag">${escapeHtml(o.kindTag)}</span>` : '';
+    const side = o.sideMetric ? `<span class="span-side"><span class="metric-s">${escapeHtml(o.sideMetric)}</span></span>` : '';
+    const collapsible = o.collapsible !== false && !!(o.inner && o.inner.trim());
+    const chev = collapsible ? `<span class="ux-chev" data-collapse>${CHEV_SVG}</span>` : `<span class="ux-chev ux-chev-spacer"></span>`;
+    const title = o.title ? `<span class="span-title">${escapeHtml(o.title)}</span>` : '';
+    // Orden: chevron · badge tipo · badge Thinking · título/resumen · tag · métrica lateral.
+    const head = `<div class="msg-head">`
+        + chev
+        + `<span class="badge ${bd[0]}">${bd[1]}</span>`
+        + `${o.thinkHead || ''}${title}${tag}${side}</div>`;
+    const content = collapsible ? `<div class="msg-content">${o.inner}</div>` : '';
+    return `<div class="msg-row ${o.side}" data-turn="${o.turnIdx}" data-msg-idx="${o.msgIdx}">`
+        + `<div class="msg-bubble ${o.variant}">${head}${content}</div></div>`;
 }
 function chatClampWrap(innerHtml) {
     const text = innerHtml.replace(/<[^>]*>/g, '');
@@ -8570,9 +8743,9 @@ function chatToolDescriptor(name, input) {
 function chatHighlightSelection() {
     document.querySelectorAll('#chat-col .msg-row').forEach(r => r.classList.remove('selected'));
     document.querySelectorAll('#chat-col .chat-tool.selected').forEach(t => t.classList.remove('selected'));
-    if (chatSel.kind === 'turn') {
-        document.querySelectorAll(`#chat-col .msg-row[data-turn="${chatSel.turnIdx}"]`).forEach(r => r.classList.add('selected'));
-    } else if (chatSel.kind === 'message' || chatSel.kind === 'tool') {
+    // El alcance a nivel de turno (estado por defecto al cargar) NO resalta filas;
+    // solo se resalta cuando se selecciona una observación concreta (message/tool).
+    if (chatSel.kind === 'message' || chatSel.kind === 'tool') {
         const r = document.querySelector(`#chat-col .msg-row[data-msg-idx="${chatSel.msgIdx}"]`);
         if (r) r.classList.add('selected');
         if (chatSel.kind === 'tool') {
@@ -8696,6 +8869,13 @@ function chatBindEvents() {
             const clamped = body.classList.toggle('clamped');
             more.textContent = clamped ? more.dataset.more : more.dataset.less;
             return;
+        }
+        // Clic en CUALQUIER parte de la cabecera de la card (no solo la flecha):
+        // pliega/despliega la observación. No hace return: además la selecciona.
+        const mh = e.target.closest('.msg-head');
+        if (mh) {
+            const bubble = mh.closest('.msg-bubble');
+            if (bubble && bubble.querySelector('.msg-content')) bubble.classList.toggle('collapsed');
         }
         // Clic en CUALQUIER parte de una tool call: selecciona esa ejecución en
         // el panel derecho. Los controles internos (Plegar todo, summaries de
@@ -9008,6 +9188,7 @@ function renderTranscript() {
     renderTraceIndex();
     renderExecutionTree();
     renderFullTraceTable();
+    renderWaterfall();
     buildCumulativeMetrics();
     applyTraceViewMode();
     lastScrollMetricsIdx = -1;
@@ -9073,15 +9254,19 @@ function renderTranscript() {
         const toolName = toolUse.name || 'tool';
         const toolId = toolUse.id ? String(toolUse.id) : '';
         const toolIdShort = toolId ? toolId.slice(0, 12) : '';
-        let inputHtml;
-        if (toolName === 'Edit' && toolUse.input) {
-            inputHtml = renderEditDiff(toolUse.input);
-        } else if (toolName === 'Write' && toolUse.input) {
-            inputHtml = renderWriteSummary(toolUse.input);
-        } else {
-            inputHtml = renderToolInput(toolUse.input);
-        }
         const inputObj = (toolUse.input && typeof toolUse.input === 'object') ? toolUse.input : null;
+        let inputHtml;
+        if (toolName === 'Edit' && inputObj) {
+            inputHtml = diffViewer({ name: cvBase(inputObj.file_path) || 'Edit', lang: cvLangFor(inputObj.file_path), oldStr: inputObj.old_string, newStr: inputObj.new_string });
+        } else if (toolName === 'Write' && inputObj) {
+            inputHtml = codeViewer({ name: cvBase(inputObj.file_path) || 'Write', lang: cvLangFor(inputObj.file_path), code: inputObj.content || '' });
+        } else if (toolName === 'Bash' && inputObj && typeof inputObj.command === 'string') {
+            inputHtml = codeViewer({ name: 'command', lang: 'bash', code: inputObj.command });
+        } else if (inputObj) {
+            inputHtml = codeViewer({ name: toolName + '(input)', lang: 'json', code: JSON.stringify(inputObj, null, 2) });
+        } else {
+            inputHtml = codeViewer({ name: 'input', lang: 'text', code: String(toolUse.input || '') });
+        }
         const inputKeys = inputObj ? Object.keys(inputObj) : [];
 
         let resultText = '';
@@ -9104,11 +9289,12 @@ function renderTranscript() {
         let outputClass = 'output';
         if (resultEntry && allowResult) {
             const trimmed = resultLen > 4000 ? resultText.slice(0, 4000) + `\n… (${resultLen - 4000} chars truncated)` : resultText;
-            outputBody = `<pre class="ts-output-pre${isError ? ' error' : ''}">${renderAnsi(trimmed)}</pre>`;
+            const outLang = (toolName === 'Read' && inputObj && inputObj.file_path) ? cvLangFor(inputObj.file_path) : 'text';
+            outputBody = codeViewer({ name: isError ? 'error' : 'output', lang: outLang, code: trimmed, ansi: ANSI_RE.test(trimmed), err: isError });
             outputBadgeText = isError ? 'error' : `${formatNumber(resultLen)} chars · ${formatNumber(resultLines)} lines`;
             if (isError) outputClass = 'output error';
         } else if (allowResult) {
-            outputBody = `<div class="ts-output-missing">(sin resultado capturado)</div>`;
+            outputBody = `<div class="ts-output-missing">(no result captured)</div>`;
             outputBadgeText = 'missing';
         }
 
@@ -9148,7 +9334,7 @@ function renderTranscript() {
                     <span class="ts-section-badge">${escapeHtml(inputBadgeText)}</span>
                 </summary>
                 <div class="ts-section-body">
-                    <div class="ts-input-pre">${inputHtml}</div>
+                    ${inputHtml}
                 </div>
             </details>`;
 
@@ -9163,7 +9349,7 @@ function renderTranscript() {
             </details>` : '';
 
         const metadataSection = `
-            <details class="ts-section ts-meta" open>
+            <details class="ts-section ts-meta">
                 <summary class="ts-summary">
                     <span class="ts-caret">▾</span>
                     <span class="ts-section-title">Metadata</span>
@@ -9199,7 +9385,6 @@ function renderTranscript() {
             : jumpHtml;
         return `<div class="tool-step v2${nested ? ' nested' : ''}" data-tool-name="${escapeHtml(toolName)}">
             ${headHtml}
-            ${jumpHtmlFinal}
             ${inputSection}
             ${outputSection}
             ${metadataSection}
@@ -9285,10 +9470,10 @@ function renderTranscript() {
                 <span class="chat-metric in"><span class="cm-ic">↓</span><span class="cm-lab">Input</span><span class="cm-val">${formatTokens(totals.input)} tokens</span></span>
                 <span class="chat-metric out"><span class="cm-ic">↑</span><span class="cm-lab">Output</span><span class="cm-val">${formatTokens(totals.output)} tokens</span></span>
                 ${totals.models > 1 ? `<span class="chat-metric models">${totals.models} models used</span>` : (totals.modelName ? `<span class="chat-metric models">${escapeHtml(totals.modelName)}</span>` : '')}
-                <span class="turn-bulk-controls" title="Collapse/expand Input · Output · Metadata of ALL tool-steps">
-                    <span class="turn-bulk-label">Input / Output data</span>
-                    <button type="button" id="ts-expand-all" class="turn-bulk-btn" title="Expand Input/Output/Metadata of all tool-steps">Show</button>
-                    <button type="button" id="ts-collapse-all" class="turn-bulk-btn" title="Collapse Input/Output/Metadata of all tool-steps">Hide</button>
+                <span class="turn-bulk-controls" title="Expand/collapse the full observation of every tool and thinking">
+                    <span class="turn-bulk-label">Observations</span>
+                    <button type="button" id="ts-expand-all" class="turn-bulk-btn" title="Expand all observations (tools and thinking)">Expand all</button>
+                    <button type="button" id="ts-collapse-all" class="turn-bulk-btn" title="Collapse all observations (hide their content)">Collapse all</button>
                 </span>
             </div>
         </div>`;
@@ -9303,40 +9488,52 @@ function renderTranscript() {
             if (cl.category === 'tool_result') continue; // mostrado dentro del Assistant
 
             if (msg.type === 'assistant') {
-                let bodyMd = '';
+                let bodyMd = '', rawText = '';
                 const extras = [];
-                let hasThinking = false, hasTool = false;
+                let hasThinking = false, hasTool = false, thinkCount = 0, thinkChars = 0;
                 for (const b of cl.blocks) {
-                    if (b.type === 'thinking' && b.thinking && b.thinking.trim()) {
+                    if (b.type === 'thinking' || b.type === 'redacted_thinking') {
+                        // El thinking ya no es una card: su resumen se muestra en el .msg-head.
                         hasThinking = true;
-                        extras.push(`<details class="chat-tool thinking"><summary><span class="ct-ic">💭</span><span class="ct-name">Thinking</span><span class="ct-count">${formatNumber(b.thinking.length)} chars</span></summary><div class="chat-tool-body"><div class="chat-tool-think-text">${escapeHtml(b.thinking)}</div></div></details>`);
+                        thinkCount++;
+                        thinkChars += (b.thinking || '').trim().length;
                     } else if (b.type === 'text' && b.text && b.text.trim()) {
                         bodyMd += renderMd(b.text);
+                        rawText += b.text + '\n';
                     } else if (b.type === 'tool_use') {
                         hasTool = true;
                         const useId = b.id;
                         const resultEntry = useId ? toolResultByUseId.get(useId) : null;
                         const step = renderToolStep(b, resultEntry, true, false, true);
-                        extras.push(`<details class="chat-tool" open data-msg-idx="${mi}" data-tool-use-id="${escapeHtml(useId || '')}" data-tool-name="${escapeHtml(b.name || 'tool')}"><summary><span class="ct-ic">🔧</span><span class="ct-name">${escapeHtml(b.name || 'tool')}</span><span class="ct-count">1 call</span></summary><div class="chat-tool-body">${step}</div></details>`);
+                        const tin = (b.input && typeof b.input === 'object') ? b.input : null;
+                        const tgt = tin ? (tin.file_path ? cvBase(tin.file_path) : (typeof tin.command === 'string' ? tin.command.split('\n')[0].slice(0, 48) : '')) : '';
+                        const tgtHtml = tgt ? `<span class="ct-target">${escapeHtml(tgt)}</span>` : '';
+                        extras.push(`<details class="chat-tool" open data-msg-idx="${mi}" data-tool-use-id="${escapeHtml(useId || '')}" data-tool-name="${escapeHtml(b.name || 'tool')}"><summary><span class="ux-chev">${CHEV_SVG}</span><span class="badge tool">Tool</span><span class="ct-name">${escapeHtml(b.name || 'tool')}</span>${tgtHtml}<span class="ct-count">1 call</span></summary><div class="chat-tool-body">${step}</div></details>`);
                     }
                 }
-                if (!bodyMd && !extras.length) continue;
-                // Mensaje del asistente que es SOLO llamada(s) a herramienta (sin texto
-                // ni thinking propios): se muestran las tarjetas de tool sueltas, sin el
-                // bubble "Assistant" vacío, que sería una caja redundante.
-                if (!bodyMd && !hasThinking && hasTool) {
-                    parts.push(`<div class="chat-tools standalone" data-msg-idx="${mi}" data-turn="${turnIdx}">${extras.join('')}</div>`);
-                    continue;
+                const thinkHead = hasThinking
+                    ? `<span class="badge thinking" title="Model reasoning (extended thinking)">Thinking</span><span class="msg-think-meta">${thinkChars ? formatNumber(thinkChars) + ' chars' : 'no text'}${thinkCount > 1 ? ' · ' + thinkCount + ' blocks' : ''}</span>`
+                    : '';
+                if (!bodyMd && !extras.length && !hasThinking) continue;
+                // El texto del Response es una card de ancho limitado (izquierda); las tools
+                // van como cards aparte a ancho completo (más legibles para el código).
+                if (bodyMd || hasThinking) {
+                    const inner = bodyMd ? chatClampWrap(bodyMd) : '';
+                    const aTitle = chatSummary(rawText);
+                    const aThis = chatTsMs(msg.ts), aNext = transcriptData[mi + 1] ? chatTsMs(transcriptData[mi + 1].ts) : null;
+                    const aDur = (aThis != null && aNext != null) ? Math.max(0, aNext - aThis) : 0;
+                    const aCost = turnCost({ input: Number(msg.input_tokens) || 0, output: Number(msg.output_tokens) || 0, cacheRead: Number(msg.cache_read_tokens) || 0, cacheCreate: Number(msg.cache_creation_tokens) || 0, cacheCreate5m: Number(msg.cache_creation_5m_tokens) || 0, cacheCreate1h: Number(msg.cache_creation_1h_tokens) || 0 }, msg.model || '');
+                    const aSide = `${aDur ? chatDur(aDur) + ' · ' : ''}${aCost ? formatCost(aCost) : ''}`.replace(/ · $/, '');
+                    parts.push(chatBubble({ side: 'left', variant: 'bot', title: aTitle, ts: msg.ts, turnIdx, msgIdx: mi, inner, thinkHead, sideMetric: aSide }));
                 }
-                const inner = (bodyMd ? chatClampWrap(bodyMd) : '') + (extras.length ? `<div class="chat-tools">${extras.join('')}</div>` : '');
-                parts.push(chatBubble('left', 'bot', 'Assistant', msg.ts, turnIdx, mi, inner));
+                if (extras.length) parts.push(`<div class="chat-tools standalone" data-msg-idx="${mi}" data-turn="${turnIdx}">${extras.join('')}</div>`);
                 continue;
             }
 
             if (cl.category === 'user') {
                 const txt = textFromBlocks(cl.blocks);
                 if (!txt.trim()) continue;
-                parts.push(chatBubble('right', 'you', 'You', msg.ts, turnIdx, mi, chatClampWrap(renderMd(txt))));
+                parts.push(chatBubble({ side: 'right', variant: 'you', title: chatSummary(txt), ts: msg.ts, turnIdx, msgIdx: mi, inner: chatClampWrap(renderMd(txt)) }));
                 continue;
             }
 
@@ -9344,7 +9541,7 @@ function renderTranscript() {
             const tag = kindTagMap[cl.category] || 'System';
             const txt = cl.category === 'summary' ? (msg.summary || '') : textFromBlocks(cl.blocks);
             if (!txt.trim()) continue;
-            parts.push(chatBubble('left', 'sys', 'System', msg.ts, turnIdx, mi, chatClampWrap(renderMd(txt)), tag));
+            parts.push(chatBubble({ side: 'left', variant: 'sys', title: chatSummary(txt), ts: msg.ts, turnIdx, msgIdx: mi, inner: chatClampWrap(renderMd(txt)), kindTag: tag }));
         }
 
         col.innerHTML = headHtml + `<div class="chat-stream">${parts.join('') || '<div class="cd-empty">No visible messages.</div>'}</div>`;
@@ -9926,13 +10123,11 @@ document.getElementById('turns-expand-all').addEventListener('click', () => {
     document.querySelectorAll('#messages-container .turn-group').forEach(g => g.classList.remove('collapsed'));
 });
 
-// Plegar / desplegar Input · Output · Metadata de TODAS las tool calls del chat.
+// Plegar / desplegar la observación COMPLETA de cada tool/thinking del chat
+// (la card <details class="chat-tool">), ocultando o mostrando su .chat-tool-body entero.
 function setAllToolStepSections(open) {
-    document.querySelectorAll('#chat-col .tool-step.v2 .ts-section').forEach(s => { s.open = open; });
-    document.querySelectorAll('#chat-col .tool-step.v2 .ts-toggle-all').forEach(btn => {
-        btn.textContent = open ? '▾ Collapse all' : '▸ Expand all';
-        btn.dataset.tsToggle = open ? 'collapse' : 'expand';
-    });
+    document.querySelectorAll('#chat-col .chat-tool').forEach(d => { d.open = open; });
+    document.querySelectorAll('#chat-col .msg-bubble').forEach(b => { b.classList.toggle('collapsed', !open); });
 }
 // Los botones viven dentro de la cabecera del chat (chat-head-card), que se
 // re-renderiza, así que se delegan en document para que sigan funcionando.
