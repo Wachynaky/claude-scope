@@ -7854,6 +7854,21 @@ function isTurnStart(cl) {
     return true;
 }
 
+// Artefactos que Claude Code escribe en el transcript pero que NO son contenido
+// real de la conversación: wrappers de comando/bash (p. ej. /exit deja
+// <local-command-stdout>Bye!</local-command-stdout>, las skills dejan
+// <command-name>…) y el caveat meta que precede a los comandos locales. No son
+// inicios de turno (isTurnStart ya los descarta) y no deben pintarse como
+// burbujas: aparecían como burbujas huérfanas «Prompt»/«System»/«Skill» al final
+// del trace. Solo aplica a categorías user/skill; planes, summaries, etc. se mantienen.
+function isChatArtifact(cl) {
+    const t = (textFromBlocks(cl.blocks) || '').trim();
+    if (!t) return true;
+    if (TURN_WRAPPER_RE.test(t)) return true;
+    if (/^Caveat: The messages below were generated/.test(t)) return true;
+    return false;
+}
+
 function buildTurns() {
     if (!transcriptData) return [];
     // 1) Turnos «crudos»: uno por cada inicio de turno detectado.
@@ -9586,6 +9601,8 @@ function renderTranscript() {
             const turnIdx = idxToTurn.has(mi) ? idxToTurn.get(mi) : '';
             if (cl.category === 'skip') continue;
             if (cl.category === 'tool_result') continue; // mostrado dentro del Assistant
+            // Oculta wrappers de comando/bash y caveats: no son conversación real.
+            if ((cl.category === 'user' || cl.category === 'skill') && isChatArtifact(cl)) continue;
 
             if (msg.type === 'assistant') {
                 let bodyMd = '', rawText = '';
