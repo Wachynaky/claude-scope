@@ -4047,6 +4047,19 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
 .msg-bubble.you .msg-body pre { background: #0f172a; color: #e2e8f0; }
 .msg-bubble.you .msg-body code { color: var(--accent-dim); }
 
+/* Prompt literal: respeta saltos de línea y sangrías sin interpretar markdown. */
+/* El prompt se muestra tal cual lo escribió el usuario (incluidos dibujos
+   ASCII). Como la burbuja es estrecha, NO envolvemos las líneas: usamos
+   monospace y scroll horizontal para que la alineación del dibujo se conserve,
+   igual que en la fila expandida de la tabla (que ocupa todo el ancho). */
+.term-verbatim {
+    white-space: pre;
+    overflow-x: auto;
+    font-family: 'SF Mono', Consolas, 'Courier New', monospace;
+    font-size: 12.5px;
+    line-height: 1.5;
+}
+
 /* Plegado "Read more" */
 .msg-body.clampable { position: relative; }
 .msg-body.clampable.clamped {
@@ -7798,6 +7811,18 @@ function textFromBlocks(blocks) {
     }).join(' ').replace(/\s+/g, ' ').trim();
 }
 
+// Igual que textFromBlocks pero SIN colapsar los espacios en blanco: conserva
+// saltos de línea y sangrías para mostrar el prompt tal cual lo escribió el
+// usuario (p. ej. dibujos ASCII). textFromBlocks aplana todo a una sola línea,
+// lo cual sirve para títulos/resúmenes pero destroza el formato del cuerpo.
+function rawTextFromBlocks(blocks) {
+    return blocks.map(b => {
+        if (b.type === 'text') return b.text || '';
+        if (b.type === 'tool_result') return typeof b.content === 'string' ? b.content : '';
+        return '';
+    }).join('\n').replace(/\s+$/, '');
+}
+
 function turnCost(tokens, model) {
     // tokens uses the in-transcript shape { input, output, cacheRead, cacheCreate5m, cacheCreate1h, webSearch, webFetch }
     return costBreakdown({
@@ -9500,6 +9525,13 @@ function renderTranscript() {
         return `<div class="term-md">${marked.parse(text)}</div>`;
     }
 
+    // El prompt se muestra literal (tal como lo escribió el usuario): sin
+    // interpretar markdown, conservando saltos de línea, sangrías y caracteres.
+    function renderVerbatim(text) {
+        if (ANSI_RE.test(text)) return `<div class="term-verbatim">${renderAnsi(text)}</div>`;
+        return `<div class="term-verbatim">${escapeHtml(text)}</div>`;
+    }
+
     function renderToolResult(block) {
         const text = typeof block.content === 'string' ? block.content :
             Array.isArray(block.content) ? block.content.map(c => c.text || '').join('\n') :
@@ -9601,7 +9633,8 @@ function renderTranscript() {
             if (cl.category === 'user') {
                 const txt = textFromBlocks(cl.blocks);
                 if (!txt.trim()) continue;
-                parts.push(chatBubble({ side: 'right', variant: 'you', title: chatSummary(txt), ts: msg.ts, turnIdx, msgIdx: mi, inner: chatClampWrap(renderMd(txt)) }));
+                const rawTxt = rawTextFromBlocks(cl.blocks);
+                parts.push(chatBubble({ side: 'right', variant: 'you', title: chatSummary(txt), ts: msg.ts, turnIdx, msgIdx: mi, inner: chatClampWrap(renderVerbatim(rawTxt)) }));
                 continue;
             }
 
