@@ -3892,12 +3892,21 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 .chat-col { min-width: 0; }
 
 .chat-head-card {
-    background: linear-gradient(180deg, var(--surface), var(--surface-2));
+    position: sticky;
+    /* Se fusiona visualmente con la trace-controls-row de la filters-bar: se
+       ancla pegada a su borde inferior (sin gap), comparte fondo y elimina el
+       borde/redondeo superior para verse como un único bloque continuo fijo.
+       El margin-top negativo cierra el padding-top del chat-layout. */
+    top: var(--filters-height, 92px);
+    margin-top: -8px;
+    z-index: 6;
+    background: var(--surface);
     border: 1px solid var(--line-strong);
-    border-radius: 16px;
+    border-top: none;
+    border-radius: 0 0 16px 16px;
     padding: 16px 18px;
     margin-bottom: 16px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    box-shadow: 0 4px 10px -6px rgba(0,0,0,0.12);
 }
 .chat-head-title {
     font-size: 15px;
@@ -4290,9 +4299,9 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 
 /* Diseño viejo retirado: los filtros por rol y el control de "Turns" actuaban
    sobre el render clásico (ya no existe), así que se ocultan para no inflar la
-   barra (que tapaba el panel sticky de la derecha). Se conservan la búsqueda,
-   el selector de vistas y el control "Input / Output data" (reaprovechado para
-   plegar/desplegar las tool calls del chat). */
+   barra (que tapaba el panel sticky de la derecha). Se conservan la búsqueda
+   y el selector de vistas; el control "Input / Output data" (que pliega/despliega
+   las tool calls del chat) se movió a la cabecera del chat (chat-head-card). */
 .filters-bar .filters-toggles > label { display: none; }
 .turn-bulk-controls:has(#turns-expand-all) { display: none; }
 </style>
@@ -4561,11 +4570,6 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
                         <span class="turn-bulk-label">Traces</span>
                         <button type="button" id="turns-expand-all" class="turn-bulk-btn" title="Expand all traces">Show</button>
                         <button type="button" id="turns-collapse-all" class="turn-bulk-btn" title="Collapse all traces">Hide</button>
-                    </span>
-                    <span class="turn-bulk-controls" title="Collapse/expand Input · Output · Metadata of ALL tool-steps">
-                        <span class="turn-bulk-label">Input / Output data</span>
-                        <button type="button" id="ts-expand-all" class="turn-bulk-btn" title="Expand Input/Output/Metadata of all tool-steps">Show</button>
-                        <button type="button" id="ts-collapse-all" class="turn-bulk-btn" title="Collapse Input/Output/Metadata of all tool-steps">Hide</button>
                     </span>
                 </div>
             </div>
@@ -9159,9 +9163,9 @@ function renderTranscript() {
             </details>` : '';
 
         const metadataSection = `
-            <details class="ts-section ts-meta">
+            <details class="ts-section ts-meta" open>
                 <summary class="ts-summary">
-                    <span class="ts-caret">▸</span>
+                    <span class="ts-caret">▾</span>
                     <span class="ts-section-title">Metadata</span>
                     <span class="ts-section-badge">${metaRows.length} keys</span>
                 </summary>
@@ -9281,6 +9285,11 @@ function renderTranscript() {
                 <span class="chat-metric in"><span class="cm-ic">↓</span><span class="cm-lab">Input</span><span class="cm-val">${formatTokens(totals.input)} tokens</span></span>
                 <span class="chat-metric out"><span class="cm-ic">↑</span><span class="cm-lab">Output</span><span class="cm-val">${formatTokens(totals.output)} tokens</span></span>
                 ${totals.models > 1 ? `<span class="chat-metric models">${totals.models} models used</span>` : (totals.modelName ? `<span class="chat-metric models">${escapeHtml(totals.modelName)}</span>` : '')}
+                <span class="turn-bulk-controls" title="Collapse/expand Input · Output · Metadata of ALL tool-steps">
+                    <span class="turn-bulk-label">Input / Output data</span>
+                    <button type="button" id="ts-expand-all" class="turn-bulk-btn" title="Expand Input/Output/Metadata of all tool-steps">Show</button>
+                    <button type="button" id="ts-collapse-all" class="turn-bulk-btn" title="Collapse Input/Output/Metadata of all tool-steps">Hide</button>
+                </span>
             </div>
         </div>`;
 
@@ -9307,7 +9316,7 @@ function renderTranscript() {
                         hasTool = true;
                         const useId = b.id;
                         const resultEntry = useId ? toolResultByUseId.get(useId) : null;
-                        const step = renderToolStep(b, resultEntry, true, true, true);
+                        const step = renderToolStep(b, resultEntry, true, false, true);
                         extras.push(`<details class="chat-tool" open data-msg-idx="${mi}" data-tool-use-id="${escapeHtml(useId || '')}" data-tool-name="${escapeHtml(b.name || 'tool')}"><summary><span class="ct-ic">🔧</span><span class="ct-name">${escapeHtml(b.name || 'tool')}</span><span class="ct-count">1 call</span></summary><div class="chat-tool-body">${step}</div></details>`);
                     }
                 }
@@ -9925,8 +9934,12 @@ function setAllToolStepSections(open) {
         btn.dataset.tsToggle = open ? 'collapse' : 'expand';
     });
 }
-document.getElementById('ts-collapse-all').addEventListener('click', () => setAllToolStepSections(false));
-document.getElementById('ts-expand-all').addEventListener('click', () => setAllToolStepSections(true));
+// Los botones viven dentro de la cabecera del chat (chat-head-card), que se
+// re-renderiza, así que se delegan en document para que sigan funcionando.
+document.addEventListener('click', e => {
+    if (e.target.id === 'ts-collapse-all') setAllToolStepSections(false);
+    else if (e.target.id === 'ts-expand-all') setAllToolStepSections(true);
+});
 
 document.getElementById('timeline-modal-close').addEventListener('click', closeTimelineModal);
 document.getElementById('timeline-modal').addEventListener('click', e => {
