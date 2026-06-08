@@ -383,6 +383,23 @@ header h1 {
     text-overflow: ellipsis;
 }
 .stat-value.stat-accent { color: var(--accent-dim); }
+/* Tokens / Cost: una sola cifra (el total) como valor principal, y debajo el desglose
+   de lo que la compone — barra de composición proporcional + leyenda etiquetada
+   (Input/Output/Cache[/Tools]), para entenderlo de un vistazo. Mismo diseño en ambas. */
+#metric-tokens .cost-total, #metric-cost .cost-total { white-space: nowrap; }
+#metric-tokens-sub, #metric-cost-sub { display: flex; flex-direction: column; align-items: stretch; gap: 3px; overflow: visible; white-space: normal; }
+.stat-sub .cost-bar { display: flex; height: 5px; border-radius: 99px; overflow: hidden; background: var(--line, #e6e3ec); }
+.stat-sub .cost-bar i { display: block; height: 100%; }
+.stat-sub .cost-bar .seg-in     { background: #f59e0b; }
+.stat-sub .cost-bar .seg-out    { background: #059669; }
+.stat-sub .cost-bar .seg-cache  { background: #6366f1; }
+.stat-sub .cost-bar .seg-server { background: #a78bfa; }
+.stat-sub .cost-legend { display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: 10.5px; line-height: 1.3; }
+.stat-sub .cost-legend > span::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 2px; margin-right: 4px; vertical-align: middle; background: currentColor; opacity: .85; }
+.stat-sub .cost-legend .tb-in     { color: #b45309; font-weight: 600; }
+.stat-sub .cost-legend .tb-out    { color: #047857; font-weight: 600; }
+.stat-sub .cost-legend .tb-cache  { color: #4338ca; font-weight: 600; }
+.stat-sub .cost-legend .cost-server { color: #7c3aed; font-weight: 600; }
 .charts-toggle-btn {
     flex: 0 0 auto;
     border: 1px solid rgba(232, 42, 107, 0.24);
@@ -3002,17 +3019,22 @@ tbody td + td { border-left: 1px solid var(--line); }
 #turn-table td.col-tokens { font-weight: 400; vertical-align: middle; }
 
 /* Celda de tokens compacta: total + barra apilada (input/output/cache) + leyenda. */
-.tokmini { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; min-width: 120px; }
-.tokmini-total { font-family: var(--tg-mono, ui-monospace, monospace); font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 700; color: var(--accent-dim, #a3134a); }
-.tokmini-bar { display: flex; width: 100%; max-width: 150px; height: 5px; border-radius: 99px; overflow: hidden; background: var(--line, #e6e3ec); }
+.tokmini { display: flex; flex-direction: column; align-items: stretch; gap: 4px; width: 100%; max-width: 168px; margin-left: auto; font-family: var(--tg-mono, ui-monospace, monospace); font-variant-numeric: tabular-nums; }
+/* Cabecera: suma entrada+salida grande a la izquierda; total con caché secundario a la derecha. */
+.tokmini-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.tokmini-io { font-size: 13px; font-weight: 700; color: var(--text); }
+.tokmini-tot { font-size: 11px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.tokmini-bar { display: flex; width: 100%; height: 5px; border-radius: 99px; overflow: hidden; background: var(--line, #e6e3ec); }
 .tokmini-bar i { display: block; height: 100%; }
 .tokmini-bar .seg-in    { background: #f59e0b; }
 .tokmini-bar .seg-out   { background: #059669; }
 .tokmini-bar .seg-cache { background: #6366f1; }
-.tokmini-legend { display: flex; gap: 8px; font-family: var(--tg-mono, ui-monospace, monospace); font-variant-numeric: tabular-nums; font-size: 10.5px; }
-.tokmini-legend .tb-in    { color: #b45309; }
-.tokmini-legend .tb-out   { color: #047857; }
-.tokmini-legend .tb-cache { color: #4338ca; }
+/* Leyenda: entrada/salida destacadas a la izquierda; caché atenuada a la derecha. */
+.tokmini-legend { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 10.5px; }
+.tokmini-io-bd { display: inline-flex; gap: 8px; }
+.tokmini-legend .tb-in    { color: #b45309; font-weight: 700; }
+.tokmini-legend .tb-out   { color: #047857; font-weight: 700; }
+.tokmini-legend .tb-cache { color: var(--muted); font-weight: 500; opacity: 0.75; }
 
 /* Observaciones del trace dentro de la fila desplegada (estilo Execution flow). */
 .turn-obs { margin-top: 14px; }
@@ -4098,12 +4120,11 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 .cd-head.has-back .cd-back { display: inline-flex; }
 .cd-head .cd-title { font-size: 14px; font-weight: 750; color: var(--text); display: flex; align-items: center; flex-wrap: wrap; gap: 5px; min-width: 0; }
 .cd-title .cd-turn-no { color: var(--accent-dim); font-weight: 800; white-space: nowrap; }
-.cd-title .cd-turn-sep { color: var(--text-dim); font-weight: 400; }
+/* Segunda línea del título: el detalle (obs/prompt) ocupa toda la fila y no se
+   desdobla; el texto que sobra se recorta con ellipsis. */
+.cd-title .cd-title-detail { flex-basis: 100%; width: 100%; max-width: 100%; min-width: 0; overflow: hidden; }
 .cd-title .cd-turn-preview { color: var(--text-soft); font-weight: 500; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; min-width: 0; }
 .cd-title .cd-obs-label { color: var(--accent); font-weight: 650; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; min-width: 0; }
-/* Toggle de vista mejorada de observación. */
-.cd-head .cd-mode-toggle { margin-left: 6px; }
-.cd-head .cd-mode-toggle.on { color: var(--accent); border-color: var(--accent-line); }
 .cd-head .cd-title .cd-kind {
     display: inline-flex; align-items: center; gap: 5px;
     background: var(--accent-soft); color: var(--accent-dim);
@@ -4360,7 +4381,7 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
                 <div class="stat-sub" id="metric-sessions-sub">sessions</div>
             </div>
             <div class="stat-cell">
-                <div class="stat-label" id="metric-tokens-label">Usage</div>
+                <div class="stat-label" id="metric-tokens-label">Tokens</div>
                 <div class="stat-value" id="metric-tokens">-</div>
                 <div class="stat-sub" id="metric-tokens-sub">tokens</div>
             </div>
@@ -4744,10 +4765,6 @@ let chatPinned = false;           // true si la selección la fijó el usuario p
 let chatBackSel = null;           // a dónde sube el botón ← (lo calcula el render)
 let chatDetailsViewMode = 'ui';   // 'ui' | 'json' para el bloque de detalle
 let chatSpyEnabled = true;        // el panel sigue al elemento centrado al hacer scroll
-// Vista mejorada de observaciones (título enriquecido + bloque Input→Output estilo
-// Langfuse). Toggle en la cabecera del panel; persistida en localStorage para poder
-// comparar contra la vista clásica. Por defecto activada ('0' = clásica).
-let chatDetailsEnhanced = (() => { try { return localStorage.getItem('ccpanel-obs-enhanced') !== '0'; } catch (e) { return true; } })();
 let transcriptData = null;
 let toolStats = [];
 let sessionToolRows = [];
@@ -4927,7 +4944,13 @@ function rangeBounds() {
     }
     const ms = RANGE_PRESET_MS[r];
     if (!ms) return null;
-    return { from: new Date(Date.now() - ms), to: null };
+    // Los timestamps de las filas vienen de ClickHouse en UTC pero SIN marca de zona,
+    // y se parsean como hora local (wall-clock), igual que en formatTime. Para que
+    // "últimas N horas" cuadre con ellos, "ahora" debe expresarse en ese mismo reloj
+    // UTC, no en la hora local real: si no, un desfase de zona (p. ej. UTC+2) descarta
+    // todo lo reciente y "Last 1 hour" sale vacío.
+    const nowWall = Date.now() + new Date().getTimezoneOffset() * 60000;
+    return { from: new Date(nowWall - ms), to: null };
 }
 
 function withinRange(row) {
@@ -5248,6 +5271,8 @@ LIMIT 5000`;
         loading.textContent = 'Loading sessions...';
         renderTurnList();
         renderTraceGroupList();
+        // Ya cargados los turnos, el dashboard pasa a agregar sobre ellos.
+        renderDashboard();
     } catch (e) {
         loading.classList.add('hidden');
         loading.textContent = 'Loading sessions...';
@@ -5480,23 +5505,32 @@ function tokenBreakdown(r) {
         `</span>` +
     `</span>`;
 }
-// Celda de tokens compacta y visual para la tabla "Traces": total destacado + barra
-// apilada proporcional (input / output / cache) y el desglose exacto en el tooltip.
+// Celda de tokens compacta y visual para la tabla "Traces", con la misma jerarquía
+// que la card "Usage": grande la suma entrada+salida y, a la derecha y atenuado, el
+// total con caché. Barra apilada proporcional (input / output / cache) y desglose
+// exacto en el tooltip; entrada/salida destacadas y caché menos vistosa.
 function tokenMiniCell(r) {
     const input = displayInput(r);
     const output = displayOutput(r);
     const cache = (Number(r.cache_read_tokens) || 0) + (Number(r.cache_creation_tokens) || 0);
-    const total = input + output + cache;
+    const io = input + output;
+    const total = io + cache;
     const pct = n => (total > 0 && n > 0) ? Math.max(4, n * 100 / total) : 0;
-    const plain = `Input ${formatTokens(input)} · Output ${formatTokens(output)} · Cache ${formatTokens(cache)} = ${formatTokens(total)}`;
+    const plain = `Input ${formatTokens(input)} · Output ${formatTokens(output)} (∑ ${formatTokens(io)}) · Cache ${formatTokens(cache)} = ${formatTokens(total)}`;
     return `<div class="tokmini" title="${plain}">` +
-        `<span class="tokmini-total">${formatTokens(total)}</span>` +
+        `<span class="tokmini-head">` +
+            `<span class="tokmini-io">${formatTokens(io)}</span>` +
+            `<span class="tokmini-tot">∑ ${formatTokens(total)}</span>` +
+        `</span>` +
         `<span class="tokmini-bar">` +
             `<i class="seg-in" style="width:${pct(input)}%"></i>` +
             `<i class="seg-out" style="width:${pct(output)}%"></i>` +
             `<i class="seg-cache" style="width:${pct(cache)}%"></i>` +
         `</span>` +
-        `<span class="tokmini-legend"><span class="tb-in">↓${formatTokens(input)}</span><span class="tb-out">↑${formatTokens(output)}</span><span class="tb-cache">⇊${formatTokens(cache)}</span></span>` +
+        `<span class="tokmini-legend">` +
+            `<span class="tokmini-io-bd"><span class="tb-in">↓${formatTokens(input)}</span><span class="tb-out">↑${formatTokens(output)}</span></span>` +
+            `<span class="tb-cache">⇊${formatTokens(cache)}</span>` +
+        `</span>` +
     `</div>`;
 }
 // Conveniencia para una fila (sesión o turn) y un tipo de valor conmutable.
@@ -5531,9 +5565,26 @@ function groupSum(rows, keyFn, valueFn) {
     return [...out.entries()].map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
 }
 
+// Desglose visual de una métrica (cards Tokens y Cost de la barra de stats): barra de
+// composición proporcional + leyenda etiquetada con cada partida y su valor formateado.
+// parts = [{ label, val, cls, seg, tip }]; las partidas con valor 0 se omiten.
+function metricBreakdownHTML(parts, total, fmt) {
+    const denom = total || 1;
+    const shown = parts.filter(p => p.val > 0);
+    const bar = shown.map(p => `<i class="${p.seg}" style="width:${Math.max(2, p.val * 100 / denom)}%"></i>`).join('');
+    const legend = shown.map(p => `<span class="${p.cls}" title="${p.tip}: ${fmt(p.val)}">${p.label} ${fmt(p.val)}</span>`).join('');
+    return `<span class="cost-bar" title="Composición del total">${bar}</span><span class="cost-legend">${legend}</span>`;
+}
+
 function renderDashboard() {
-    const rows = getFilteredSessions();
+    // El dashboard agrega sobre los turnos visibles (lo que muestran las vistas home),
+    // así cuadra con la tabla incluso al filtrar por texto. Las métricas solo-sesión
+    // (errores, permisos, API) se calculan sobre las sesiones que contienen esos turnos.
+    const usingTurns = turnsLoaded;
+    const rows = dashboardSource();
+    const sessRows = usingTurns ? sessionsContaining(rows) : rows;
     const total = rows.length;
+    const sessCount = sessRows.length;
     const input = rows.reduce((s, r) => s + (Number(r.input_tokens) || 0), 0);
     const output = rows.reduce((s, r) => s + (Number(r.output_tokens) || 0), 0);
     const cacheRead = rows.reduce((s, r) => s + (Number(r.cache_read_tokens) || 0), 0);
@@ -5541,14 +5592,15 @@ function renderDashboard() {
     const totalTokens = input + output + cacheRead + cacheCreate;
     const ccTokens = rows.reduce((s, r) => s + (Number(r.cc_tokens) || 0), 0);
     const totalCost = rows.reduce((s, r) => s + (Number(r.cost) || 0), 0);
-    const apiMs = rows.reduce((s, r) => s + (Number(r.api_duration_ms) || 0), 0);
-    const userMsgs = rows.reduce((s, r) => s + (Number(r.user_msgs) || 0), 0);
-    const assistantMsgs = rows.reduce((s, r) => s + (Number(r.assistant_msgs) || 0), 0);
-    const apiErrors = rows.reduce((s, r) => s + (Number(r.api_error_count) || 0), 0);
-    const sessionsWithErrors = rows.filter(r => Number(r.api_error_count) > 0).length;
-    const permissionEvents = rows.reduce((s, r) => s + (Number(r.permission_events) || 0), 0);
-    const approved = rows.reduce((s, r) => s + (Number(r.approved_count) || 0), 0);
-    const rejected = rows.reduce((s, r) => s + (Number(r.rejected_count) || 0), 0);
+    const apiMs = sessRows.reduce((s, r) => s + (Number(r.api_duration_ms) || 0), 0);
+    // En modo turnos: prompts = nº de traces, generations = Σ generaciones del trace.
+    const userMsgs = usingTurns ? total : sessRows.reduce((s, r) => s + (Number(r.user_msgs) || 0), 0);
+    const assistantMsgs = usingTurns ? rows.reduce((s, r) => s + (Number(r.generations) || 0), 0) : sessRows.reduce((s, r) => s + (Number(r.assistant_msgs) || 0), 0);
+    const apiErrors = sessRows.reduce((s, r) => s + (Number(r.api_error_count) || 0), 0);
+    const sessionsWithErrors = sessRows.filter(r => Number(r.api_error_count) > 0).length;
+    const permissionEvents = sessRows.reduce((s, r) => s + (Number(r.permission_events) || 0), 0);
+    const approved = sessRows.reduce((s, r) => s + (Number(r.approved_count) || 0), 0);
+    const rejected = sessRows.reduce((s, r) => s + (Number(r.rejected_count) || 0), 0);
     const webSearch = rows.reduce((s, r) => s + (Number(r.web_search_requests) || 0), 0);
     const webFetch = rows.reduce((s, r) => s + (Number(r.web_fetch_requests) || 0), 0);
     const breakdown = sumCostBreakdown(rows);
@@ -5556,18 +5608,40 @@ function renderDashboard() {
     setText('metric-sessions', formatNumber(total));
     setText('metric-sessions-sub', `${formatNumber(userMsgs)} prompts · ${formatNumber(assistantMsgs)} generations`);
     const showCC = tokenMode === 'cc';
-    setHTML('metric-tokens', tokenView(showCC ? ccTokens : totalTokens, totalTokens));
-    setText('metric-tokens-sub', showCC
-        ? `in+out · no cache · like /config (not deduplicated)`
-        : `in ${formatTokens(input)} · out ${formatTokens(output)} · cache ${formatTokens(cacheRead + cacheCreate)}`);
+    const cacheTokens = cacheRead + cacheCreate;
+    if (showCC) {
+        setHTML('metric-tokens', tokenView(ccTokens, totalTokens));
+        setText('metric-tokens-sub', 'in+out · no cache · like /config (not deduplicated)');
+    } else {
+        // Igual que COST: una sola cifra (el total de tokens, incluida la caché) y
+        // debajo el desglose de lo que la compone (barra + leyenda etiquetada).
+        setHTML('metric-tokens', `<span class="cost-total" title="Total de tokens: input + output + caché">${formatTokens(totalTokens)}</span>`);
+        const tokenParts = [
+            { label: 'Input',  val: input,       cls: 'tb-in',    seg: 'seg-in',    tip: 'Tokens de entrada' },
+            { label: 'Output', val: output,      cls: 'tb-out',   seg: 'seg-out',   tip: 'Tokens de salida' },
+            { label: 'Cache',  val: cacheTokens, cls: 'tb-cache', seg: 'seg-cache', tip: 'Lectura + escritura de caché' },
+        ];
+        setHTML('metric-tokens-sub', metricBreakdownHTML(tokenParts, totalTokens, formatTokens));
+    }
     const tokensLabelEl = document.getElementById('metric-tokens-label');
-    if (tokensLabelEl) tokensLabelEl.textContent = showCC ? 'Usage · Claude Code' : 'Usage';
-    setText('metric-cost', formatCost(totalCost));
-    const costSub = 'billable · in + out + cache R/W + server tools';
-    const serverBits = (webSearch || webFetch) ? ` · web_search ${webSearch} · web_fetch ${webFetch}` : '';
-    setText('metric-cost-sub', total ? `${formatCost(totalCost / total)} / session avg · ${costSub}${serverBits}` : costSub);
+    if (tokensLabelEl) tokensLabelEl.textContent = showCC ? 'Tokens · Claude Code' : 'Tokens';
+    // COST: una sola cifra, el TOTAL facturable (incluye in+out, caché y server tools).
+    // El desglose de lo que lo compone va justo debajo (barra + leyenda etiquetada).
+    const cacheCost = breakdown.cacheRead + breakdown.cacheCreation;
+    const serverCost = breakdown.serverTools;
+    const avgBit = sessCount ? ` · ${formatCost(totalCost / sessCount)}/sesión` : '';
+    setHTML('metric-cost', `<span class="cost-total" title="Total facturable: in+out + caché + server tools${avgBit}">${formatCost(totalCost)}</span>`);
+    // Desglose claro de lo que incluye el total facturable: input, output, caché y
+    // server tools, con barra de composición proporcional + leyenda etiquetada.
+    const costParts = [
+        { label: 'Input',  val: breakdown.input,  cls: 'tb-in',       seg: 'seg-in',     tip: 'Tokens de entrada' },
+        { label: 'Output', val: breakdown.output, cls: 'tb-out',      seg: 'seg-out',    tip: 'Tokens de salida' },
+        { label: 'Cache',  val: cacheCost,        cls: 'tb-cache',    seg: 'seg-cache',  tip: 'Lectura + escritura de caché' },
+        { label: 'Tools',  val: serverCost,       cls: 'cost-server', seg: 'seg-server', tip: `Server tools (web_search ${webSearch} · web_fetch ${webFetch})` },
+    ];
+    setHTML('metric-cost-sub', metricBreakdownHTML(costParts, totalCost, formatCost));
     setText('metric-errors', formatNumber(apiErrors));
-    setText('metric-errors-sub', apiErrors ? `${sessionsWithErrors} / ${total} sessions affected` : 'no errors detected');
+    setText('metric-errors-sub', apiErrors ? `${sessionsWithErrors} / ${sessCount} sessions affected` : 'no errors detected');
     setText('metric-permissions', formatNumber(permissionEvents));
     setText('metric-permissions-sub', `${formatNumber(approved)} approvals · ${formatNumber(rejected)} rejects`);
 
@@ -5831,7 +5905,7 @@ function renderDailyChart() {
     // Tokens por día y por modelo (barras apiladas, eje X = fecha).
     const byDay = new Map();        // day  -> Map(model -> tokens)
     const modelTotals = new Map();  // model -> tokens (para ordenar y colorear)
-    for (const s of getFilteredSessions()) {
+    for (const s of dashboardSource()) {
         if (!s.started) continue;
         const day = String(s.started).slice(0, 10);
         const model = shortModel(s.model) || 'unknown';
@@ -6231,6 +6305,21 @@ function getFilteredTurns() {
         list = list.filter(t => String(t.prompt || '').toLowerCase().includes(q));
     }
     return list;
+}
+
+// Conjunto que alimenta la barra de stats y las gráficas. Las dos vistas "home"
+// (Traces y Sessions) muestran turnos filtrados (getFilteredTurns), incluido el
+// filtro de texto a nivel de prompt; para que el dashboard cuadre con lo visible
+// agrega sobre esos mismos turnos. Hasta que los turnos cargan cae a sesiones (sin
+// filtro de texto ambos totales coinciden).
+function dashboardSource() {
+    return turnsLoaded ? getFilteredTurns() : getFilteredSessions();
+}
+// Sesiones que contienen alguno de esos turnos: para métricas que solo existen a
+// nivel de sesión (errores, permisos, tiempo de API).
+function sessionsContaining(turnRows) {
+    const ids = new Set(turnRows.map(t => t.session_id));
+    return sessions.filter(s => ids.has(s.session_id));
 }
 
 function renderHomeView() {
@@ -7478,7 +7567,9 @@ function buildFlowNodes(range = null) {
         if (!inFocus(i, range)) continue;
         const msg = transcriptData[i];
         const cl = classifyMessage(msg);
-        if (cl.category === 'user') {
+        // Wrappers de comando/bash u otros user/skill sin texto real no son nodos.
+        if ((cl.category === 'user' || cl.category === 'skill') && !isTurnStart(cl)) continue;
+        if (isTurnStart(cl)) {
             nodes.push({ type: 'user', title: 'Request', meta: formatTime(msg.ts), preview: textFromBlocks(cl.blocks).slice(0, 500), idx: i, model: '' });
         } else if (cl.category === 'assistant') {
             let hasGeneration = false;
@@ -7556,18 +7647,34 @@ function turnCost(tokens, model) {
     }).total;
 }
 
+// ¿Inicia este mensaje un turno al estilo Langfuse? Un mensaje de usuario con texto
+// real: un prompt escrito o el cuerpo de una skill (mensaje meta con texto). Quedan
+// fuera tool_results, planes, interrupciones, continuaciones, task-notifications y los
+// wrappers de comando/bash. Debe coincidir con is_turn_start de loadTurns /
+// loadTurnObservations para que el número de trace del detalle cuadre con la tabla.
+const TURN_WRAPPER_RE = /^<(command-name|command-message|command-args|local-command-stdout|local-command-caveat|bash-input|bash-stdout|bash-stderr)>/;
+function isTurnStart(cl) {
+    if (cl.category !== 'user' && cl.category !== 'skill') return false;
+    const t = (textFromBlocks(cl.blocks) || '').trim();
+    if (!t) return false;
+    if (TURN_WRAPPER_RE.test(t)) return false;
+    if (t.includes('<task-notification>')) return false;
+    return true;
+}
+
 function buildTurns() {
     if (!transcriptData) return [];
-    const turns = [];
+    // 1) Turnos «crudos»: uno por cada inicio de turno detectado.
+    const raw = [];
     let current = null;
     for (let i = 0; i < transcriptData.length; i++) {
         const msg = transcriptData[i];
         const cl = classifyMessage(msg);
-        if (cl.category === 'user' || cl.category === 'plan') {
-            if (current) turns.push(current);
+        if (isTurnStart(cl)) {
+            if (current) raw.push(current);
             const prompt = textFromBlocks(cl.blocks).slice(0, 500) || '(empty prompt)';
             current = {
-                idx: turns.length + 1,
+                idx: 0,
                 startIdx: i,
                 endIdx: i,
                 prompt,
@@ -7575,6 +7682,7 @@ function buildTurns() {
                 serviceTier: '',
                 tools: new Map(),
                 results: 0,
+                generations: 0,
                 tokens: { input: 0, output: 0, cacheRead: 0, cacheCreate: 0, cacheCreate5m: 0, cacheCreate1h: 0, webSearch: 0, webFetch: 0, serviceTier: '' },
                 started: msg.ts,
                 ended: msg.ts,
@@ -7585,6 +7693,9 @@ function buildTurns() {
         current.endIdx = i;
         current.ended = msg.ts || current.ended;
         if (msg.type === 'assistant') {
+            // Generación = petición primaria del asistente (is_primary_request=1),
+            // misma deduplicación por requestId que usa la SQL.
+            if (Number(msg.is_primary_request) === 1) current.generations += 1;
             current.model = current.model || msg.model || '';
             if (!current.serviceTier && msg.service_tier) current.serviceTier = msg.service_tier;
             current.tokens.serviceTier = current.tokens.serviceTier || msg.service_tier || '';
@@ -7610,7 +7721,19 @@ function buildTurns() {
             current.results += 1;
         }
     }
-    if (current) turns.push(current);
+    if (current) raw.push(current);
+
+    // 2) Descarta los turnos sin generación (igual que HAVING generations > 0 en la
+    //    SQL) y numera denso. No se funden en el trace vecino: así un reenvío vacío no
+    //    infla el rango ni las observaciones del trace anterior. Sus mensajes siguen
+    //    visibles en la Conversación, que recorre todos los mensajes por separado.
+    const turns = [];
+    for (const t of raw) {
+        if (t.generations > 0) {
+            t.idx = turns.length + 1;
+            turns.push(t);
+        }
+    }
     return turns;
 }
 
@@ -7691,7 +7814,11 @@ function buildExecutionRows(data = transcriptData, range = null) {
         const msg = data[i];
         const cl = classifyMessage(msg);
         if (cl.category === 'skip') continue;
-        if (cl.category === 'user') {
+        // Wrappers de comando/bash u otros mensajes de usuario sin texto real no son
+        // observaciones (la fórmula de la tabla no los cuenta): se omiten.
+        if ((cl.category === 'user' || cl.category === 'skill') && !isTurnStart(cl)) continue;
+        if (isTurnStart(cl)) {
+            // Span del trace: el prompt escrito o el cuerpo de la skill.
             rows.push({ level: 0, type: 'request', title: textFromBlocks(cl.blocks).slice(0, 260) || 'Request', meta: formatTime(msg.ts), idx: i });
         } else if (cl.category === 'plan') {
             rows.push({ level: 0, type: 'system', title: 'Plan request', meta: formatTime(msg.ts), idx: i });
@@ -7915,6 +8042,8 @@ function buildFullTraceRows(range = null) {
         const msg = transcriptData[i];
         const cl = classifyMessage(msg);
         if (cl.category === 'skip') continue;
+        // Wrappers de comando/bash u otros user/skill sin texto real no son observaciones.
+        if ((cl.category === 'user' || cl.category === 'skill') && !isTurnStart(cl)) continue;
 
         // Streaming chunks share the same usage payload — show tokens only on the canonical row.
         const isDup = msg.type === 'assistant' && msg.request_id && Number(msg.is_primary_request) !== 1;
@@ -7938,10 +8067,10 @@ function buildFullTraceRows(range = null) {
             }, msg.model || ''),
         };
 
-        if (cl.category === 'user' || cl.category === 'plan' || cl.category === 'tool_result') {
+        if (isTurnStart(cl) || cl.category === 'plan' || cl.category === 'tool_result') {
             rows.push({
                 ...base,
-                kind: cl.category === 'user' ? 'request' : cl.category,
+                kind: isTurnStart(cl) ? 'request' : cl.category,
                 tool: '',
                 preview: textFromBlocks(cl.blocks).slice(0, 320) || msg.summary || '',
             });
@@ -8609,8 +8738,6 @@ function chatBindEvents() {
         const nav = e.target.closest('.cd-nav-prev, .cd-nav-next');
         if (nav) { if (!nav.disabled) chatNavObservation(nav.classList.contains('cd-nav-prev') ? -1 : 1); return; }
         if (e.target.closest('.cd-back')) { if (chatBackSel) chatSelect(chatBackSel); return; }
-        const modeT = e.target.closest('.cd-mode-toggle');
-        if (modeT) { chatDetailsEnhanced = !chatDetailsEnhanced; try { localStorage.setItem('ccpanel-obs-enhanced', chatDetailsEnhanced ? '1' : '0'); } catch (err) {} renderInvocationDetails(); return; }
         const spy = e.target.closest('.cd-spy-toggle');
         if (spy) { chatSpyEnabled = !chatSpyEnabled; renderInvocationDetails(); return; }
         if (e.target.closest('.cd-refresh')) { renderInvocationDetails(); return; }
@@ -8795,16 +8922,18 @@ function renderInvocationDetails() {
     let titleHtml;
     if (headerTurn) {
         const turnNo = `<b class="cd-turn-no">Trace #${headerTurn.idx}</b>`;
+        // Segunda línea: la observación concreta (estilo Langfuse) o un resumen del
+        // prompt. Va a ancho completo y en una sola línea (ellipsis) para no desdoblarse.
         let detailHtml;
-        if (chatDetailsEnhanced && v.obsTitle) {
-            // Vista mejorada: tras el turno, la observación concreta (estilo Langfuse).
-            detailHtml = ` <span class="cd-turn-sep">·</span> <span class="cd-obs-label" title="${escapeHtml(v.obsTitle)}">${escapeHtml(v.obsTitle)}</span>`;
+        if (v.obsTitle) {
+            detailHtml = `<span class="cd-title-detail cd-obs-label" title="${escapeHtml(v.obsTitle)}">${escapeHtml(v.obsTitle)}</span>`;
         } else {
             const full = (headerTurn.prompt || '').replace(/\s+/g, ' ').trim();
             const preview = full.slice(0, 70);
-            detailHtml = full ? ` <span class="cd-turn-sep">-</span> <span class="cd-turn-preview" title="${escapeHtml(full)}">${escapeHtml(preview)}${full.length > 70 ? '…' : ''}</span>` : '';
+            detailHtml = full ? `<span class="cd-title-detail cd-turn-preview" title="${escapeHtml(full)}">${escapeHtml(preview)}${full.length > 70 ? '…' : ''}</span>` : '';
         }
-        titleHtml = `Details of: ${turnNo}${detailHtml} ${kindChipHtml}`;
+        // Línea 1: "Details of: Trace #N" + chip de tipo; línea 2: el detalle.
+        titleHtml = `Details of: ${turnNo} ${kindChipHtml}${detailHtml}`;
     } else {
         titleHtml = `Details of: ${kindChipHtml}`;
     }
@@ -8826,14 +8955,11 @@ function renderInvocationDetails() {
         ? `<div class="inv-json">${escapeHtml(JSON.stringify(v.jsonObj, null, 2))}</div>`
         : `<div class="inv-badge">Claude Code · transcript</div><div class="inv-meta">${v.metaRows.map(([ic, k, val, cls]) => chatMetaRow(ic, k, val, cls)).join('')}</div>`;
 
-    const modeToggleHtml = `<button type="button" class="cd-refresh cd-mode-toggle${chatDetailsEnhanced ? ' on' : ''}" title="${chatDetailsEnhanced ? 'Vista observación: NUEVA (clic para volver a la clásica)' : 'Vista observación: CLÁSICA (clic para probar la nueva)'}">${chatDetailsEnhanced ? '✨' : '▢'}</button>`;
-
     panel.innerHTML = `
         <div class="cd-head${hasBack ? ' has-back' : ''}">
             <button type="button" class="cd-back" title="Up one level">←</button>
             <span class="cd-title">${titleHtml}</span>
             <button type="button" class="cd-spy-toggle cd-refresh" title="${chatSpyEnabled ? 'Seguir scroll: ON' : 'Seguir scroll: OFF'}">${chatSpyEnabled ? '🧲' : '📌'}</button>
-            ${modeToggleHtml}
             <button type="button" class="cd-refresh" title="Refrescar">⟳</button>
         </div>
         <div class="cd-scroll">
