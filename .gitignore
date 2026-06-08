@@ -1,5 +1,7 @@
 __pycache__/
 *.pyc
+# Datos de sesión personales de Claude Code: JAMÁS subir al remoto
+app/local-data/
 claude-scope/local-data/
 build/
 dist/
