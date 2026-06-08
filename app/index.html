@@ -3941,6 +3941,10 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 /* Fila de mensaje: avatar + burbuja. */
 /* Observación = card a todo el ancho (estilo prototipo ux-item), sin avatar ni alineación L/R. */
 .msg-row { display: block; margin-bottom: 4px; scroll-margin-top: 120px; }
+/* Scroll-snap suave (estándar): scroll libre y ajuste a la observación al soltar. Solo en chat. */
+html.chat-snap { scroll-snap-type: y proximity; scroll-padding-top: 170px; }
+html.chat-snap #chat-col .msg-row,
+html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
 /* Alineación por emisor: usuario a la derecha, asistente/sistema a la izquierda (ancho limitado). */
 .msg-row.left .msg-bubble { margin-right: auto; }
 .msg-row.right .msg-bubble { margin-left: auto; }
@@ -3966,14 +3970,14 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
     background: var(--surface);
     padding: 0;
     overflow: hidden;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    box-shadow: 0 6px 18px -12px rgba(20,19,26,.18);
     cursor: pointer;
     transition: box-shadow .12s ease, border-color .12s ease;
 }
 .msg-content { padding: 3px 12px 11px; }
 .msg-bubble.collapsed > .msg-content { display: none; }
 .msg-bubble.collapsed > .msg-head,
-.msg-bubble > .msg-head:only-child { border-bottom: none; }
+.msg-bubble > .msg-head:only-child { border-bottom: none; padding-bottom: 9px; }
 .ux-chev { display: inline-flex; align-items: center; color: var(--text-dim); flex: none; cursor: pointer; transition: transform .12s ease; }
 .ux-chev.ux-chev-spacer { width: 14px; cursor: default; }
 .msg-bubble:not(.collapsed) > .msg-head > .ux-chev { transform: rotate(90deg); }
@@ -3982,9 +3986,9 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 .span-side .metric-s { font-size: 11.5px; color: var(--text-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .msg-bubble:hover .msg-head { background: var(--surface-sunk); }
 .msg-bubble.sys { background: var(--surface-2); }
-.msg-bubble.bot { background: var(--surface); }
-/* "You": misma card blanca que las demás; lo distinguen el badge y el borde de tipo. */
-.msg-bubble.you { background: #fff7ed; color: var(--text); }
+/* Burbujas de conversación con degradado suave (cada una en su familia de color). */
+.msg-bubble.bot { background: linear-gradient(160deg, #f4faf6 0%, #e7f2ec 100%); }
+.msg-bubble.you { background: linear-gradient(160deg, #fff8ef 0%, #ffe9d2 100%); color: var(--text); }
 .msg-bubble.you .msg-body { color: var(--text); }
 
 /* Cabecera de la card = barra tipo ux-row del prototipo (bleed a los bordes del bubble). */
@@ -4072,6 +4076,7 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
     border-radius: 10px;
     background: var(--surface-2);
     overflow: hidden;
+    scroll-margin-top: 120px;
 }
 .chat-tool > summary {
     list-style: none;
@@ -8521,6 +8526,7 @@ function applyTraceViewMode() {
     // siempre el nuevo chat. messages-container nunca se muestra.
     set('messages-container', false);
     set('chat-layout', visible.transcript);
+    document.documentElement.classList.toggle('chat-snap', visible.transcript);
     // Botones: cada uno activo según su vista; "Todo" activo cuando están todas.
     const allOn = TRACE_VIEW_ALL_KEYS.every(k => traceViews.has(k));
     document.querySelectorAll('#trace-view-switcher button').forEach(btn => {
@@ -8755,26 +8761,35 @@ function chatHighlightSelection() {
 }
 function chatSelect(sel, opts) {
     chatSel = sel;
-    // Clic explícito del usuario en una tool o un turno = selección fijada: el
-    // scroll-spy deja de seguir al elemento centrado hasta que se elija otra cosa.
-    chatPinned = (sel.kind === 'tool' || sel.kind === 'turn');
+    // Solo un clic explícito en una tool fija la selección (el scroll-spy no la pisa).
+    // El alcance de turno (estado por defecto al cargar) NO fija: así el spy sigue al
+    // hacer scroll desde el primer momento, sin necesidad de clicar nada.
+    chatPinned = (sel.kind === 'tool');
     chatHighlightSelection();
     renderInvocationDetails();
     if (opts && opts.scroll) {
         let r = null;
         if (sel.kind === 'tool' && sel.toolUseId) r = document.querySelector(`#chat-col .chat-tool[data-tool-use-id="${CSS.escape(sel.toolUseId)}"]`);
         if (!r) r = document.querySelector(`#chat-col .msg-row[data-msg-idx="${sel.msgIdx}"]`);
-        if (r) r.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (r) {
+            // Deja el elemento a 90px bajo la cabecera (10px por encima de la línea de 100px
+            // del scroll-spy, para asegurar que se selecciona este y no el anterior).
+            const headCard = document.querySelector('#chat-col .chat-head-card');
+            const refY = (headCard ? headCard.getBoundingClientRect().bottom : 0) + 90;
+            const top = window.scrollY + r.getBoundingClientRect().top - refY;
+            window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+        }
     }
 }
 // El panel sigue al elemento más centrado en el viewport mientras se hace scroll,
 // salvo que el usuario haya fijado una herramienta o un turno (selección "pin").
 let chatSpyRaf = 0;
+let chatSnapLock = false; // true durante un scroll programado (Prev/Next): evita parpadeo del spy
 function chatScrollSpyHandler() {
     if (chatSpyRaf) return;
     chatSpyRaf = requestAnimationFrame(() => {
         chatSpyRaf = 0;
-        if (!chatSpyEnabled) return;
+        if (!chatSpyEnabled || chatSnapLock) return;
         const layout = document.getElementById('chat-layout');
         if (!layout || layout.classList.contains('hidden')) return;
         if (chatPinned) return; // selección fijada por el usuario (clic en tool/turn)
@@ -8783,19 +8798,21 @@ function chatScrollSpyHandler() {
         // que si se hubiera hecho clic en ella.
         const rows = document.querySelectorAll('#chat-col .msg-row[data-msg-idx], #chat-col .chat-tool[data-tool-use-id]');
         if (!rows.length) return;
-        const mid = window.innerHeight / 2;
-        let best = null, bestDist = Infinity, lastVisible = null;
+        // Referencia: el borde inferior de la cabecera sticky (.chat-head-card). Se elige la
+        // observación cuyo borde superior está más cerca/justo bajo esa línea (la de arriba).
+        const headCard = document.querySelector('#chat-col .chat-head-card');
+        const refY = (headCard ? headCard.getBoundingClientRect().bottom : 0) + 100;
+        let best = null, firstVisible = null, lastVisible = null;
         for (const r of rows) {
             const rect = r.getBoundingClientRect();
             if (rect.height === 0) continue; // fila oculta (modo foco de trace)
             if (rect.bottom < 0 || rect.top > window.innerHeight) continue;
+            if (!firstVisible) firstVisible = r;
             lastVisible = r; // en orden DOM: el último candidato dentro del viewport
-            const d = Math.abs(rect.top + rect.height / 2 - mid);
-            if (d < bestDist) { bestDist = d; best = r; }
+            if (rect.top <= refY) best = r; // el más bajo cuyo borde superior ya pasó la cabecera
         }
-        // Al final de la página, las últimas observaciones nunca alcanzan el centro
-        // (no hay nada debajo que las empuje), así que el spy no las seleccionaría.
-        // Forzamos la selección del último elemento visible para que se vean sus datos.
+        if (!best) best = firstVisible;
+        // Al final de la página forzamos el último visible para que se vean sus datos.
         const nearBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 6);
         if (nearBottom && lastVisible) best = lastVisible;
         if (!best) return;
@@ -10003,6 +10020,18 @@ document.getElementById('trace-view-switcher').addEventListener('click', e => {
         if (traceViews.size === 0) traceViews.add('transcript');
     }
     applyTraceViewMode();
+    // Al activar una vista, hacer scroll hasta su contenedor (bajo la barra sticky).
+    const VIEW_EL = { timeline: 'flow-overview', map: 'trace-map', turns: 'trace-index', observations: 'trace-full-table', flow: 'execution-tree', waterfall: 'trace-waterfall', transcript: 'chat-layout' };
+    if (v === 'all') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (traceViews.has(v) && VIEW_EL[v]) {
+        const el = document.getElementById(VIEW_EL[v]);
+        if (el) {
+            const off = (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--filters-height')) || 92) + 12;
+            const top = window.scrollY + el.getBoundingClientRect().top - off;
+            window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+        }
+    }
 });
 
 // --- Mostrar / ocultar gráficas del dashboard ---
