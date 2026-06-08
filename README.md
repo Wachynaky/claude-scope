@@ -8,7 +8,7 @@ A local observability dashboard for Claude Code sessions. Claude Scope reads the
 
 Features:
 
-* **Sessions, traces, and observations** (Langfuse-aligned: session = conversation, trace = one interaction/prompt, observation = a step).
+* **Sessions, traces, and observations** (OpenTelemetry-aligned: session = conversation, trace = one interaction/prompt, observation = a span/step).
 * **Real billable cost** by model, including input, output, cache reads/writes, server tools, and service-tier adjustments. Costs are deduplicated by `requestId`.
 * **Per-trace and per-session details**, including prompts, responses, tool calls, tool inputs/outputs, and token usage for each step.
 * **Filters** by date, project, model, and tool.
@@ -149,9 +149,9 @@ At the top, in the header, you’ll find:
 * **Data source**, showing the folder currently being read.
 * **Panel zoom**, to adjust the interface scale.
 
-Below the header, you choose how to group the data (aligned with Langfuse terminology, where a **trace** is a single interaction/prompt and a **session** is the whole conversation):
+Below the header, you choose how to group the data (aligned with OpenTelemetry tracing terminology, where a **trace** is a single interaction/prompt and a **session** is the whole conversation):
 
-* **Traces**: the default view. One row per trace (a single prompt and everything the agent did to answer it), like Langfuse's Tracing table. Each row shows the Langfuse-style **Name** (`[project] Turn N`, with the project derived automatically from the session path), token usage, **cost** (hover it for the input / output / cache breakdown), and the **number of observations** (steps) per trace, counted the same way Langfuse does. **Expand any row** to see the trace's metric cards, open it focused on its own conversation, and browse its list of observations.
+* **Traces**: the default view. One row per trace (a single prompt and everything the agent did to answer it), like a distributed tracing table. Each row shows the **Name** (`[project] Turn N`, with the project derived automatically from the session path), token usage, **cost** (hover it for the input / output / cache breakdown), and the **number of observations** (spans/steps) per trace. **Expand any row** to see the trace's metric cards, open it focused on its own conversation, and browse its list of observations.
 * **Sessions**: one row per session (conversation), with all its traces nested below, and the same cost breakdown on hover. This is the best view for walking through a full session.
 
 You can also filter by **project, model, tool, and time range**, with a **Clear filters** option to reset everything.
