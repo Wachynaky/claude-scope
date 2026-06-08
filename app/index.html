@@ -3981,7 +3981,7 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
 .ux-chev { display: inline-flex; align-items: center; color: var(--text-dim); flex: none; cursor: pointer; transition: transform .12s ease; }
 .ux-chev.ux-chev-spacer { width: 14px; cursor: default; }
 .msg-bubble:not(.collapsed) > .msg-head > .ux-chev { transform: rotate(90deg); }
-.span-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 700; color: var(--text); }
+.span-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; font-weight: 500; color: var(--text-soft); }
 .span-side { flex: none; margin-left: auto; display: inline-flex; align-items: center; gap: 8px; padding-left: 8px; }
 .span-side .metric-s { font-size: 11.5px; color: var(--text-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .msg-bubble:hover .msg-head { background: var(--surface-sunk); }
@@ -4013,6 +4013,8 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
 .badge.tool       { background: var(--accent-line); color: #fff; }
 .badge.result     { background: #99f6e4; color: #115e59; }
 .badge.system     { background: #cbd5e1; color: #1e293b; }
+/* separación entre el badge de tipo y el nombre/resumen que le sigue */
+.msg-head .badge, .chat-tool > summary .badge { margin-right: 4px; }
 .msg-role { font-size: 12.5px; font-weight: 750; color: var(--text); }
 .msg-time { font-size: 11px; color: var(--text-dim); font-weight: 500; }
 .msg-kind-tag {
@@ -4223,16 +4225,18 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
 .gantt { margin-bottom: 18px; }
 .gantt-row {
     display: grid;
-    grid-template-columns: 130px 1fr 56px;
+    grid-template-columns: 168px 1fr 56px;
     align-items: center; gap: 8px;
     padding: 4px 0;
 }
 .gantt-label {
     display: flex; align-items: center; gap: 6px;
     font-size: 11.5px; color: var(--text-soft); font-weight: 600;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; overflow: hidden;
 }
 .gantt-label .g-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.gantt-label .g-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.gantt-label .g-think { flex: none; font-size: 8.5px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; color: #6d28d9; background: #ede9fe; border-radius: 999px; padding: 1px 6px; }
 .gantt-track {
     position: relative; height: 14px;
     background: repeating-linear-gradient(90deg, var(--surface-sunk) 0 1px, transparent 1px 25%);
@@ -4245,9 +4249,11 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
 }
 .gantt-dur { font-size: 10.5px; color: var(--text-dim); font-weight: 650; text-align: right; font-variant-numeric: tabular-nums; }
 .gantt-row.clickable { cursor: pointer; border-radius: 6px; }
-.gantt-row.clickable:hover { background: var(--accent-soft); }
+.gantt-row.clickable:hover { background: var(--surface-sunk); }
+.gantt-row.current { background: var(--accent-soft); }
+.gantt-row.current .gantt-label { color: var(--accent-dim); font-weight: 700; }
 .gantt-axis {
-    display: grid; grid-template-columns: 130px 1fr 56px; gap: 8px;
+    display: grid; grid-template-columns: 168px 1fr 56px; gap: 8px;
     margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--line);
 }
 .gantt-axis .ga-ticks { display: flex; justify-content: space-between; font-size: 9.5px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
@@ -7710,7 +7716,7 @@ function buildFlowNodes(range = null) {
                     nodes.push({ type: 'thinking', title: 'Thinking', meta: shortModel(msg.model), preview: (block.thinking || '').slice(0, 700), idx: i, model: shortModel(msg.model) });
                 } else if (block.type === 'tool_use') {
                     const preview = block.input && typeof block.input === 'object' ? JSON.stringify(block.input, null, 2).slice(0, 700) : '';
-                    nodes.push({ type: 'tool', title: block.name || 'Tool', meta: shortModel(msg.model), preview, idx: i, model: shortModel(msg.model) });
+                    nodes.push({ type: 'tool', title: block.name || 'Tool', meta: shortModel(msg.model), preview, idx: i, model: shortModel(msg.model), toolUseId: block.id || '' });
                 } else if (block.type === 'text' && block.text && block.text.trim()) {
                     hasGeneration = true;
                     generationPreview += block.text.replace(/\s+/g, ' ').slice(0, 700);
@@ -7731,7 +7737,7 @@ function buildFlowNodes(range = null) {
 // Waterfall de observations (portado del prototipo): cada observación como barra
 // posicionada por tiempo de inicio y ancho = duración, coloreada por tipo.
 const WF_COLOR = { user: '#d97706', thinking: '#7c3aed', tool: '#e82a6b', assistant: '#059669', result: '#0891b2', system: '#64748b' };
-const WF_LABEL = { user: 'Request', thinking: 'Thinking', tool: 'Tool', assistant: 'Generation', result: 'Result', system: 'System' };
+const WF_LABEL = { user: 'Prompt', thinking: 'Thinking', tool: 'Tool', assistant: 'Response', result: 'Result', system: 'System' };
 function renderWaterfall() {
     const el = document.getElementById('trace-waterfall');
     if (!el) return;
@@ -8631,6 +8637,42 @@ function chatTurnSpans(turn) {
     }
     return spans;
 }
+// Filas del panel "Spans": EXACTAMENTE las observaciones navegables del chat
+// (1 Response por mensaje del asistente, con su thinking dentro; tools aparte; sin Result),
+// tomando las etiquetas de los propios badges para que la nomenclatura coincida.
+function chatTraceGanttRows() {
+    const els = chatObsElements().filter(el => el.getBoundingClientRect().height > 0);
+    if (!els.length) return { rows: [], winStart: 0, winEnd: 1 };
+    const TYPECOL = { request: '#d97706', generation: '#059669', system: '#64748b', tool: '#e82a6b' };
+    const ts = els.map(el => chatTsMs(transcriptData[Number(el.dataset.msgIdx)] && transcriptData[Number(el.dataset.msgIdx)].ts));
+    const base = ts.find(x => x != null);
+    const t0 = base != null ? base : 0;
+    const starts = ts.map((x, i) => x != null ? x - t0 : i * 500);
+    const ends = starts.map((s, i) => i + 1 < starts.length ? Math.max(s + 50, starts[i + 1]) : s + 500);
+    const total = Math.max(1, ...ends);
+    const rows = els.map((el, i) => {
+        const msgIdx = Number(el.dataset.msgIdx);
+        let label, color, obs, selected, thinking = false;
+        if (el.classList.contains('chat-tool')) {
+            const name = (el.querySelector('.ct-name')?.textContent || 'Tool').trim();
+            const tgt = (el.querySelector('.ct-target')?.textContent || '').trim();
+            label = 'Tool · ' + name + (tgt ? ' ' + tgt : '');
+            color = TYPECOL.tool;
+            obs = { kind: 'tool', msgIdx, toolUseId: el.dataset.toolUseId };
+            selected = chatSel.kind === 'tool' && chatSel.toolUseId === el.dataset.toolUseId;
+        } else {
+            const badge = el.querySelector('.msg-head .badge');
+            const btype = badge ? (['request', 'generation', 'system'].find(c => badge.classList.contains(c)) || 'system') : 'system';
+            label = badge ? badge.textContent.trim() : 'Obs';
+            color = TYPECOL[btype] || '#64748b';
+            obs = { kind: 'message', msgIdx };
+            selected = chatSel.kind === 'message' && chatSel.msgIdx === msgIdx;
+            thinking = !!el.querySelector('.msg-head .badge.thinking'); // Response con thinking
+        }
+        return { label, color, startMs: starts[i], durMs: ends[i] - starts[i], obs, selected, thinking };
+    });
+    return { rows, winStart: 0, winEnd: total };
+}
 function chatGanttHtml(rows, winStart, winEnd) {
     if (!rows.length) return '<div class="cd-empty" style="padding:14px">No temporal spans.</div>';
     const span = Math.max(1, winEnd - winStart);
@@ -8640,9 +8682,10 @@ function chatGanttHtml(rows, winStart, winEnd) {
         const width = Math.max(1.5, Math.min(100 - left, (r.durMs / span) * 100));
         let clickable = false, attr = '';
         if (r.turnIdx != null) { clickable = true; attr = ` data-gantt-turn="${r.turnIdx}"`; }
+        else if (r.obs) { clickable = true; attr = r.obs.kind === 'tool' ? ` data-gantt-tool-msg="${r.obs.msgIdx}" data-gantt-tool-id="${escapeHtml(r.obs.toolUseId)}"` : ` data-gantt-obs-msg="${r.obs.msgIdx}"`; }
         else if (r.tool) { clickable = true; attr = ` data-gantt-tool-msg="${r.tool.msgIdx}" data-gantt-tool-id="${escapeHtml(r.tool.toolUseId)}"`; }
-        return `<div class="gantt-row${clickable ? ' clickable' : ''}"${attr}>
-            <span class="gantt-label" title="${escapeHtml(r.label)}"><i class="g-dot" style="background:${color}"></i>${escapeHtml(r.label)}</span>
+        return `<div class="gantt-row${clickable ? ' clickable' : ''}${r.selected ? ' current' : ''}"${attr}>
+            <span class="gantt-label" title="${escapeHtml(r.label)}${r.thinking ? ' · Thinking' : ''}"><i class="g-dot" style="background:${color}"></i><span class="g-name">${escapeHtml(r.label)}</span>${r.thinking ? '<span class="g-think">Thinking</span>' : ''}</span>
             <div class="gantt-track"><div class="gantt-bar" style="left:${left.toFixed(1)}%;width:${width.toFixed(1)}%;background:${color}"></div></div>
             <span class="gantt-dur">${chatDur(r.durMs)}</span>
         </div>`;
@@ -8946,6 +8989,8 @@ function chatBindEvents() {
         if (tog) { chatDetailsViewMode = tog.dataset.mode; renderInvocationDetails(); return; }
         const gtool = e.target.closest('[data-gantt-tool-msg]');
         if (gtool) { chatSelect({ kind: 'tool', msgIdx: Number(gtool.dataset.ganttToolMsg), toolUseId: gtool.dataset.ganttToolId }, { scroll: true }); return; }
+        const gobs = e.target.closest('[data-gantt-obs-msg]');
+        if (gobs) { chatSelect({ kind: 'message', msgIdx: Number(gobs.dataset.ganttObsMsg) }, { scroll: true }); return; }
         const grow = e.target.closest('[data-gantt-turn]');
         if (grow) { chatSelect({ kind: 'turn', turnIdx: Number(grow.dataset.ganttTurn) }); }
     });
@@ -9151,6 +9196,12 @@ function renderInvocationDetails() {
     </div>`;
     const chipsHtml = v.chips.filter(Boolean).map((c, i) => `<span class="cd-chip"><span class="${i === 2 ? 'mono' : ''}">${escapeHtml(String(c))}</span></span>`).join('');
     const metricsHtml = v.metrics.map(([cls, ic, lab, val]) => `<div class="cd-metric ${cls}"><div class="cm-h"><span class="cm-ic">${ic}</span>${lab}</div><div class="cm-n">${escapeHtml(String(val))}</div></div>`).join('');
+    // En el detalle de un trace, el bloque "Spans" muestra TODAS las observaciones del trace
+    // (con la actual marcada y navegables), no solo el alcance seleccionado.
+    if (sel.kind !== 'session') {
+        const tg = chatTraceGanttRows();
+        if (tg.rows.length) { v.ganttRows = tg.rows; v.winStart = tg.winStart; v.winEnd = tg.winEnd; v.sectionTitle = 'Spans'; }
+    }
     const sectionHtml = v.ganttRows ? chatGanttHtml(v.ganttRows, v.winStart, v.winEnd) : v.altSection;
     const bodyHtml = chatDetailsViewMode === 'json'
         ? `<div class="inv-json">${escapeHtml(JSON.stringify(v.jsonObj, null, 2))}</div>`
