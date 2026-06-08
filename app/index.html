@@ -1595,22 +1595,32 @@ tbody td {
 .execution-row {
     --indent: 0;
     display: grid;
-    grid-template-columns: minmax(260px, 1fr) auto auto;
+    grid-template-columns: 30px minmax(230px, 1fr) auto auto;
     gap: 10px;
     align-items: center;
-    padding: 7px 9px 7px calc(10px + var(--indent) * 22px);
+    padding: 7px 9px;
     border-bottom: 1px solid #e2e8f0;
     color: #1e293b;
     cursor: pointer;
     position: relative;
     font-size: 12px;
 }
+/* Nº de observación (modelo Langfuse): columna fija a la izquierda, sin indentar. */
+.execution-obs {
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-dim, #c4185b);
+    text-align: right;
+}
 
 .execution-row:hover { background: #f8fafc; }
+/* La indentación por nivel se aplica solo al título (no a la columna de nº). */
+.execution-title { padding-left: calc(var(--indent) * 20px); }
 .execution-row::before {
     content: '';
     position: absolute;
-    left: calc(13px + var(--indent) * 22px);
+    left: calc(43px + var(--indent) * 20px);
     top: 0;
     bottom: 0;
     width: 1px;
@@ -2922,9 +2932,9 @@ tbody td + td { border-left: 1px solid var(--line); }
     text-overflow: ellipsis;
     vertical-align: top;
 }
-/* Columna Project: acotada y truncada para que no empuje el resto */
-#turn-table tbody td:nth-child(2) { max-width: 220px; }
-/* Modelo: ligero realce para distinguirlo del resto del texto */
+/* Columna Project (3ª): acotada y truncada para que no empuje el resto */
+#turn-table tbody td:nth-child(3) { max-width: 220px; }
+/* Modelo (6ª): ligero realce para distinguirlo del resto del texto */
 #turn-table tbody td:nth-child(6) { color: var(--text-soft); font-weight: 500; }
 
 /* Indicador de despliegue en la celda del prompt */
@@ -2954,6 +2964,77 @@ tbody td + td { border-left: 1px solid var(--line); }
     border-left: 3px solid var(--accent);
     box-shadow: inset 0 7px 9px -9px rgba(15, 23, 42, 0.30);
 }
+
+/* ── Tabla "Traces" (plana): mismo lenguaje visual pulido que la vista anidada ── */
+#turn-table-wrap {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 18px 50px -28px rgba(163, 19, 74, .18), 0 8px 30px -12px rgba(20, 19, 26, .08);
+}
+#turn-table-wrap::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 1px; z-index: 6; pointer-events: none;
+    background: linear-gradient(90deg, transparent, var(--accent-line, #f3c6d6), transparent);
+}
+/* Cabecera translúcida y discreta (la tabla plana no es ordenable). */
+#turn-table thead th {
+    background: rgba(250, 249, 252, .92);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    cursor: default;
+    font-size: 9.5px; letter-spacing: .12em;
+    color: var(--tg-faint, #a8a4b0);
+    border-bottom: 1px solid var(--line);
+}
+#turn-table thead th:hover { color: var(--tg-faint, #a8a4b0); background: rgba(250, 249, 252, .92); }
+/* Barra de acento a la izquierda en hover / expandido (como las filas de Sessions). */
+#turn-table tbody tr[data-turn-row] td:first-child::after {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: linear-gradient(180deg, var(--accent-strong, #c2185b), var(--accent), var(--accent-dim));
+    opacity: 0; transition: opacity .18s;
+}
+#turn-table tbody tr[data-turn-row]:hover td:first-child::after { opacity: .45; }
+#turn-table tbody tr[data-turn-row].is-expanded td:first-child::after { opacity: 1; }
+/* Prompt como título legible; números monoespaciados y tabulares. */
+#turn-table .col-summary-inner { font-size: 12.5px; color: var(--text); }
+#turn-table td.col-number, #turn-table td.col-cost {
+    font-family: var(--tg-mono, ui-monospace, 'SF Mono', Menlo, monospace); font-size: 12px;
+}
+#turn-table td.col-tokens { font-weight: 400; vertical-align: middle; }
+
+/* Celda de tokens compacta: total + barra apilada (input/output/cache) + leyenda. */
+.tokmini { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; min-width: 120px; }
+.tokmini-total { font-family: var(--tg-mono, ui-monospace, monospace); font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 700; color: var(--accent-dim, #a3134a); }
+.tokmini-bar { display: flex; width: 100%; max-width: 150px; height: 5px; border-radius: 99px; overflow: hidden; background: var(--line, #e6e3ec); }
+.tokmini-bar i { display: block; height: 100%; }
+.tokmini-bar .seg-in    { background: #f59e0b; }
+.tokmini-bar .seg-out   { background: #059669; }
+.tokmini-bar .seg-cache { background: #6366f1; }
+.tokmini-legend { display: flex; gap: 8px; font-family: var(--tg-mono, ui-monospace, monospace); font-variant-numeric: tabular-nums; font-size: 10.5px; }
+.tokmini-legend .tb-in    { color: #b45309; }
+.tokmini-legend .tb-out   { color: #047857; }
+.tokmini-legend .tb-cache { color: #4338ca; }
+
+/* Observaciones del trace dentro de la fila desplegada (estilo Execution flow). */
+.turn-obs { margin-top: 14px; }
+.turn-obs .obs-head { display: flex; align-items: baseline; gap: 8px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 6px; }
+.turn-obs .obs-head .muted { font-weight: 500; letter-spacing: 0; text-transform: none; }
+.turn-obs .obs-list { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; background: var(--surface); }
+.turn-obs .obs-row { display: grid; grid-template-columns: 26px 78px 1fr auto; align-items: center; gap: 10px; padding: 6px 10px; border-top: 1px solid var(--line2, #f4f2f7); font-size: 12px; }
+.turn-obs .obs-row:first-child { border-top: none; }
+.turn-obs .obs-row { padding-left: calc(10px + var(--indent, 0) * 16px); }
+.turn-obs .obs-row-head {
+    background: var(--surface-2); border-top: none;
+    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--tg-faint, #a8a4b0);
+}
+.turn-obs .obs-row-head .obs-n { color: var(--tg-faint, #a8a4b0); font-family: inherit; }
+.turn-obs .obs-row-head .obs-meta { font-family: inherit; color: var(--tg-faint, #a8a4b0); }
+.turn-obs .obs-n { font-family: var(--tg-mono, ui-monospace, monospace); color: var(--accent-dim, #c4185b); font-weight: 700; font-size: 11px; text-align: right; }
+.turn-obs .obs-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-soft); }
+.turn-obs .obs-meta { font-family: var(--tg-mono, ui-monospace, monospace); font-size: 11px; color: var(--muted); white-space: nowrap; text-align: right; }
+/* Pasos que NO cuentan como observación (thinking, result…): atenuados. */
+.turn-obs .obs-row-skip { background: var(--surface-2); }
+.turn-obs .obs-row-skip .obs-title, .turn-obs .obs-row-skip .execution-badge { opacity: .6; }
 
 /* Tabla principal de sesiones: densa, escaneable y aislada de las tablas desplegadas */
 #session-table {
@@ -3168,7 +3249,7 @@ tbody td + td { border-left: 1px solid var(--line); }
 /* Cabecera de columnas clara, translúcida y sticky (misma rejilla que las filas). */
 #trace-group-head, #trace-group-wrap .row-trace {
     display: grid;
-    grid-template-columns: minmax(300px, 2.5fr) minmax(150px, 1.3fr) 96px 64px 92px 132px 104px 104px;
+    grid-template-columns: minmax(280px, 2.4fr) minmax(150px, 1.3fr) 100px 64px 92px 160px 118px;
     align-items: center;
 }
 #trace-group-head {
@@ -3236,12 +3317,56 @@ tbody td + td { border-left: 1px solid var(--line); }
 #trace-group-wrap .cell-r { text-align: right; }
 #trace-group-wrap .tnum { font-family: var(--tg-mono); font-variant-numeric: tabular-nums; font-size: 12px; color: var(--text-soft); }
 #trace-group-wrap .cost-strong { font-weight: 700; color: var(--accent-dim); }
+#trace-group-wrap .cost-breakdown { cursor: help; text-decoration: underline dotted var(--tg-faint); text-underline-offset: 3px; outline: none; }
+#turn-table td.cost-breakdown { cursor: help; text-decoration: underline dotted #c9c5d2; text-underline-offset: 3px; }
+
+/* Popover de desglose de coste (estilo Langfuse), posicionado por JS sobre body. */
+.cost-bd-pop {
+    position: fixed; z-index: 9999; width: 248px; padding: 13px 15px;
+    background: var(--surface, #fff); color: var(--text, #1c1b22);
+    border: 1px solid var(--line, #e6e3ec); border-radius: 9px;
+    box-shadow: 0 16px 44px -16px rgba(20, 19, 26, .28), 0 4px 14px -6px rgba(20, 19, 26, .12);
+    font-size: 12px; pointer-events: none;
+}
+.cost-bd-pop.hidden { display: none; }
+.cost-bd-pop .cbp-title { font-weight: 700; margin-bottom: 10px; }
+.cost-bd-pop .cbp-sec { margin-bottom: 9px; }
+.cost-bd-pop .cbp-head {
+    display: flex; justify-content: space-between; gap: 16px;
+    border-bottom: 1px solid var(--line, #e6e3ec); padding-bottom: 3px; margin-bottom: 3px;
+    font-size: 11px; font-weight: 600;
+}
+.cost-bd-pop .cbp-row {
+    display: flex; justify-content: space-between; gap: 16px;
+    font-size: 11px; color: var(--muted, #6b6878);
+}
+.cost-bd-pop .cbp-row .cbp-k { margin-right: 14px; }
+.cost-bd-pop .mono { font-family: var(--tg-mono, ui-monospace, monospace); font-variant-numeric: tabular-nums; }
+.cost-bd-pop .cbp-total {
+    display: flex; justify-content: space-between; gap: 16px;
+    border-top: 1px solid var(--text, #1c1b22); padding-top: 6px; margin-top: 2px;
+    font-size: 11px; font-weight: 700;
+}
 
 /* micro-barra de magnitud de tokens (ancho calculado en el render). */
 #trace-group-wrap .tokcell { text-align: right; }
 #trace-group-wrap .tokcell .v { font-family: var(--tg-mono); font-variant-numeric: tabular-nums; font-size: 12px; display: block; color: var(--text-soft); }
 #trace-group-wrap .tokcell .bar { height: 3px; border-radius: 99px; background: var(--line); margin-top: 5px; margin-left: auto; overflow: hidden; max-width: 80px; }
 #trace-group-wrap .tokcell .bar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent-dim)); }
+
+/* Desglose de la columna TOKENS: input → output (∑ io) → cache = total.
+   Estilos sin scope para reutilizarlos en la vista anidada y en la tabla plana. */
+#trace-group-wrap .tokcell-bd { text-align: right; }
+.tokbd {
+    font-family: var(--tg-mono, ui-monospace, monospace); font-variant-numeric: tabular-nums; font-size: 11px;
+    display: flex; flex-direction: column; align-items: flex-end; gap: 2px; line-height: 1.35;
+}
+.tokbd-row { display: inline-flex; align-items: baseline; gap: 7px; white-space: nowrap; }
+.tokbd .tb-in    { color: #b45309; }
+.tokbd .tb-out   { color: #047857; }
+.tokbd .tb-cache { color: #4338ca; }
+.tokbd .tb-tot   { color: var(--accent-dim); font-weight: 700; }
+.tokbd .tb-sum   { color: var(--tg-faint, #a8a4b0); }
 
 /* panel de turns (expandible con el truco de grid-template-rows). */
 #trace-group-wrap .turns-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .28s cubic-bezier(.4, 0, .2, 1); background: var(--surface-2); }
@@ -3302,6 +3427,15 @@ tbody td + td { border-left: 1px solid var(--line); }
 #trace-group-wrap .tool-tag { font-family: var(--tg-mono); font-size: 10.5px; background: var(--tg-line2); color: var(--text-soft); padding: 2px 8px; border-radius: 6px; margin-left: 5px; }
 #trace-group-wrap .btn-trace { margin-left: auto; border: 1px solid #059669; background: #059669; color: #fff; font: inherit; font-size: 11.5px; font-weight: 600; padding: 5px 10px; border-radius: 7px; cursor: pointer; transition: .15s; }
 #trace-group-wrap .btn-trace:hover { background: #047857; border-color: #047857; }
+#trace-group-wrap .btn-trace.secondary { margin-left: 6px; background: transparent; color: var(--muted); border-color: var(--line); font-weight: 500; }
+#trace-group-wrap .btn-trace.secondary:hover { background: var(--surface-2); color: var(--text); border-color: var(--muted); }
+/* Botón secundario «Open full session» en las cards de detalle de la tabla plana. */
+.turn-detail-actions .secondary { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+.turn-detail-actions .secondary:hover { background: var(--surface-2); color: var(--text); }
+/* Cinta de «foco de trace» en la Conversación. */
+.chat-focus-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; padding: 8px 13px; border: 1px solid var(--accent-line, #f3c6d6); background: var(--accent-soft, #fdeef4); border-radius: 8px; font-size: 12px; color: var(--accent-dim, #a3134a); }
+.chat-focus-banner button { font: inherit; cursor: pointer; border: 1px solid var(--accent, #e82a6b); background: #fff; color: var(--accent-dim, #a3134a); border-radius: 6px; padding: 3px 10px; }
+.chat-focus-banner button:hover { background: var(--accent, #e82a6b); color: #fff; }
 #trace-group-wrap .tg-empty { padding: 30px 20px; text-align: center; color: var(--muted); }
 
 @media (max-width: 1100px) {
@@ -3319,30 +3453,44 @@ tbody td + td { border-left: 1px solid var(--line); }
 
 .turn-detail-card {
     margin: 0;
-    padding: 14px;
-    border-top: 1px solid #e5ebf2;
+    padding: 16px;
+    border-top: 1px solid var(--line);
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 16px;
+    /* La fila de detalle ocupa todo el ancho (colspan) de una tabla que puede ser
+       más ancha que la ventana. Fijamos el card a la izquierda y su ancho se ajusta
+       por JS (sizeOpenTurnDetails) al ancho REAL visible del contenedor, para que el
+       grid de cards refluya y TODAS queden visibles sin scroll horizontal. */
+    position: sticky;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.turn-detail-card h3 {
-    color: #0f172a;
-    font-size: 13px;
+/* Encabezados de sección dentro del detalle: etiqueta discreta en mayúsculas. */
+.turn-detail-card h3,
+.turn-detail-section > h3 {
+    color: var(--tg-faint, #a8a4b0);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
     margin-bottom: 8px;
 }
 
 .turn-prompt-full {
-    background: #fff;
-    border: 1px solid #e2e8f0;
+    background: var(--surface);
+    border: 1px solid var(--line);
     border-radius: 10px;
-    padding: 12px;
-    color: #334155;
+    padding: 12px 14px;
+    color: var(--text-soft);
     white-space: pre-wrap;
     word-break: break-word;
     max-height: 260px;
     overflow: auto;
     font-size: 13px;
+    line-height: 1.5;
 }
 
 .turn-detail-grid {
@@ -3351,39 +3499,117 @@ tbody td + td { border-left: 1px solid var(--line); }
     gap: 8px;
 }
 
-.turn-detail-metric {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 10px;
+/* Tarjeta de métrica (chip de icono + etiqueta + valor), al estilo del panel derecho. */
+.td-metric {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 8px 11px; min-width: 0;
 }
+.td-metric .td-ic {
+    width: 26px; height: 26px; flex: none; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    background: var(--surface-sunk); color: var(--muted);
+}
+.td-metric .td-txt { display: flex; flex-direction: column; min-width: 0; }
+.td-metric .td-lab { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); white-space: nowrap; }
+.td-metric .td-val {
+    font-family: var(--tg-mono, ui-monospace, 'SF Mono', Menlo, monospace);
+    font-variant-numeric: tabular-nums; font-size: 14px; font-weight: 600; color: var(--text);
+    margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* Colores por tipo, coincidiendo con la barra de tokens y las session-cards. */
+.td-metric.in    .td-ic { background: #fffbeb; color: #b45309; }
+.td-metric.out   .td-ic { background: #ecfdf5; color: #047857; }
+.td-metric.cache .td-ic { background: #eef2ff; color: #4338ca; }
+.td-metric.total .td-ic { background: var(--accent-soft); color: var(--accent-dim); }
+.td-metric.cost  .td-ic { background: #fff3e0; color: #d97706; }
+.td-metric.dur   .td-ic { background: #f5f3ff; color: #7c3aed; }
+.td-metric.obs   .td-ic { background: var(--accent-soft); color: var(--accent-dim); }
+.td-metric.io    .td-ic { background: #f1f5f9; color: #475569; }
+.td-metric.total .td-val, .td-metric.cost .td-val { color: var(--accent-dim); font-weight: 700; }
+
+/* Cards que agrupan varias sub-métricas (Obs/Gen, Input/Output, desglose de cache). */
+.td-metric-multi { align-items: center; }
+.td-subs { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.td-sub { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-width: 0; }
+/* La etiqueta se abrevia/trunca; el VALOR nunca se recorta (es lo importante). */
+.td-sub .td-sl {
+    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+    flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.td-sub .td-sv {
+    font-family: var(--tg-mono, ui-monospace, 'SF Mono', Menlo, monospace);
+    font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 600; color: var(--text);
+    flex: none; white-space: nowrap;
+}
+.td-sub .td-sv.sv-in     { color: #b45309; }
+.td-sub .td-sv.sv-out    { color: #047857; }
+.td-sub .td-sv.sv-cache  { color: #4338ca; }
+.td-sub .td-sv.sv-accent { color: var(--accent-dim); }
+
+/* Pie del detalle: herramientas a la izquierda, acciones a la derecha. */
+.turn-detail-foot {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start;
+    gap: 10px 14px; margin-top: 2px;
+}
+.turn-detail-foot .turn-detail-actions { flex: none; margin: 0; }
+.turn-detail-foot .turn-tools-list { flex: 1 1 220px; min-width: 0; }
+
+.turn-detail-metric {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 9px 11px;
+    position: relative;
+    overflow: hidden;
+}
+/* Barra de color a la izquierda según el tipo de métrica (tokens / coste). */
+.turn-detail-metric.tok::before,
+.turn-detail-metric.cost::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--line-strong);
+}
+.turn-detail-metric.tok.in::before    { background: #f59e0b; }
+.turn-detail-metric.tok.out::before   { background: #059669; }
+.turn-detail-metric.tok.cache::before { background: #6366f1; }
+.turn-detail-metric.tok.total::before { background: var(--accent); }
+.turn-detail-metric.cost::before      { background: var(--accent); }
 
 .turn-detail-metric span {
     display: block;
-    color: #64748b;
-    font-size: 11px;
+    color: var(--muted);
+    font-size: 9.5px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
 }
 
 .turn-detail-metric b {
     display: block;
-    color: #0f172a;
+    color: var(--text);
     font-size: 15px;
-    margin-top: 3px;
+    margin-top: 4px;
+    font-family: var(--tg-mono, ui-monospace, 'SF Mono', Menlo, monospace);
     font-variant-numeric: tabular-nums;
+    font-weight: 600;
 }
+.turn-detail-metric.total b { color: var(--accent-dim); }
+.turn-detail-metric.cost b  { color: var(--accent-dim); font-weight: 700; }
 
 .turn-tools-list {
     grid-column: 1 / -1;
-    color: #475569;
+    color: var(--text-soft);
     font-size: 12px;
+    line-height: 1.5;
 }
+.turn-tools-list strong { color: var(--muted); }
 
 .turn-detail-actions {
     display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
     justify-content: flex-start;
-    grid-column: 1 / -1;
+    margin-top: 12px;
 }
 
 .turn-detail-actions button {
@@ -3391,10 +3617,14 @@ tbody td + td { border-left: 1px solid var(--line); }
     border: 1px solid var(--accent);
     color: #fff;
     border-radius: 8px;
-    padding: 7px 11px;
+    padding: 7px 12px;
     cursor: pointer;
+    font: inherit;
+    font-size: 12px;
     font-weight: 650;
+    transition: .15s;
 }
+.turn-detail-actions button:hover { background: var(--accent-dim); border-color: var(--accent-dim); }
 
 @media (max-width: 900px) {
     .turn-detail-card { grid-template-columns: 1fr; }
@@ -3792,6 +4022,9 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 
 /* Tool calls / thinking dentro del assistant */
 .chat-tools { margin-top: 10px; display: flex; flex-direction: column; gap: 7px; }
+/* Tarjetas de tool sueltas: mensaje assistant solo-tool, sin bubble. Sangradas para
+   alinearse con el contenido de las burbujas del asistente (avatar 34px + gap 10px). */
+.chat-tools.standalone { margin: 0 0 0 44px; }
 .chat-tool {
     border: 1px solid var(--line);
     border-radius: 10px;
@@ -3823,6 +4056,9 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 .chat-tool.thinking .ct-name { color: #6d28d9; }
 .chat-tool-body { padding: 0 11px 11px; }
 .chat-tool-body .tool-step.v2 { margin: 0; }
+/* Anidado en .chat-tool: sin caja propia (la aporta el .chat-tool exterior). */
+.tool-step.v2.nested { border: none; border-radius: 0; box-shadow: none; background: transparent; margin: 0; }
+.tool-step.v2.nested .ts-jumpbar-toggle { margin-left: auto; }
 .chat-tool-think-text {
     white-space: pre-wrap; font-size: 12.5px; line-height: 1.5;
     color: #581c87; padding: 4px 2px;
@@ -3864,6 +4100,10 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 .cd-title .cd-turn-no { color: var(--accent-dim); font-weight: 800; white-space: nowrap; }
 .cd-title .cd-turn-sep { color: var(--text-dim); font-weight: 400; }
 .cd-title .cd-turn-preview { color: var(--text-soft); font-weight: 500; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; min-width: 0; }
+.cd-title .cd-obs-label { color: var(--accent); font-weight: 650; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; min-width: 0; }
+/* Toggle de vista mejorada de observación. */
+.cd-head .cd-mode-toggle { margin-left: 6px; }
+.cd-head .cd-mode-toggle.on { color: var(--accent); border-color: var(--accent-line); }
 .cd-head .cd-title .cd-kind {
     display: inline-flex; align-items: center; gap: 5px;
     background: var(--accent-soft); color: var(--accent-dim);
@@ -3893,7 +4133,7 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 }
 .cd-chip .mono { font-family: var(--mono, ui-monospace, monospace); color: var(--text-dim); }
 
-.cd-metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; margin-bottom: 16px; }
+.cd-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(82px, 1fr)); gap: 7px; margin-bottom: 16px; }
 .cd-metric {
     border: 1px solid var(--line); border-radius: 11px;
     padding: 9px 10px; background: var(--surface-2);
@@ -3908,7 +4148,23 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
 .cd-metric.tot  .cm-ic { background: var(--accent-soft); color: var(--accent); }
 .cd-metric.in   .cm-ic { background: #fffbeb; color: #f59e0b; }
 .cd-metric.out  .cm-ic { background: #ecfdf5; color: #059669; }
+.cd-metric.cache .cm-ic { background: #eef2ff; color: #4338ca; }
 .cd-metric.dur  .cm-ic { background: #f5f3ff; color: #7c3aed; }
+.cd-metric.obs   .cm-ic { background: var(--accent-soft); color: var(--accent-dim); }
+.cd-metric.gen   .cm-ic { background: #f0f9ff; color: #0369a1; }
+.cd-metric.model .cm-ic { background: var(--surface-sunk); color: var(--muted); }
+/* Icono por defecto (clases sin color propio): chip neutro en vez de transparente. */
+.cd-metric .cm-ic { background: var(--surface-sunk); color: var(--muted); }
+
+/* Grid de métricas del detalle de trace: se reorganiza en cuantas filas hagan falta
+   según el ancho disponible (auto-fit), quedando todas las cards visibles al hacer
+   resize. La etiqueta va siempre en UNA línea (no se desdobla). */
+.turn-cd-metrics { grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); margin-bottom: 0; }
+.turn-cd-metrics .cm-h { white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.turn-cd-metrics .cm-n {
+    font-family: var(--tg-mono, ui-monospace, 'SF Mono', Menlo, monospace);
+    font-variant-numeric: tabular-nums; font-size: 15px; font-weight: 700; white-space: nowrap;
+}
 
 .cd-section-title {
     font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
@@ -4057,9 +4313,8 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
     <div id="session-list-view">
         <div class="filter-strip">
             <div class="view-switcher" id="home-view-switcher">
-                <button data-home-view="traces" class="active">Group by trace</button>
-                <button data-home-view="turns">Group by turn</button>
-                <button data-home-view="sessions">Group by session</button>
+                <button data-home-view="turns" class="active">Traces</button>
+                <button data-home-view="traces">Sessions</button>
             </div>
             <div class="filter-group filter-group-controls">
             <label class="filter-chip"><span class="filter-chip-label">Project</span><select id="filter-project-select"><option value="">All</option></select></label>
@@ -4139,7 +4394,7 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
             <div class="chart-panel" data-chart-id="tokens-per-turn" data-chart-name="Tokens by Tool">
                 <div class="chart-head">
                     <span>Tokens by Tool</span>
-                    <span class="muted" id="tool-tokens-meta">tokens from turns that use each tool · all time</span>
+                    <span class="muted" id="tool-tokens-meta">tokens from traces that use each tool · all time</span>
                     <button type="button" class="chart-hide-btn" title="Hide chart">×</button>
                 </div>
                 <canvas class="chart-canvas" id="tool-tokens-chart"></canvas>
@@ -4200,42 +4455,39 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
             </table>
         </div>
         <div class="section-title hidden" id="turn-table-title">
-            <h2>Turns table</h2>
-            <span id="turn-table-summary">One row per prompt grouped inside its session</span>
+            <h2>Traces</h2>
+            <span id="turn-table-summary">One row per trace (prompt) in the session</span>
         </div>
         <div class="table-wrap hidden" id="turn-table-wrap">
             <table id="turn-table">
                 <thead>
                     <tr>
+                        <th class="align-right">Trace #</th>
                         <th>Prompt</th>
-                        <th>Project</th>
+                        <th>Name</th>
                         <th>Session</th>
-                        <th class="align-right">Turn</th>
                         <th>Started</th>
                         <th>Model</th>
-                        <th class="align-right">Generations</th>
-                        <th class="align-right">Tokens</th>
-                        <th class="align-right">Cache read $</th>
-                        <th class="align-right">Cache write $</th>
                         <th class="align-right">Cost</th>
+                        <th class="align-right">Observations</th>
+                        <th class="align-right">Tokens</th>
                     </tr>
                 </thead>
                 <tbody id="turn-tbody"></tbody>
             </table>
         </div>
         <div class="section-title hidden" id="trace-group-title">
-            <h2>Traces grouped with turns</h2>
-            <span id="trace-group-summary">One trace row with all prompt turns nested below</span>
+            <h2>Sessions grouped with traces</h2>
+            <span id="trace-group-summary">One session row with all its traces nested below</span>
         </div>
         <div class="hidden" id="trace-group-wrap">
             <div id="trace-group-head">
-                <div data-trace-sort="summary">Trace / Session</div>
+                <div data-trace-sort="summary">Session</div>
                 <div class="h-proj" data-trace-sort="project">Project</div>
                 <div data-trace-sort="started">Started</div>
-                <div class="r" data-trace-sort="turns">Turns</div>
+                <div class="r" data-trace-sort="turns">Traces</div>
                 <div class="r" data-trace-sort="generations">Gener.</div>
                 <div class="r" data-trace-sort="tokens">Tokens</div>
-                <div class="r" data-trace-sort="cacheRead">Cache R $</div>
                 <div class="r" data-trace-sort="cost">Cost</div>
             </div>
             <div id="trace-group-tbody"></div>
@@ -4265,7 +4517,7 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
             </div>
             <div id="scroll-metrics"></div>
             <div class="trace-controls-row">
-                <button class="back-btn" id="back-btn" title="Back to session list">&larr; Back to sessions</button>
+                <button class="back-btn" id="back-btn" title="Back to the list">&larr; Back</button>
                 <div class="transcript-search">
                     <input type="text" id="transcript-search-input" placeholder="Find in transcript...">
                     <span id="transcript-search-count"></span>
@@ -4278,16 +4530,16 @@ body.chat-resizing { cursor: col-resize; user-select: none; }
                     <button data-trace-view="all" class="active">📦 All</button>
                     <button data-trace-view="transcript">💬 Conversation</button>
                     <button data-trace-view="map">🗺 Map</button>
-                    <button data-trace-view="turns">📋 Turns</button>
+                    <button data-trace-view="turns">📋 Traces</button>
                     <button data-trace-view="observations">📊 Observations</button>
                     <button data-trace-view="flow">🌳 Flow</button>
                     <button data-trace-view="timeline">⏱ Timeline</button>
                 </div>
                 <div class="turn-bulk-group">
-                    <span class="turn-bulk-controls" title="Collapse/expand all transcript turns">
-                        <span class="turn-bulk-label">Turns</span>
-                        <button type="button" id="turns-expand-all" class="turn-bulk-btn" title="Expand all turns">Show</button>
-                        <button type="button" id="turns-collapse-all" class="turn-bulk-btn" title="Collapse all turns">Hide</button>
+                    <span class="turn-bulk-controls" title="Collapse/expand all transcript traces">
+                        <span class="turn-bulk-label">Traces</span>
+                        <button type="button" id="turns-expand-all" class="turn-bulk-btn" title="Expand all traces">Show</button>
+                        <button type="button" id="turns-collapse-all" class="turn-bulk-btn" title="Collapse all traces">Hide</button>
                     </span>
                     <span class="turn-bulk-controls" title="Collapse/expand Input · Output · Metadata of ALL tool-steps">
                         <span class="turn-bulk-label">Input / Output data</span>
@@ -4482,14 +4734,20 @@ let searchText = '';
 let fullTextSessionIds = null; // null = no full-text filter; Map session_id -> relevance rank (lower = better)
 // Estado del nuevo diseño de Conversación (chat + panel "Details of invocation").
 let chatActiveSessionId = null;   // sesión cuyo transcript se muestra
+let chatFocusTurn = null;         // si != null, la Conversación muestra solo ese trace (turno)
 // Selección del panel derecho. kind: 'session' | 'turn' | 'message' | 'tool'.
 //   turn    -> { kind, turnIdx }
 //   message -> { kind, msgIdx }            (una observación: un mensaje del stream)
 //   tool    -> { kind, msgIdx, toolUseId } (una ejecución concreta de herramienta)
 let chatSel = { kind: 'session' };
+let chatPinned = false;           // true si la selección la fijó el usuario por clic (tool/turn); el scroll-spy no la pisa
 let chatBackSel = null;           // a dónde sube el botón ← (lo calcula el render)
 let chatDetailsViewMode = 'ui';   // 'ui' | 'json' para el bloque de detalle
 let chatSpyEnabled = true;        // el panel sigue al elemento centrado al hacer scroll
+// Vista mejorada de observaciones (título enriquecido + bloque Input→Output estilo
+// Langfuse). Toggle en la cabecera del panel; persistida en localStorage para poder
+// comparar contra la vista clásica. Por defecto activada ('0' = clásica).
+let chatDetailsEnhanced = (() => { try { return localStorage.getItem('ccpanel-obs-enhanced') !== '0'; } catch (e) { return true; } })();
 let transcriptData = null;
 let toolStats = [];
 let sessionToolRows = [];
@@ -4497,7 +4755,7 @@ let sessionFilters = { project: '', model: '', tool: '', range: '7d', rangeFrom:
 let turns = [];
 let turnsLoaded = false;
 let turnByKey = new Map();
-let homeViewMode = 'traces';
+let homeViewMode = 'turns';
 // Modo de cálculo del total de tokens: 'real' (in+out+cache, deduplicado) o
 // 'cc' (in+out crudos, como /config Stats de Claude Code).
 let tokenMode = (() => { try { return localStorage.getItem('ccpanel-token-mode') || 'real'; } catch (e) { return 'real'; } })();
@@ -4532,10 +4790,20 @@ function formatNumber(n) {
     return String(n);
 }
 
+// Tokens (y cualquier conteo entero) mostrados con su valor real y separadores de
+// miles: 3407 -> "3,407" en lugar del "3.4K" abreviado de formatNumber.
+function formatTokens(n) {
+    return (Number(n) || 0).toLocaleString('en-US');
+}
+
 function formatCost(c) {
     if (c < 0.01) return '$' + c.toFixed(4);
     if (c < 1) return '$' + c.toFixed(3);
     return '$' + c.toFixed(2);
+}
+// Coste con precisión alta y uniforme para el desglose tipo Langfuse del tooltip.
+function formatCostFull(c) {
+    return '$' + (Number(c) || 0).toFixed(6);
 }
 
 function formatTime(ts) {
@@ -4552,6 +4820,16 @@ function formatTime(ts) {
     if (diff < 86400000 && d.getDate() === now.getDate()) return `Today ${time}`;
     if (diff < 172800000) return `Yesterday ${time}`;
     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${time}`;
+}
+
+// Hora local con segundos (HH:MM:SS), para listas de pasos que ocurren en segundos.
+function formatClock(ts) {
+    if (!ts) return '';
+    let d = new Date(ts);
+    if (isNaN(d)) d = new Date(String(ts).replace(' ', 'T'));
+    if (isNaN(d)) return String(ts);
+    const pad = n => String(n).padStart(2, '0');
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
 function escapeHtml(s) {
@@ -4605,6 +4883,18 @@ function mcpServerBreakdown(toolStats) {
 function displayProject(row) {
     if (!row) return '';
     return row.cwd && String(row.cwd).trim() !== '' ? row.cwd : (row.project || '');
+}
+
+// Nombre de trace al estilo Langfuse: «[<proyecto>] Turn <n>». Langfuse deriva el
+// proyecto automáticamente del último segmento (separado por «-») de la ruta del
+// proyecto de Claude Code; p. ej. .../claude-code-panel → «panel». No incluimos el
+// id corto entre paréntesis porque es un id interno que genera Langfuse, ausente en
+// los datos de Claude Code.
+function traceName(row) {
+    const path = (row.cwd && String(row.cwd).trim()) ? String(row.cwd) : String(row.project || '');
+    const proj = path.split(/[\/\\\-]/).filter(Boolean).pop() || '';
+    const n = Number(row.turn_no) || '';
+    return proj ? `[${proj}] Turn ${n}` : `Turn ${n}`;
 }
 
 // ClickHouse returns timestamps as "YYYY-MM-DD HH:mm:ss.SSS" (no timezone marker).
@@ -4841,6 +5131,12 @@ async function loadTurns() {
             x -> x.type::String = 'thinking' AND trimBoth(x.thinking::String) != '',
             CAST(if(data.type::String = 'assistant' AND dynamicType(data.message.content) LIKE 'Array%', toString(data.message.content), '[]'), 'Array(JSON)')
         ) AS thinking_blocks,
+        -- ¿Tiene la fila de asistente algún bloque de texto? Define una «Claude
+        -- Response» (generation) al estilo Langfuse. Las peticiones solo-tool se pliegan.
+        if(arrayCount(
+            x -> x.type::String = 'text' AND trimBoth(x.text::String) != '',
+            CAST(if(data.type::String = 'assistant' AND dynamicType(data.message.content) LIKE 'Array%', toString(data.message.content), '[]'), 'Array(JSON)')
+        ) > 0, 1, 0) AS has_text,
         if(
             data.type::String = 'user'
             AND dynamicType(data.message.content) = 'String'
@@ -4893,6 +5189,12 @@ SELECT
     sumIf(web_search_requests, type = 'assistant' AND req_seq = 1) AS web_search_requests,
     sumIf(web_fetch_requests, type = 'assistant' AND req_seq = 1) AS web_fetch_requests,
     countIf(type = 'assistant' AND req_seq = 1) AS generations,
+    -- Observaciones estilo Langfuse: 1 (span del trace) + nº de «Claude Response»
+    -- (peticiones con texto) + nº total de tool_use (tool calls).
+    (1
+        + uniqExactIf(request_id, type = 'assistant' AND has_text = 1 AND request_id != '')
+        + sum(length(tool_names))
+    ) AS observations,
     countIf(type = 'assistant' AND req_seq = 1 AND is_sidechain = true) AS sidechain_generations,
     sumIf(marked.thinking_blocks, type = 'assistant' AND req_seq = 1) AS thinking_blocks,
     arrayStringConcat(arrayDistinct(arrayFlatten(groupArrayIf(tool_names, req_seq = 1))), ', ') AS tools
@@ -5119,9 +5421,51 @@ function sumDisplayTokens(rows) {
 // Devuelve el número de tokens ya formateado. En modo 'cc' lo envuelve con el color
 // distintivo y un tooltip discreto que muestra el valor real (All & Real data).
 function tokenView(displayVal, realVal) {
-    const txt = formatNumber(displayVal);
+    const txt = formatTokens(displayVal);
     if (tokenMode !== 'cc') return txt;
-    return `<span class="cc-token" title="All & Real data: ${formatNumber(realVal)}">${txt}</span>`;
+    return `<span class="cc-token" title="All & Real data: ${formatTokens(realVal)}">${txt}</span>`;
+}
+
+// Desglose del total de tokens para la columna TOKENS de "Traces grouped with turns":
+// input → output (∑ input+output) → cache = total. Usa los valores del modo activo
+// (real/cc) para input y output; la caché y el total siempre suman de forma aditiva.
+function tokenBreakdown(r) {
+    const input = displayInput(r);
+    const output = displayOutput(r);
+    const io = input + output;
+    const cache = (Number(r.cache_read_tokens) || 0) + (Number(r.cache_creation_tokens) || 0);
+    const total = io + cache;
+    const plain = `↓${formatTokens(input)} ↑${formatTokens(output)} (∑ ${formatTokens(io)}) · ⇊${formatTokens(cache)} (∑ ${formatTokens(total)})`;
+    return `<span class="tokbd" title="Input ↓ / Output ↑ (∑ in+out) · Cache ⇊ (∑ in+out+cache)\n${plain}">` +
+        `<span class="tokbd-row">` +
+            `<span class="tb-in">↓${formatTokens(input)}</span>` +
+            `<span class="tb-out">↑${formatTokens(output)}</span>` +
+            `<span class="tb-sum">∑ ${formatTokens(io)}</span>` +
+        `</span>` +
+        `<span class="tokbd-row">` +
+            `<span class="tb-cache">⇊${formatTokens(cache)}</span>` +
+            `<span class="tb-tot">∑ ${formatTokens(total)}</span>` +
+        `</span>` +
+    `</span>`;
+}
+// Celda de tokens compacta y visual para la tabla "Traces": total destacado + barra
+// apilada proporcional (input / output / cache) y el desglose exacto en el tooltip.
+function tokenMiniCell(r) {
+    const input = displayInput(r);
+    const output = displayOutput(r);
+    const cache = (Number(r.cache_read_tokens) || 0) + (Number(r.cache_creation_tokens) || 0);
+    const total = input + output + cache;
+    const pct = n => (total > 0 && n > 0) ? Math.max(4, n * 100 / total) : 0;
+    const plain = `Input ${formatTokens(input)} · Output ${formatTokens(output)} · Cache ${formatTokens(cache)} = ${formatTokens(total)}`;
+    return `<div class="tokmini" title="${plain}">` +
+        `<span class="tokmini-total">${formatTokens(total)}</span>` +
+        `<span class="tokmini-bar">` +
+            `<i class="seg-in" style="width:${pct(input)}%"></i>` +
+            `<i class="seg-out" style="width:${pct(output)}%"></i>` +
+            `<i class="seg-cache" style="width:${pct(cache)}%"></i>` +
+        `</span>` +
+        `<span class="tokmini-legend"><span class="tb-in">↓${formatTokens(input)}</span><span class="tb-out">↑${formatTokens(output)}</span><span class="tb-cache">⇊${formatTokens(cache)}</span></span>` +
+    `</div>`;
 }
 // Conveniencia para una fila (sesión o turn) y un tipo de valor conmutable.
 function tokenViewRow(r, kind) {
@@ -5183,7 +5527,7 @@ function renderDashboard() {
     setHTML('metric-tokens', tokenView(showCC ? ccTokens : totalTokens, totalTokens));
     setText('metric-tokens-sub', showCC
         ? `in+out · no cache · like /config (not deduplicated)`
-        : `in ${formatNumber(input)} · out ${formatNumber(output)} · cache ${formatNumber(cacheRead + cacheCreate)}`);
+        : `in ${formatTokens(input)} · out ${formatTokens(output)} · cache ${formatTokens(cacheRead + cacheCreate)}`);
     const tokensLabelEl = document.getElementById('metric-tokens-label');
     if (tokensLabelEl) tokensLabelEl.textContent = showCC ? 'Usage · Claude Code' : 'Usage';
     setText('metric-cost', formatCost(totalCost));
@@ -5255,7 +5599,7 @@ function renderTokensPerTurn() {
         .slice(0, 10);
 
     setText('tool-tokens-meta', rows.length
-        ? `${rows.length} tools · ${formatNumber(source.length)} turns · all time`
+        ? `${rows.length} tools · ${formatNumber(source.length)} traces · all time`
         : (turns.length ? 'no tools detected' : 'turns not loaded yet'));
 
     const ctx = canvas.getContext('2d');
@@ -5355,7 +5699,7 @@ function bindToolTokensTooltip(canvas) {
         if (!bar) { tip.classList.add('hidden'); return; }
         tip.innerHTML = `
             <div class="chart-tooltip-title">${escapeHtml(bar.name)}</div>
-            <div class="chart-tooltip-row"><span class="dot" style="background:${bar.color}"></span>Tokens <b>${formatNumber(bar.value)}</b></div>`;
+            <div class="chart-tooltip-row"><span class="dot" style="background:${bar.color}"></span>Tokens <b>${formatTokens(bar.value)}</b></div>`;
         tip.classList.remove('hidden');
         const tipW = tip.offsetWidth;
         const tipH = tip.offsetHeight;
@@ -5389,12 +5733,12 @@ function bindTurnTokensTooltip(canvas) {
         const turn = bar.t;
         const promptPreview = String(turn.prompt || '').replace(/\s+/g, ' ').slice(0, 80);
         tip.innerHTML = `
-            <div class="chart-tooltip-title">Turn #${escapeHtml(String(turn.turn_no ?? bar.idx + 1))} · ${escapeHtml(String(turn.started || '').slice(0, 19))}</div>
-            <div class="chart-tooltip-row"><span class="dot" style="background:#f59e0b"></span>Input <b>${formatNumber(bar.i)}</b></div>
-            <div class="chart-tooltip-row"><span class="dot" style="background:#059669"></span>Output <b>${formatNumber(bar.o)}</b></div>
-            <div class="chart-tooltip-row"><span class="dot" style="background:#0542b4"></span>Cache R <b>${formatNumber(bar.cr)}</b></div>
-            <div class="chart-tooltip-row"><span class="dot" style="background:#a78bfa"></span>Cache W <b>${formatNumber(bar.cw)}</b></div>
-            <div class="chart-tooltip-row"><span class="dot" style="background:#94a3b8"></span>Total <b>${formatNumber(bar.total)}</b></div>
+            <div class="chart-tooltip-title">Trace #${escapeHtml(String(turn.turn_no ?? bar.idx + 1))} · ${escapeHtml(String(turn.started || '').slice(0, 19))}</div>
+            <div class="chart-tooltip-row"><span class="dot" style="background:#f59e0b"></span>Input <b>${formatTokens(bar.i)}</b></div>
+            <div class="chart-tooltip-row"><span class="dot" style="background:#059669"></span>Output <b>${formatTokens(bar.o)}</b></div>
+            <div class="chart-tooltip-row"><span class="dot" style="background:#0542b4"></span>Cache R <b>${formatTokens(bar.cr)}</b></div>
+            <div class="chart-tooltip-row"><span class="dot" style="background:#a78bfa"></span>Cache W <b>${formatTokens(bar.cw)}</b></div>
+            <div class="chart-tooltip-row"><span class="dot" style="background:#94a3b8"></span>Total <b>${formatTokens(bar.total)}</b></div>
             ${promptPreview ? `<div class="chart-tooltip-title" style="margin-top:4px;border:none;padding-top:4px;color:#cbd5e1;font-weight:400">${escapeHtml(promptPreview)}${turn.prompt && turn.prompt.length > 80 ? '…' : ''}</div>` : ''}`;
         tip.classList.remove('hidden');
         const tipW = tip.offsetWidth;
@@ -5579,12 +5923,12 @@ function bindDailyChartTooltip(canvas) {
         const bar = dailyChartGeom.bars.find(b => x >= b.slotX && x < b.slotX + b.slotW);
         if (!bar) { tip.classList.add('hidden'); return; }
         const segRows = bar.segs.slice().reverse().map(seg =>
-            `<div class="chart-tooltip-row"><span class="dot" style="background:${seg.color}"></span>${escapeHtml(seg.model)} <b>${formatNumber(seg.val)}</b></div>`
+            `<div class="chart-tooltip-row"><span class="dot" style="background:${seg.color}"></span>${escapeHtml(seg.model)} <b>${formatTokens(seg.val)}</b></div>`
         ).join('');
         tip.innerHTML = `
             <div class="chart-tooltip-title">${escapeHtml(bar.day)}</div>
             ${segRows}
-            <div class="chart-tooltip-row"><span class="dot" style="background:#94a3b8"></span>Total <b>${formatNumber(bar.total)}</b></div>`;
+            <div class="chart-tooltip-row"><span class="dot" style="background:#94a3b8"></span>Total <b>${formatTokens(bar.total)}</b></div>`;
         tip.classList.remove('hidden');
         const tipW = tip.offsetWidth;
         const tipH = tip.offsetHeight;
@@ -5602,7 +5946,7 @@ function renderTokenMix(input, output, cacheRead, cacheCreate) {
     const el = document.getElementById('token-mix-chart');
     if (!el) return;
     const total = input + output + cacheRead + cacheCreate;
-    setText('token-mix-meta', formatNumber(total));
+    setText('token-mix-meta', formatTokens(total));
     if (!total) {
         el.innerHTML = '<div class="empty-state" style="padding:20px">No token data</div>';
         return;
@@ -5616,10 +5960,10 @@ function renderTokenMix(input, output, cacheRead, cacheCreate) {
             <span class="tok-cache-create" style="width:${pct(cacheCreate)}%"></span>
         </div>
         <div class="legend-grid">
-            <div class="legend-item"><span class="legend-swatch tok-input"></span>Input <b>${formatNumber(input)}</b></div>
-            <div class="legend-item"><span class="legend-swatch tok-output"></span>Output <b>${formatNumber(output)}</b></div>
-            <div class="legend-item"><span class="legend-swatch tok-cache-read"></span>Cache read <b>${formatNumber(cacheRead)}</b></div>
-            <div class="legend-item"><span class="legend-swatch tok-cache-create"></span>Cache write <b>${formatNumber(cacheCreate)}</b></div>
+            <div class="legend-item"><span class="legend-swatch tok-input"></span>Input <b>${formatTokens(input)}</b></div>
+            <div class="legend-item"><span class="legend-swatch tok-output"></span>Output <b>${formatTokens(output)}</b></div>
+            <div class="legend-item"><span class="legend-swatch tok-cache-read"></span>Cache read <b>${formatTokens(cacheRead)}</b></div>
+            <div class="legend-item"><span class="legend-swatch tok-cache-create"></span>Cache write <b>${formatTokens(cacheCreate)}</b></div>
         </div>`;
 }
 
@@ -5943,8 +6287,8 @@ function renderSessionList() {
         if (inTok) line1.push(`\u2193${tokenViewRow(s, 'input')}`);
         if (outTok) line1.push(`\u2191${tokenViewRow(s, 'output')}`);
         const line2 = [];
-        if (cacheRead) line2.push(`\u21CA${formatNumber(cacheRead)}`);
-        if (cacheCreate) line2.push(`\u21C8${formatNumber(cacheCreate)}`);
+        if (cacheRead) line2.push(`\u21CA${formatTokens(cacheRead)}`);
+        if (cacheCreate) line2.push(`\u21C8${formatTokens(cacheCreate)}`);
         const tokensDisplay = `<span class="token-stack"><span>${line1.join(' ') || '0'}</span>${line2.length ? `<span class="muted">${line2.join(' ')}</span>` : ''}</span>`;
         const linesTotal = (Number(s.lines_added) || 0) + (Number(s.lines_removed) || 0);
         const summaryText = getSummaryText(s);
@@ -5980,74 +6324,78 @@ function renderSessionList() {
     }).join('');
 }
 
+// Card de métrica del detalle de trace (mismo estilo que el panel derecho cd-metric):
+// chip de icono + etiqueta completa y clara + un único valor. title opcional (tooltip).
+function cm(cls, ic, lab, val, title) {
+    return `<div class="cd-metric ${cls}"${title ? ` title="${escapeHtml(title)}"` : ''}>` +
+        `<div class="cm-h"><span class="cm-ic">${ic}</span>${lab}</div>` +
+        `<div class="cm-n">${val}</div></div>`;
+}
+
 function renderTurnList() {
     const tbody = document.getElementById('turn-tbody');
     if (!tbody) return;
     if (!turnsLoaded) {
-        tbody.innerHTML = `<tr><td colspan="11" class="empty-state">Select Group by turn to load turns</td></tr>`;
-        setText('turn-table-summary', 'Select Group by turn to load turn totals');
+        tbody.innerHTML = `<tr><td colspan="9" class="empty-state">Loading traces...</td></tr>`;
+        setText('turn-table-summary', 'Loading traces...');
         return;
     }
     const filtered = getFilteredTurns();
     if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="11" class="empty-state">No turns found</td></tr>`;
-        setText('turn-table-summary', '0 turns');
+        tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No traces found</td></tr>`;
+        setText('turn-table-summary', '0 traces');
         return;
     }
     const totalCost = filtered.reduce((sum, t) => sum + (Number(t.cost) || 0), 0);
     const totalTokens = sumDisplayTokens(filtered);
     const realTokens = filtered.reduce((sum, t) => sum + (Number(t.total_tokens) || 0), 0);
     const bdTotal = sumCostBreakdown(filtered);
-    setHTML('turn-table-summary', `${filtered.length} turns · ${tokenView(totalTokens, realTokens)} tokens · ${formatCost(totalCost)} total · cache R ${formatCost(bdTotal.cacheRead)} · cache W ${formatCost(bdTotal.cacheCreation)} (5m ${formatCost(bdTotal.cacheCreation5m)} / 1h ${formatCost(bdTotal.cacheCreation1h)}) · server tools ${formatCost(bdTotal.serverTools)}`);
+    setHTML('turn-table-summary', `${filtered.length} traces · ${tokenView(totalTokens, realTokens)} tokens · ${formatCost(totalCost)} total · cache R ${formatCost(bdTotal.cacheRead)} · cache W ${formatCost(bdTotal.cacheCreation)} (5m ${formatCost(bdTotal.cacheCreation5m)} / 1h ${formatCost(bdTotal.cacheCreation1h)}) · server tools ${formatCost(bdTotal.serverTools)}`);
     tbody.innerHTML = filtered.map((t, idx) => {
         const prompt = String(t.prompt || '').slice(0, 500);
         const sid = String(t.session_id || '');
         const fullPrompt = String(t.prompt || '');
         const tools = String(t.tools || '');
         const bd = costBreakdown(t);
-        const tokensDisplay = [
-            displayInput(t) ? `in ${tokenViewRow(t, 'input')}` : '',
-            displayOutput(t) ? `out ${tokenViewRow(t, 'output')}` : '',
-            (Number(t.cache_read_tokens) || Number(t.cache_creation_tokens)) ? `cache ${formatNumber((Number(t.cache_read_tokens) || 0) + (Number(t.cache_creation_tokens) || 0))}` : '',
-        ].filter(Boolean).join('<br>');
-        const proj = displayProject(t);
         return `<tr class="${idx % 2 ? 'turn-row-alt' : ''}" data-session="${escapeHtml(sid)}" data-turn="${escapeHtml(String(t.turn_no || ''))}" data-turn-row="${idx}">
-            <td><div class="col-summary-inner" title="${escapeHtml(prompt)}">${escapeHtml(prompt || '(empty prompt)')}</div></td>
-            <td class="col-model" title="${escapeHtml(proj)}">${escapeHtml(proj)}</td>
-            <td class="col-model">${escapeHtml(sid.slice(0, 8))}</td>
             <td class="col-number align-right">${Number(t.turn_no) || ''}</td>
+            <td><div class="col-summary-inner" title="${escapeHtml(prompt)}">${escapeHtml(prompt || '(empty prompt)')}</div></td>
+            <td class="col-model" title="${escapeHtml(traceName(t))}">${escapeHtml(traceName(t))}</td>
+            <td class="col-model">${escapeHtml(sid.slice(0, 8))}</td>
             <td class="col-time">${formatTime(t.started)}</td>
             <td class="col-model">${escapeHtml(shortModel(t.model))}</td>
-            <td class="col-number align-right">${Number(t.generations) || ''}</td>
-            <td class="col-number align-right">${tokensDisplay}</td>
-            <td class="col-number align-right">${formatCost(bd.cacheRead)}</td>
-            <td class="col-number align-right">${formatCost(bd.cacheCreation)}</td>
-            <td class="col-cost">${formatCost(t.cost || 0)}</td>
+            <td class="col-cost cost-breakdown"
+                data-c-in="${bd.input}" data-c-out="${bd.output}"
+                data-c-cr="${bd.cacheRead}" data-c-c5="${bd.cacheCreation5m}"
+                data-c-c1="${bd.cacheCreation1h}" data-c-st="${bd.serverTools}"
+                data-c-tot="${t.cost || 0}">${formatCost(t.cost || 0)}</td>
+            <td class="col-number align-right">${Number(t.observations) || ''}</td>
+            <td class="col-tokens">${tokenMiniCell(t)}</td>
         </tr>
         <tr class="turn-detail-row hidden" data-turn-detail="${idx}">
-            <td colspan="11">
+            <td colspan="9">
                 <div class="turn-detail-card">
-                    <div>
-                        <h3>Prompt details</h3>
+                    <div class="turn-detail-section">
+                        <h3>Prompt</h3>
                         <div class="turn-prompt-full">${escapeHtml(fullPrompt || '(empty prompt)')}</div>
+                        <div class="turn-detail-actions">
+                            <button class="open-trace" data-session="${escapeHtml(sid)}" data-turn-started="${escapeHtml(String(t.started || ''))}">Open trace</button>
+                            <button class="open-turn-session secondary" data-session="${escapeHtml(sid)}">Open full session</button>
+                        </div>
                     </div>
-                    <div class="turn-detail-grid">
-                        <div class="turn-detail-metric"><span>Session</span><b>${escapeHtml(sid.slice(0, 8))}</b></div>
-                        <div class="turn-detail-metric"><span>Turn</span><b>${Number(t.turn_no) || ''}</b></div>
-                        <div class="turn-detail-metric"><span>Model</span><b>${escapeHtml(shortModel(t.model) || '-')}</b></div>
-                        <div class="turn-detail-metric"><span>Service tier</span><b>${escapeHtml(t.service_tier || 'standard')}</b></div>
-                        <div class="turn-detail-metric"><span>Generations</span><b>${formatNumber(t.generations || 0)} ${Number(t.sidechain_generations) ? '(' + t.sidechain_generations + ' sidechain)' : ''}</b></div>
-                        <div class="turn-detail-metric"><span>Input tokens</span><b>${tokenViewRow(t, 'input')}</b></div>
-                        <div class="turn-detail-metric"><span>Output tokens</span><b>${tokenViewRow(t, 'output')}</b></div>
-                        <div class="turn-detail-metric"><span>Cache read</span><b>${formatNumber(t.cache_read_tokens || 0)}</b></div>
-                        <div class="turn-detail-metric"><span>Cache write 5m</span><b>${formatNumber(t.cache_creation_5m_tokens || 0)}</b></div>
-                        <div class="turn-detail-metric"><span>Cache write 1h</span><b>${formatNumber(t.cache_creation_1h_tokens || 0)}</b></div>
-                        <div class="turn-detail-metric"><span>Total tokens</span><b>${tokenViewRow(t, 'total')}</b></div>
-                        <div class="turn-detail-metric"><span>Cost</span><b>${formatCost(t.cost || 0)}</b></div>
-                        <div class="turn-detail-metric"><span>Wall duration</span><b>${formatMs(t.wall_duration_ms || 0)}</b></div>
-                        <div class="turn-tools-list"><strong>Tools:</strong> ${escapeHtml(tools || 'No tool calls detected in this turn')}</div>
-                        <div class="turn-detail-actions"><button class="open-turn-session" data-session="${escapeHtml(sid)}">Open session trace</button></div>
+                    <div class="cd-metrics turn-cd-metrics">
+                        ${cm('cost', '$', 'Cost', formatCost(t.cost || 0))}
+                        ${cm('tot', '∑', 'Total tokens', tokenViewRow(t, 'total'))}
+                        ${cm('in', '↓', 'Input tokens', tokenViewRow(t, 'input'))}
+                        ${cm('out', '↑', 'Output tokens', tokenViewRow(t, 'output'))}
+                        ${cm('cache', '⇊', 'Cache tokens', formatTokens((Number(t.cache_read_tokens) || 0) + (Number(t.cache_creation_tokens) || 0)), `Read ${formatTokens(t.cache_read_tokens || 0)} · Write 5m ${formatTokens(t.cache_creation_5m_tokens || 0)} · Write 1h ${formatTokens(t.cache_creation_1h_tokens || 0)}`)}
+                        ${cm('obs', '◍', 'Observations', Number(t.observations) || 0)}
+                        ${cm('gen', '∿', 'Generations', `${formatNumber(t.generations || 0)}${Number(t.sidechain_generations) ? ` (${t.sidechain_generations} sub)` : ''}`)}
+                        ${cm('dur', '⏱', 'Duration', formatMs(t.wall_duration_ms || 0))}
+                        ${cm('model', '✦', 'Model', escapeHtml(shortModel(t.model) || '-'))}
                     </div>
+                    <div class="turn-tools-list"><strong>Tools:</strong> ${escapeHtml(tools || 'No tool calls detected in this trace')}</div>
+                    <div class="turn-obs" data-obs-session="${escapeHtml(sid)}" data-obs-turn="${escapeHtml(String(t.turn_no || ''))}"></div>
                 </div>
             </td>
         </tr>`;
@@ -6070,16 +6418,16 @@ function turnDetailHtml(t) {
         </div>
         <div class="turn-detail-grid">
             <div class="turn-detail-metric"><span>Session</span><b>${escapeHtml(sid.slice(0, 8))}</b></div>
-            <div class="turn-detail-metric"><span>Turn</span><b>${Number(t.turn_no) || ''}</b></div>
+            <div class="turn-detail-metric"><span>Trace</span><b>${Number(t.turn_no) || ''}</b></div>
             <div class="turn-detail-metric"><span>Model</span><b>${escapeHtml(shortModel(t.model) || '-')}</b></div>
             <div class="turn-detail-metric"><span>Service tier</span><b>${escapeHtml(t.service_tier || 'standard')}</b></div>
             <div class="turn-detail-metric"><span>Generations</span><b>${formatNumber(t.generations || 0)} ${Number(t.sidechain_generations) ? '(' + t.sidechain_generations + ' sidechain)' : ''}</b></div>
             <div class="turn-detail-metric" title="Model internal reasoning (type:thinking blocks). Their tokens are included in the output."><span>💭 Thinking</span><b>${Number(t.thinking_blocks) ? `${formatNumber(t.thinking_blocks)} ${Number(t.thinking_blocks) === 1 ? 'block' : 'blocks'}` : '—'}</b></div>
             <div class="turn-detail-metric"><span>Input tokens</span><b>${tokenViewRow(t, 'input')}</b></div>
             <div class="turn-detail-metric"><span>Output tokens</span><b>${tokenViewRow(t, 'output')}</b></div>
-            <div class="turn-detail-metric"><span>Cache read</span><b>${formatNumber(t.cache_read_tokens || 0)}</b></div>
-            <div class="turn-detail-metric"><span>Cache write 5m</span><b>${formatNumber(t.cache_creation_5m_tokens || 0)}</b></div>
-            <div class="turn-detail-metric"><span>Cache write 1h</span><b>${formatNumber(t.cache_creation_1h_tokens || 0)}</b></div>
+            <div class="turn-detail-metric"><span>Cache read</span><b>${formatTokens(t.cache_read_tokens || 0)}</b></div>
+            <div class="turn-detail-metric"><span>Cache write 5m</span><b>${formatTokens(t.cache_creation_5m_tokens || 0)}</b></div>
+            <div class="turn-detail-metric"><span>Cache write 1h</span><b>${formatTokens(t.cache_creation_1h_tokens || 0)}</b></div>
             <div class="turn-detail-metric"><span>Total tokens</span><b>${tokenViewRow(t, 'total')}</b></div>
             <div class="turn-detail-metric"><span>Cost</span><b>${formatCost(t.cost || 0)}</b></div>
             <div class="turn-detail-metric"><span>Input cost</span><b>${formatCost(bd.input)}</b></div>
@@ -6089,8 +6437,8 @@ function turnDetailHtml(t) {
             <div class="turn-detail-metric"><span>Cache write 1h cost</span><b>${formatCost(bd.cacheCreation1h)}</b></div>
             <div class="turn-detail-metric"><span>Wall duration</span><b>${formatMs(t.wall_duration_ms || 0)}</b></div>
             ${serverBits}
-            <div class="turn-tools-list"><strong>Tools:</strong> ${escapeHtml(tools || 'No tool calls detected in this turn')}</div>
-            <div class="turn-detail-actions"><button class="open-turn-session" data-session="${escapeHtml(sid)}">Open session trace</button></div>
+            <div class="turn-tools-list"><strong>Tools:</strong> ${escapeHtml(tools || 'No tool calls detected in this trace')}</div>
+            <div class="turn-detail-actions"><button class="open-trace" data-session="${escapeHtml(sid)}" data-turn-started="${escapeHtml(String(t.started || ''))}">Open trace</button> <button class="open-turn-session secondary" data-session="${escapeHtml(sid)}">Open full session</button></div>
         </div>
     </div>`;
 }
@@ -6125,7 +6473,7 @@ function traceTurnDetail(t) {
     const cacheWrite = (Number(t.cache_creation_5m_tokens) || 0) + (Number(t.cache_creation_1h_tokens) || 0);
     const thinkBlocks = Number(t.thinking_blocks) || 0;
     const m = (k, v, cls) => `<div class="metric${cls ? ' ' + cls : ''}"><div class="mk">${k}</div><div class="mv">${v}</div></div>`;
-    const thinkingMetric = `<div class="metric${thinkBlocks ? ' think' : ' dim'}" title="Model internal reasoning: ${formatNumber(thinkBlocks)} type:thinking block(s) in this turn. Their tokens are already included in the output.">
+    const thinkingMetric = `<div class="metric${thinkBlocks ? ' think' : ' dim'}" title="Model internal reasoning: ${formatNumber(thinkBlocks)} type:thinking block(s) in this trace. Their tokens are already included in the output.">
             <div class="mk">💭 Thinking</div>
             <div class="mv">${thinkBlocks ? `${formatNumber(thinkBlocks)} ${thinkBlocks === 1 ? 'block' : 'blocks'}` : '—'}</div>
         </div>`;
@@ -6136,15 +6484,15 @@ function traceTurnDetail(t) {
         </div>
         <div class="mgrid">
             ${m('Session', escapeHtml(sid.slice(0, 8)))}
-            ${m('Turn', Number(t.turn_no) || '')}
+            ${m('Trace', Number(t.turn_no) || '')}
             ${m('Model', escapeHtml(shortModel(t.model) || '-'), 'accent')}
             ${m('Service tier', escapeHtml(t.service_tier || 'standard'))}
             ${m('Generations', formatNumber(t.generations || 0))}
             ${thinkingMetric}
             ${m('Input tok.', tokenViewRow(t, 'input'))}
             ${m('Output tok.', tokenViewRow(t, 'output'))}
-            ${m('Cache read', formatNumber(t.cache_read_tokens || 0))}
-            ${m('Cache write', formatNumber(cacheWrite))}
+            ${m('Cache read', formatTokens(t.cache_read_tokens || 0))}
+            ${m('Cache write', formatTokens(cacheWrite))}
             ${m('Total tok.', tokenViewRow(t, 'total'))}
             ${m('Cost', formatCost(t.cost || 0), 'accent')}
             ${m('Input cost', formatCost(bd.input), 'dim')}
@@ -6153,7 +6501,8 @@ function traceTurnDetail(t) {
         </div>
         <div class="detail-foot">
             <span class="tools"><b>Tools:</b> ${toolTags}</span>
-            <button class="btn-trace open-turn-session" data-session="${escapeHtml(sid)}">Open session trace</button>
+            <button class="btn-trace open-trace" data-session="${escapeHtml(sid)}" data-turn-started="${escapeHtml(String(t.started || ''))}">Open trace</button>
+            <button class="btn-trace open-turn-session secondary" data-session="${escapeHtml(sid)}">Open full session</button>
         </div>
     </div>`;
 }
@@ -6162,16 +6511,16 @@ function renderTraceGroupList() {
     const tbody = document.getElementById('trace-group-tbody');
     if (!tbody) return;
     if (!turnsLoaded) {
-        tbody.innerHTML = `<div class="tg-empty">Select Group by trace to load grouped turns</div>`;
-        setText('trace-group-summary', 'Select Group by trace to load trace totals');
+        tbody.innerHTML = `<div class="tg-empty">Loading sessions...</div>`;
+        setText('trace-group-summary', 'Loading sessions...');
         return;
     }
 
     const filteredTurns = getFilteredTurns();
     const filteredSessions = getFilteredSessions();
     if (!filteredSessions.length) {
-        tbody.innerHTML = `<div class="tg-empty">No traces found</div>`;
-        setText('trace-group-summary', '0 traces');
+        tbody.innerHTML = `<div class="tg-empty">No sessions found</div>`;
+        setText('trace-group-summary', '0 sessions');
         return;
     }
 
@@ -6230,7 +6579,7 @@ function renderTraceGroupList() {
     const allTraceTokens = rows.reduce((s, g) => s + displayTotalTokens(g.session), 0);
     const allTraceTokensReal = rows.reduce((s, g) => s + (Number(g.session.total_tokens) || 0), 0);
     const allBreakdown = sumCostBreakdown(filteredSessions);
-    setHTML('trace-group-summary', `${rows.length} traces · ${filteredTurns.length} turns · ${tokenView(allTraceTokens, allTraceTokensReal)} tokens · ${formatCost(allTraceCost)} total · cache R ${formatCost(allBreakdown.cacheRead)} · cache W 5m ${formatCost(allBreakdown.cacheCreation5m)} · cache W 1h ${formatCost(allBreakdown.cacheCreation1h)} · server tools ${formatCost(allBreakdown.serverTools)}`);
+    setHTML('trace-group-summary', `${rows.length} sessions · ${filteredTurns.length} traces · ${tokenView(allTraceTokens, allTraceTokensReal)} tokens · ${formatCost(allTraceCost)} total · cache R ${formatCost(allBreakdown.cacheRead)} · cache W 5m ${formatCost(allBreakdown.cacheCreation5m)} · cache W 1h ${formatCost(allBreakdown.cacheCreation1h)} · server tools ${formatCost(allBreakdown.serverTools)}`);
     const maxTraceTok = Math.max(1, ...rows.map(g => displayTotalTokens(g.session) || 0));
     tbody.innerHTML = rows.map((g, gi) => {
         const summary = getSummaryText(g.session || { first_question: g.turns[0]?.prompt || '' });
@@ -6243,8 +6592,8 @@ function renderTraceGroupList() {
         const errTag = g.apiErrors ? `<span class="tag err" title="API errors during this session">${g.apiErrors} err</span>` : '';
         const subTag = g.sidechainGenerations ? `<span class="tag" title="sidechain (subagent) generations">${g.sidechainGenerations} sub</span>` : '';
         const turnsTitle = g.turns.length
-            ? `Session cost ${formatCost(g.cost)} = Σ turns ${formatCost(g.turnsCost)}${g.otherCost > 0.0001 ? ` + out-of-turn ${formatCost(g.otherCost)}` : ''}`
-            : 'No conversational turns detected';
+            ? `Session cost ${formatCost(g.cost)} = Σ traces ${formatCost(g.turnsCost)}${g.otherCost > 0.0001 ? ` + outside any trace ${formatCost(g.otherCost)}` : ''}`
+            : 'No traces detected';
 
         const turnsTokensDisp = g.turns.reduce((s, t) => s + displayTotalTokens(t), 0);
         const turnsHtml = g.turns.map(t => {
@@ -6275,7 +6624,7 @@ function renderTraceGroupList() {
             <div class="turn-rail"></div>
             <div class="row-turn" style="cursor:default">
                 <div class="tno"><b>—</b></div>
-                <div class="tprompt" title="Assistant messages outside a numbered turn (continuations, plans, notifications).">(out-of-turn assistant messages)</div>
+                <div class="tprompt" title="Assistant messages outside any trace (continuations, plans, notifications).">(messages outside any trace)</div>
                 <div class="tstarted"></div>
                 <div class="tokcell"><span class="v">${tokenView(Math.max(0, gTokensDisp - turnsTokensDisp), g.otherTokens)}</span></div>
                 <div class="tcost">${formatCost(g.otherCost)}</div>
@@ -6290,10 +6639,10 @@ function renderTraceGroupList() {
                         <div class="title" title="${escapeHtml(summary)}">${escapeHtml(summary)}</div>
                         <div class="tags">
                             <span class="tag cost" title="${escapeHtml(turnsTitle)}">${formatCost(g.cost)}</span>
-                            <span class="tag">${g.turns.length} turns</span>
+                            <span class="tag">${g.turns.length} traces</span>
                             <span class="tag">${tokenView(gTokensDisp, gTokensReal)} tokens</span>
                             ${subTag}${errTag}
-                            <button class="tg-open open-turn-session" data-session="${sid}" title="Open the full session trace">Open session trace ↗</button>
+                            <button class="tg-open open-turn-session" data-session="${sid}" title="Open the full session">Open session ↗</button>
                         </div>
                     </div>
                 </div>
@@ -6301,13 +6650,16 @@ function renderTraceGroupList() {
                 <div class="started">${escapeHtml(st.day)}<b>${escapeHtml(st.time)}</b></div>
                 <div class="cell-r tnum">${g.turns.length}</div>
                 <div class="cell-r tnum">${formatNumber(g.generations)}</div>
-                <div class="tokcell"><span class="v">${tokenView(gTokensDisp, gTokensReal)}</span><span class="bar"><i style="width:${tokPct}%"></i></span></div>
-                <div class="cell-r tnum">${formatCost(g.cacheReadCost)}</div>
-                <div class="cell-r tnum cost-strong" title="${escapeHtml(turnsTitle)}">${formatCost(g.cost)}</div>
+                <div class="tokcell tokcell-bd"><span class="v">${tokenBreakdown(g.session)}</span><span class="bar"><i style="width:${tokPct}%"></i></span></div>
+                <div class="cell-r tnum cost-strong cost-breakdown" tabindex="0"
+                    data-c-in="${g.inputCost}" data-c-out="${g.outputCost}"
+                    data-c-cr="${g.cacheReadCost}" data-c-c5="${g.cacheCreation5mCost}"
+                    data-c-c1="${g.cacheCreation1hCost}" data-c-st="${g.serverToolsCost}"
+                    data-c-tot="${g.cost}" aria-label="${escapeHtml(turnsTitle)}">${formatCost(g.cost)}</div>
             </div>
             <div class="turns-wrap"><div class="turns-inner">
-                <div class="turns-head">${TG_ARROW} Turns in this session <span class="q">· session ${sid8}</span></div>
-                <div class="turn-head-row"><div>Turn</div><div>Prompt</div><div>Started</div><div class="r">Tokens</div><div class="r">Cost</div></div>
+                <div class="turns-head">${TG_ARROW} Traces in this session <span class="q">· session ${sid8}</span></div>
+                <div class="turn-head-row"><div>Trace</div><div>Prompt</div><div>Started</div><div class="r">Tokens</div><div class="r">Cost</div></div>
                 ${turnsHtml}
                 ${otherHtml}
             </div></div>
@@ -6488,6 +6840,11 @@ document.getElementById('session-tbody').addEventListener('click', e => {
 });
 
 document.getElementById('turn-tbody').addEventListener('click', e => {
+    const traceBtn = e.target.closest('.open-trace');
+    if (traceBtn) {
+        navigateTo('session/' + traceBtn.dataset.session + '/t/' + encodeURIComponent(traceBtn.dataset.turnStarted || ''));
+        return;
+    }
     const openBtn = e.target.closest('.open-turn-session');
     if (openBtn) {
         navigateTo('session/' + openBtn.dataset.session);
@@ -6499,8 +6856,26 @@ document.getElementById('turn-tbody').addEventListener('click', e => {
     if (detail) {
         const nowHidden = detail.classList.toggle('hidden');
         tr.classList.toggle('is-expanded', !nowHidden);
+        if (!nowHidden) {
+            sizeOpenTurnDetails();
+            const obs = detail.querySelector('.turn-obs');
+            if (obs) renderTurnObservations(obs);
+        }
     }
 });
+
+// Ajusta el ancho de las filas de detalle abiertas al ancho REAL visible del
+// contenedor de la tabla, para que el grid de cards refluya y todas sean visibles
+// sin scroll horizontal (la fila de detalle ocupa una tabla más ancha que la ventana).
+function sizeOpenTurnDetails() {
+    const wrap = document.getElementById('turn-table-wrap');
+    if (!wrap) return;
+    const w = wrap.clientWidth;
+    if (!w) return;
+    document.querySelectorAll('#turn-table .turn-detail-row:not(.hidden) .turn-detail-card')
+        .forEach(card => { card.style.width = w + 'px'; });
+}
+window.addEventListener('resize', sizeOpenTurnDetails);
 
 // Comparador de grupos para ordenar la tabla "Traces grouped with turns".
 // Devuelve siempre en sentido ascendente; renderTraceGroupList aplica la
@@ -6553,7 +6928,13 @@ document.getElementById('trace-group-head').addEventListener('click', e => {
 // turnos; la fila del turno pliega/despliega su detalle; el botón "Open session
 // trace" navega a la traza completa.
 document.getElementById('trace-group-tbody').addEventListener('click', e => {
-    const openBtn = e.target.closest('.open-turn-session, .btn-trace');
+    const traceBtn = e.target.closest('.open-trace');
+    if (traceBtn) {
+        e.stopPropagation();
+        navigateTo('session/' + traceBtn.dataset.session + '/t/' + encodeURIComponent(traceBtn.dataset.turnStarted || ''));
+        return;
+    }
+    const openBtn = e.target.closest('.open-turn-session, .tg-open');
     if (openBtn) {
         e.stopPropagation();
         navigateTo('session/' + openBtn.dataset.session);
@@ -6571,6 +6952,89 @@ document.getElementById('trace-group-tbody').addEventListener('click', e => {
         if (trace) trace.classList.toggle('open');
     }
 });
+
+// Desglose de coste tipo Langfuse: popover flotante (posicionado sobre body para
+// no ser recortado por el overflow del contenedor) al pasar el ratón por la celda
+// de coste. Los importes vienen en los data-attributes de la propia celda.
+function costBreakdownTooltipEl() {
+    let tip = document.getElementById('cost-bd-tooltip');
+    if (!tip) {
+        tip = document.createElement('div');
+        tip.id = 'cost-bd-tooltip';
+        tip.className = 'cost-bd-pop hidden';
+        document.body.appendChild(tip);
+    }
+    return tip;
+}
+function buildCostBreakdownHtml(cell) {
+    const d = cell.dataset;
+    const inC = Number(d.cIn) || 0;
+    const outC = Number(d.cOut) || 0;
+    const crC = Number(d.cCr) || 0;
+    const c5C = Number(d.cC5) || 0;
+    const c1C = Number(d.cC1) || 0;
+    const stC = Number(d.cSt) || 0;
+    const totC = Number(d.cTot) || 0;
+    const otherC = crC + c5C + c1C + stC;
+    const sec = (label, total, subs) => {
+        const subRows = subs.filter(s => s[1] > 0).map(s =>
+            `<div class="cbp-row"><span class="cbp-k">${s[0]}</span><span class="mono">${formatCostFull(s[1])}</span></div>`).join('');
+        return `<div class="cbp-sec">
+            <div class="cbp-head"><span>${label}</span><span class="mono">${formatCostFull(total)}</span></div>
+            ${subRows}
+        </div>`;
+    };
+    return `<div class="cbp-title">Cost breakdown</div>
+        ${sec('Input cost', inC, [['input', inC]])}
+        ${sec('Output cost', outC, [['output', outC]])}
+        ${otherC > 0 ? sec('Other cost', otherC, [
+            ['cache_creation_1h', c1C],
+            ['cache_creation_5m', c5C],
+            ['cache_read', crC],
+            ['server_tools', stC],
+        ]) : ''}
+        <div class="cbp-total"><span>Total cost</span><span class="mono">${formatCostFull(totC)}</span></div>`;
+}
+function positionCostTooltip(tip, e) {
+    const tipW = tip.offsetWidth;
+    const tipH = tip.offsetHeight;
+    let left = e.clientX + 14;
+    let top = e.clientY + 16;
+    if (left + tipW + 8 > window.innerWidth) left = e.clientX - tipW - 14;
+    if (top + tipH + 8 > window.innerHeight) top = e.clientY - tipH - 14;
+    tip.style.left = Math.max(8, left) + 'px';
+    tip.style.top = Math.max(8, top) + 'px';
+}
+// Conecta el popover de desglose de coste a un contenedor con celdas .cost-breakdown.
+// Se usa tanto en la vista anidada (Sessions) como en la tabla plana (Traces).
+function bindCostBreakdownTooltip(containerId) {
+    const root = document.getElementById(containerId);
+    if (!root) return;
+    root.addEventListener('mouseover', e => {
+        const cell = e.target.closest('.cost-breakdown');
+        if (!cell) return;
+        const tip = costBreakdownTooltipEl();
+        tip.innerHTML = buildCostBreakdownHtml(cell);
+        tip.classList.remove('hidden');
+        positionCostTooltip(tip, e);
+    });
+    root.addEventListener('mousemove', e => {
+        const tip = document.getElementById('cost-bd-tooltip');
+        if (!tip || tip.classList.contains('hidden')) return;
+        if (!e.target.closest('.cost-breakdown')) { tip.classList.add('hidden'); return; }
+        positionCostTooltip(tip, e);
+    });
+    root.addEventListener('mouseout', e => {
+        const cell = e.target.closest('.cost-breakdown');
+        if (!cell) return;
+        const to = e.relatedTarget;
+        if (to && cell.contains(to)) return;
+        const tip = document.getElementById('cost-bd-tooltip');
+        if (tip) tip.classList.add('hidden');
+    });
+}
+bindCostBreakdownTooltip('trace-group-tbody');
+bindCostBreakdownTooltip('turn-tbody');
 
 // Search — always queries ClickHouse for full-text search
 let searchTimeout = null;
@@ -6635,7 +7099,7 @@ GROUP BY session_id`;
 }
 
 // --- Transcript View ---
-async function loadTranscript(sessionId) {
+async function loadTranscript(sessionId, focusStarted = null) {
     const loading = document.getElementById('transcript-loading');
     const errEl = document.getElementById('transcript-error');
     const container = document.getElementById('messages-container');
@@ -6711,7 +7175,14 @@ ORDER BY ts`;
         transcriptData = await queryClickHouse(sql);
         loading.classList.add('hidden');
         chatActiveSessionId = sessionId;
+        // Apertura enfocada a un trace concreto (deep-link #session/<id>/t/<started>):
+        // la Conversación muestra solo ese turno y el panel derecho lo selecciona.
+        chatFocusTurn = null;
         chatSel = { kind: 'session' };
+        if (focusStarted) {
+            const ft = buildTurns().find(t => sameTurnStart(t.started, focusStarted));
+            if (ft) { chatFocusTurn = ft.idx; chatSel = { kind: 'turn', turnIdx: ft.idx }; }
+        }
         renderTranscriptMeta(sessionId);
         renderTranscript();
     } catch (e) {
@@ -6772,8 +7243,8 @@ function renderSessionCards(session) {
         </div>
         <div class="session-card accent-cache" title="Cache read = previous context reused and cheap. Cache write = new context stored to reuse later.${showCC ? ' Not counted in «Same as Claude Code».' : ''}">
             <div class="card-label"><span class="card-icon">⇊</span>Cache</div>
-            <div class="card-value">${formatNumber(cache)}</div>
-            <div class="card-sub">R ${formatNumber(cR)} · W ${formatNumber(cW)}</div>
+            <div class="card-value">${formatTokens(cache)}</div>
+            <div class="card-sub">R ${formatTokens(cR)} · W ${formatTokens(cW)}</div>
             <div class="card-sub">R ${formatCost(bd.cacheRead)} · W ${formatCost(bd.cacheCreation)}</div>
             <div class="card-hint">${showCC ? 'not included in cc total' : 'context reused across prompts'}</div>
         </div>
@@ -6788,7 +7259,8 @@ function renderTranscriptMeta(sessionId) {
         renderSessionCards(null);
         return;
     }
-    renderSessionCards(session);
+    // En modo foco, las tarjetas resumen el trace enfocado; si no, la sesión.
+    renderSessionCards(focusedCardRow(sessionId) || session);
     const bd = costBreakdown(session);
     const errBit = Number(session.api_error_count) ? `<span><span class="label">Errors: </span><span class="val" style="color:#c92a2a">${session.api_error_count}</span></span>` : '';
     const sidechainBit = Number(session.sidechain_assistant_msgs) ? `<span><span class="label">Sidechain: </span><span class="val">${session.sidechain_assistant_msgs} msgs</span></span>` : '';
@@ -6804,7 +7276,7 @@ function renderTranscriptMeta(sessionId) {
         <span><span class="label">Model: </span><span class="val">${escapeHtml(shortModel(session.model))}</span></span>
         ${tierBit}
         <span title="Input ${formatCost(bd.input)} \u00B7 Output ${formatCost(bd.output)} \u00B7 Cache R ${formatCost(bd.cacheRead)} \u00B7 Cache W 5m ${formatCost(bd.cacheCreation5m)} \u00B7 Cache W 1h ${formatCost(bd.cacheCreation1h)} \u00B7 Server tools ${formatCost(bd.serverTools)}"><span class="label">Cost: </span><span class="val">${formatCost(session.cost)}</span></span>
-        <span title="Input / Output / Cache read / Cache create tokens${tokenMode === 'cc' ? ' \u00B7 Input/Output en modo \u00ABSame as Claude Code\u00BB (crudo)' : ''}"><span class="val">\u2193${tokenViewRow(session, 'input')} \u2191${tokenViewRow(session, 'output')} \u21CA${formatNumber(session.cache_read_tokens)} \u21C8${formatNumber(session.cache_creation_tokens)}</span></span>
+        <span title="Input / Output / Cache read / Cache create tokens${tokenMode === 'cc' ? ' \u00B7 Input/Output en modo \u00ABSame as Claude Code\u00BB (crudo)' : ''}"><span class="val">\u2193${tokenViewRow(session, 'input')} \u2191${tokenViewRow(session, 'output')} \u21CA${formatTokens(session.cache_read_tokens)} \u21C8${formatTokens(session.cache_creation_tokens)}</span></span>
         ${webBit}
         ${errBit}
         ${sidechainBit}
@@ -6967,10 +7439,11 @@ function updateFilterLabels(counts) {
     }
 }
 
-function buildFlowNodes() {
+function buildFlowNodes(range = null) {
     if (!transcriptData) return [];
     const nodes = [];
     for (let i = 0; i < transcriptData.length; i++) {
+        if (!inFocus(i, range)) continue;
         const msg = transcriptData[i];
         const cl = classifyMessage(msg);
         if (cl.category === 'user') {
@@ -7004,7 +7477,7 @@ function buildFlowNodes() {
 function renderFlowOverview() {
     const el = document.getElementById('flow-overview');
     if (!el) return;
-    currentFlowNodes = buildFlowNodes();
+    currentFlowNodes = buildFlowNodes(focusRange());
     if (!currentFlowNodes.length) {
         el.innerHTML = '';
         return;
@@ -7109,10 +7582,43 @@ function buildTurns() {
     return turns;
 }
 
+// Rango de índices [lo, hi] del trace enfocado (modo foco), o null si se ve la
+// sesión completa. Las secciones de overview (timeline, flow map, traces, all
+// observations, execution flow) lo usan para mostrar solo ese trace.
+function focusRange() {
+    if (chatFocusTurn == null) return null;
+    const t = buildTurns().find(x => x.idx === chatFocusTurn);
+    return t ? [t.startIdx, t.endIdx] : null;
+}
+function inFocus(i, range) { return !range || (i >= range[0] && i <= range[1]); }
+
+// Devuelve una fila «tipo sesión» con los datos del trace enfocado, para que las
+// session-cards del detalle muestren el trace y no la sesión. Prefiere la fila SQL
+// del turno (tiene cc_* correctos); si no está, la deriva de los tokens del turno.
+function focusedCardRow(sessionId) {
+    if (chatFocusTurn == null) return null;
+    const ft = buildTurns().find(x => x.idx === chatFocusTurn);
+    if (!ft) return null;
+    const sqlRow = (typeof turns !== 'undefined' && turns)
+        ? turns.find(t => t.session_id === sessionId && sameTurnStart(t.started, ft.started)) : null;
+    if (sqlRow) return { ...sqlRow, user_msgs: 1, assistant_msgs: Number(sqlRow.generations) || 0 };
+    const tk = ft.tokens, io = tk.input + tk.output;
+    return {
+        model: ft.model, service_tier: tk.serviceTier || '',
+        input_tokens: tk.input, output_tokens: tk.output,
+        cache_read_tokens: tk.cacheRead, cache_creation_tokens: tk.cacheCreate,
+        cache_creation_5m_tokens: tk.cacheCreate5m, cache_creation_1h_tokens: tk.cacheCreate1h,
+        web_search_requests: tk.webSearch, web_fetch_requests: tk.webFetch,
+        total_tokens: io + tk.cacheRead + tk.cacheCreate,
+        cc_input_raw: tk.input, cc_output_raw: tk.output, cc_tokens: io,
+        cost: turnCost(tk, ft.model), user_msgs: 1, assistant_msgs: ft.generations || 0,
+    };
+}
+
 function renderTraceIndex() {
     const el = document.getElementById('trace-index');
     if (!el) return;
-    const turns = buildTurns();
+    const turns = buildTurns().filter(t => chatFocusTurn == null || t.idx === chatFocusTurn);
     if (!turns.length) {
         el.innerHTML = '';
         return;
@@ -7125,17 +7631,17 @@ function renderTraceIndex() {
             <td class="trace-num">${t.idx}</td>
             <td><div class="trace-title" title="${escapeHtml(t.prompt)}">${escapeHtml(t.prompt)}</div></td>
             <td>${escapeHtml(shortModel(t.model))}</td>
-            <td class="trace-num">${formatNumber(t.tokens.input)}</td>
-            <td class="trace-num">${formatNumber(t.tokens.output)}</td>
-            <td class="trace-num">${formatNumber(t.tokens.cacheRead + t.tokens.cacheCreate)}</td>
+            <td class="trace-num">${formatTokens(t.tokens.input)}</td>
+            <td class="trace-num">${formatTokens(t.tokens.output)}</td>
+            <td class="trace-num">${formatTokens(t.tokens.cacheRead + t.tokens.cacheCreate)}</td>
             <td class="trace-num">${formatCost(cost)}</td>
             <td><div class="trace-tools" title="${escapeHtml(tools)}">${escapeHtml(tools || '-')}</div></td>
         </tr>`;
     }).join('');
     el.innerHTML = `
         <div class="trace-index-head">
-            <span>Trace requests</span>
-            <span>${turns.length} prompts · ${formatNumber(turns.reduce((s, t) => s + t.tokens.output, 0))} output tokens</span>
+            <span>Traces</span>
+            <span>${turns.length} traces · ${formatTokens(turns.reduce((s, t) => s + t.tokens.output, 0))} output tokens</span>
         </div>
         <div class="trace-table-wrap">
             <table class="trace-turn-table">
@@ -7145,11 +7651,12 @@ function renderTraceIndex() {
         </div>`;
 }
 
-function buildExecutionRows() {
-    if (!transcriptData) return [];
+function buildExecutionRows(data = transcriptData, range = null) {
+    if (!data) return [];
     const rows = [];
-    for (let i = 0; i < transcriptData.length; i++) {
-        const msg = transcriptData[i];
+    for (let i = 0; i < data.length; i++) {
+        if (!inFocus(i, range)) continue;
+        const msg = data[i];
         const cl = classifyMessage(msg);
         if (cl.category === 'skip') continue;
         if (cl.category === 'user') {
@@ -7170,8 +7677,8 @@ function buildExecutionRows() {
             }
             if (hasText) {
                 const tokens = [];
-                if (Number(msg.input_tokens)) tokens.push(`in ${formatNumber(msg.input_tokens)}`);
-                if (Number(msg.output_tokens)) tokens.push(`out ${formatNumber(msg.output_tokens)}`);
+                if (Number(msg.input_tokens)) tokens.push(`in ${formatTokens(msg.input_tokens)}`);
+                if (Number(msg.output_tokens)) tokens.push(`out ${formatTokens(msg.output_tokens)}`);
                 rows.push({ level: 1, type: 'generation', title: 'Assistant generation', meta: tokens.join(' · '), idx: i });
             }
         } else if (cl.category === 'tool_result') {
@@ -7183,21 +7690,47 @@ function buildExecutionRows() {
     return rows.slice(0, 500);
 }
 
+// Numera las filas que SÍ cuentan como observación (modelo Langfuse): request (span),
+// generation (respuesta con texto, deduplicada por request_id) y tool/tool_call. Las
+// demás (thinking, result, summary…) quedan sin número. Devuelve el total y deja
+// r.obsNum en cada fila. Sirve tanto para Execution flow (r.type) como para All
+// observations (r.kind).
+function assignObsNumbers(rows, data = transcriptData) {
+    const seenGenReq = new Set();
+    let n = 0;
+    for (const r of rows) {
+        const k = r.type || r.kind;
+        let counts = false;
+        if (k === 'request' || k === 'tool' || k === 'tool_call') {
+            counts = true;
+        } else if (k === 'generation') {
+            const m = data && data[r.idx];
+            const reqId = m && m.request_id;
+            if (reqId && seenGenReq.has(reqId)) counts = false;
+            else { counts = true; if (reqId) seenGenReq.add(reqId); }
+        }
+        r.obsNum = counts ? (++n) : null;
+    }
+    return n;
+}
+
 function renderExecutionTree() {
     const el = document.getElementById('execution-tree');
     if (!el) return;
-    const rows = buildExecutionRows();
+    const rows = buildExecutionRows(transcriptData, focusRange());
     if (!rows.length) {
         el.innerHTML = '';
         return;
     }
+    const obsTotal = assignObsNumbers(rows);
     el.innerHTML = `
         <div class="execution-head">
             <span>Execution flow</span>
-            <span>${rows.length} observations</span>
+            <span>${obsTotal} observations</span>
         </div>
         <div class="execution-list">
             ${rows.map(r => `<div class="execution-row level-${r.level}" style="--indent:${r.level}" data-msg-idx="${r.idx}">
+                <div class="execution-obs">${r.obsNum != null ? r.obsNum : ''}</div>
                 <div class="execution-title"><span class="execution-badge ${escapeHtml(r.type)}">${escapeHtml(r.type)}</span>${escapeHtml(r.title)}</div>
                 <div class="execution-meta">${escapeHtml(r.meta || '')}</div>
                 <div class="execution-meta">#${r.idx + 1}</div>
@@ -7205,10 +7738,108 @@ function renderExecutionTree() {
         </div>`;
 }
 
-function buildFullTraceRows() {
+// Observaciones (pasos) de un trace concreto para la fila desplegada de la tabla
+// "Traces": carga los mensajes de ese turno y reutiliza buildExecutionRows().
+async function loadTurnObservations(sessionId, turnNo) {
+    const sid = String(sessionId).replace(/'/g, "\\'");
+    const sql = `WITH base AS (
+    SELECT
+        parseDateTime64BestEffortOrNull(data.timestamp::String) AS ts,
+        data.uuid::String AS uuid,
+        data.type::String AS type,
+        data.requestId::String AS request_id,
+        data.message.role::String AS role,
+        data.message.model::String AS model,
+        data.isMeta::Bool AS is_meta,
+        data.isSidechain::Bool AS is_sidechain,
+        data.message.usage.input_tokens::UInt64 AS input_tokens,
+        data.message.usage.output_tokens::UInt64 AS output_tokens,
+        multiIf(
+            dynamicType(data.message.content) = 'String',
+            concat('[{"type":"text","text":', toJSONString(data.message.content::String), '}]'),
+            dynamicType(data.message.content) LIKE 'Array%',
+            toJSONString(data.message.content::Array(JSON)),
+            '[]'
+        ) AS content,
+        if(
+            data.type::String = 'user'
+            AND dynamicType(data.message.content) = 'String'
+            AND data.isMeta::Bool = false
+            AND NOT data.message.content::String LIKE 'Implement the following plan:%'
+            AND NOT data.message.content::String LIKE '[Request interrupted by user%'
+            AND NOT data.message.content::String LIKE '%This session is being continued from a previous conversation%'
+            AND NOT data.message.content::String LIKE '%<task-notification>%',
+            1, 0
+        ) AS is_turn_start
+    FROM claude_code.raw
+    WHERE data.sessionId::String = '${sid}'
+        AND path NOT LIKE '%history.jsonl'
+        AND data.type::String IN ('user', 'assistant')
+), marked AS (
+    SELECT *, sum(is_turn_start) OVER (ORDER BY ts, uuid ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS turn_no
+    FROM base
+)
+SELECT type, role, ts, model, content, input_tokens, output_tokens, is_meta, is_sidechain, request_id
+FROM marked WHERE turn_no = ${Number(turnNo)} ORDER BY ts, uuid`;
+    return await queryClickHouse(sql);
+}
+
+// Etiqueta legible del tipo de observación (la clase CSS sigue siendo el tipo crudo
+// para conservar el color del badge).
+function obsTypeLabel(type) {
+    return ({ request: 'Prompt', thinking: 'Thinking', tool: 'Tool', generation: 'Response', result: 'Result', system: 'System' })[type] || type;
+}
+
+// Pinta las observaciones de un trace dentro de su fila desplegada (lazy: solo la
+// primera vez). El contenedor lleva data-obs-session / data-obs-turn.
+async function renderTurnObservations(container) {
+    if (!container || container.dataset.loaded === '1' || container.dataset.loading === '1') return;
+    const sessionId = container.dataset.obsSession;
+    const turnNo = container.dataset.obsTurn;
+    if (!sessionId || !turnNo) return;
+    container.dataset.loading = '1';
+    container.innerHTML = `<div class="obs-head"><span>Observations</span><span class="muted">loading…</span></div>`;
+    try {
+        const msgs = await loadTurnObservations(sessionId, turnNo);
+        const rows = buildExecutionRows(msgs);
+        const obsTotal = assignObsNumbers(rows, msgs);
+        container.dataset.loaded = '1';
+        container.dataset.loading = '';
+        if (!rows.length) {
+            container.innerHTML = `<div class="obs-head"><span>Observations</span><span class="muted">none</span></div>`;
+            return;
+        }
+        container.innerHTML = `
+            <div class="obs-head"><span>Observations</span><span class="muted">${obsTotal} observations · ${rows.length} steps</span></div>
+            <div class="obs-list">
+                <div class="obs-row obs-row-head">
+                    <span class="obs-n">#</span>
+                    <span>Type</span>
+                    <span>Detail</span>
+                    <span class="obs-meta">Time</span>
+                </div>
+                ${rows.map((r) => {
+                    const m = msgs[r.idx];
+                    const time = m ? formatClock(m.ts) : '';
+                    return `<div class="obs-row level-${r.level}${r.obsNum == null ? ' obs-row-skip' : ''}" style="--indent:${r.level}">
+                    <span class="obs-n">${r.obsNum != null ? r.obsNum : ''}</span>
+                    <span class="execution-badge ${escapeHtml(r.type)}">${escapeHtml(obsTypeLabel(r.type))}</span>
+                    <span class="obs-title" title="${escapeHtml(r.title)}">${escapeHtml(r.title)}</span>
+                    <span class="obs-meta">${escapeHtml(time)}</span>
+                </div>`;
+                }).join('')}
+            </div>`;
+    } catch (e) {
+        container.dataset.loading = '';
+        container.innerHTML = `<div class="obs-head"><span>Observations</span><span class="muted">error: ${escapeHtml(e.message)}</span></div>`;
+    }
+}
+
+function buildFullTraceRows(range = null) {
     if (!transcriptData) return [];
     const rows = [];
     for (let i = 0; i < transcriptData.length; i++) {
+        if (!inFocus(i, range)) continue;
         const msg = transcriptData[i];
         const cl = classifyMessage(msg);
         if (cl.category === 'skip') continue;
@@ -7267,14 +7898,21 @@ function buildFullTraceRows() {
 function renderFullTraceTable() {
     const el = document.getElementById('trace-full-table');
     if (!el) return;
-    const rows = buildFullTraceRows();
+    const allRows = buildFullTraceRows(focusRange());
+    if (!allRows.length) {
+        el.innerHTML = '';
+        return;
+    }
+    // Solo las observaciones reales (modelo Langfuse): span/request, generation y tool.
+    assignObsNumbers(allRows);
+    const rows = allRows.filter(r => r.obsNum != null);
     if (!rows.length) {
         el.innerHTML = '';
         return;
     }
     el.innerHTML = `
         <div class="trace-index-head">
-            <span>Full trace table</span>
+            <span>All observations</span>
             <span>${rows.length} observations · click any row to jump</span>
         </div>
         <div class="trace-table-wrap" style="max-height:320px">
@@ -7286,15 +7924,15 @@ function renderFullTraceTable() {
                     </tr>
                 </thead>
                 <tbody>
-                    ${rows.map((r, n) => `<tr data-msg-idx="${r.idx}">
-                        <td class="trace-num">${n + 1}</td>
+                    ${rows.map((r) => `<tr data-msg-idx="${r.idx}">
+                        <td class="trace-num">${r.obsNum}</td>
                         <td>${escapeHtml(formatTime(r.ts))}</td>
                         <td><span class="execution-badge ${escapeHtml(r.kind === 'tool_call' ? 'tool' : r.kind === 'request' ? 'request' : r.kind)}">${escapeHtml(r.kind)}</span></td>
                         <td>${escapeHtml(r.model)}</td>
                         <td><div class="trace-tools" title="${escapeHtml(r.tool)}">${escapeHtml(r.tool || '-')}</div></td>
-                        <td class="trace-num">${formatNumber(r.input)}</td>
-                        <td class="trace-num">${formatNumber(r.output)}</td>
-                        <td class="trace-num">${formatNumber(r.cache)}</td>
+                        <td class="trace-num">${formatTokens(r.input)}</td>
+                        <td class="trace-num">${formatTokens(r.output)}</td>
+                        <td class="trace-num">${formatTokens(r.cache)}</td>
                         <td class="trace-num">${formatCost(r.cost)}</td>
                         <td><div class="trace-title" title="${escapeHtml(r.preview)}">${escapeHtml(r.preview || '-')}</div></td>
                     </tr>`).join('')}
@@ -7326,11 +7964,13 @@ function renderTraceMap() {
 
     const nodes = []; // {idx, kind, title, parent_uuid, uuid, ts, tool, tool_use_id}
     const turns = buildTurns();
+    const mapRange = focusRange();
     // map msg idx → turn idx
     const turnByIdx = new Map();
     turns.forEach(t => { for (let i = t.startIdx; i <= t.endIdx; i++) turnByIdx.set(i, t.idx); });
 
     for (let i = 0; i < transcriptData.length; i++) {
+        if (!inFocus(i, mapRange)) continue;
         const m = transcriptData[i];
         const cl = classifyMessage(m);
         if (cl.category === 'skip') continue;
@@ -7443,7 +8083,7 @@ function renderTraceMap() {
         const w = NODE_W + 12;
         const h = H - PAD_Y - 8;
         return `<rect class="trace-map-turn-band" x="${x}" y="${y}" width="${w}" height="${h}" rx="6"/>
-                <text class="trace-map-turn-label" x="${x + 6}" y="${y + 16}">Turn #${t}</text>`;
+                <text class="trace-map-turn-label" x="${x + 6}" y="${y + 16}">Trace #${t}</text>`;
     }).join('');
 
     const edgeSvg = edges.map(e => `<path class="trace-map-edge ${e.kind === 'tool-pair' ? 'tool-pair' : ''}" d="${bezier(e.from, e.to)}"></path>`).join('');
@@ -7471,7 +8111,7 @@ function renderTraceMap() {
 
     el.innerHTML = `
         <div class="trace-map-head">
-            <span><strong>🗺 Flow map</strong> · ${nodes.length} observations · ${turnIds.length} turns</span>
+            <span><strong>🗺 Flow map</strong> · ${nodes.length} observations · ${turnIds.length} traces</span>
             <span>Click a node to jump to the message in the conversation</span>
         </div>
         <div class="trace-map-canvas">
@@ -7701,11 +8341,26 @@ function chatToolObservation(turns, msgIdx, toolUseId) {
     const startMs = chatTsMs(msg.ts);
     const endMs = res && res.ts ? res.ts : startMs;
     return {
-        msg, turn: t, name: tb.name || 'tool', toolUseId, inputKeys, inputLen,
+        msg, turn: t, name: tb.name || 'tool', toolUseId, inputKeys, inputLen, input: tb.input,
         outLen: res ? res.len : 0, outLines: res ? res.lines : 0, isError: res ? res.isError : false,
         startMs, durMs: Math.max(0, (endMs || 0) - (startMs || 0)), ts: msg.ts, model: msg.model || '',
         parentTokens: { input: Number(msg.input_tokens) || 0, output: Number(msg.output_tokens) || 0, cacheRead: Number(msg.cache_read_tokens) || 0 },
     };
+}
+// Etiqueta estilo Langfuse para una herramienta: "Bash: <description>". Elige el
+// campo de entrada más descriptivo (description, file_path, pattern, command…).
+function chatToolDescriptor(name, input) {
+    let detail = '';
+    if (input && typeof input === 'object') {
+        detail = input.description || input.file_path || input.path || input.notebook_path
+            || input.pattern || input.query || input.url || input.command || input.prompt
+            || input.subagent_type || input.skill || '';
+        if (typeof detail !== 'string') detail = '';
+    } else if (typeof input === 'string') {
+        detail = input;
+    }
+    detail = detail.replace(/\s+/g, ' ').trim();
+    return detail ? `${name}: ${detail}` : (name || 'tool');
 }
 function chatHighlightSelection() {
     document.querySelectorAll('#chat-col .msg-row').forEach(r => r.classList.remove('selected'));
@@ -7722,10 +8377,15 @@ function chatHighlightSelection() {
 }
 function chatSelect(sel, opts) {
     chatSel = sel;
+    // Clic explícito del usuario en una tool o un turno = selección fijada: el
+    // scroll-spy deja de seguir al elemento centrado hasta que se elija otra cosa.
+    chatPinned = (sel.kind === 'tool' || sel.kind === 'turn');
     chatHighlightSelection();
     renderInvocationDetails();
     if (opts && opts.scroll) {
-        const r = document.querySelector(`#chat-col .msg-row[data-msg-idx="${sel.msgIdx}"]`);
+        let r = null;
+        if (sel.kind === 'tool' && sel.toolUseId) r = document.querySelector(`#chat-col .chat-tool[data-tool-use-id="${CSS.escape(sel.toolUseId)}"]`);
+        if (!r) r = document.querySelector(`#chat-col .msg-row[data-msg-idx="${sel.msgIdx}"]`);
         if (r) r.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 }
@@ -7739,21 +8399,39 @@ function chatScrollSpyHandler() {
         if (!chatSpyEnabled) return;
         const layout = document.getElementById('chat-layout');
         if (!layout || layout.classList.contains('hidden')) return;
-        if (chatSel.kind === 'tool' || chatSel.kind === 'turn') return; // selección fijada
-        const rows = document.querySelectorAll('#chat-col .msg-row[data-msg-idx]');
+        if (chatPinned) return; // selección fijada por el usuario (clic en tool/turn)
+        // Candidatos: burbujas de mensaje y tarjetas de tool, para que el panel
+        // refleje la observación concreta más centrada (incluida una tool), igual
+        // que si se hubiera hecho clic en ella.
+        const rows = document.querySelectorAll('#chat-col .msg-row[data-msg-idx], #chat-col .chat-tool[data-tool-use-id]');
         if (!rows.length) return;
         const mid = window.innerHeight / 2;
-        let best = null, bestDist = Infinity;
+        let best = null, bestDist = Infinity, lastVisible = null;
         for (const r of rows) {
             const rect = r.getBoundingClientRect();
+            if (rect.height === 0) continue; // fila oculta (modo foco de trace)
             if (rect.bottom < 0 || rect.top > window.innerHeight) continue;
+            lastVisible = r; // en orden DOM: el último candidato dentro del viewport
             const d = Math.abs(rect.top + rect.height / 2 - mid);
             if (d < bestDist) { bestDist = d; best = r; }
         }
+        // Al final de la página, las últimas observaciones nunca alcanzan el centro
+        // (no hay nada debajo que las empuje), así que el spy no las seleccionaría.
+        // Forzamos la selección del último elemento visible para que se vean sus datos.
+        const nearBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 6);
+        if (nearBottom && lastVisible) best = lastVisible;
         if (!best) return;
-        const msgIdx = Number(best.dataset.msgIdx);
-        if (chatSel.kind === 'message' && chatSel.msgIdx === msgIdx) return;
-        chatSel = { kind: 'message', msgIdx };
+        let nextSel;
+        if (best.classList.contains('chat-tool')) {
+            const toolUseId = best.dataset.toolUseId;
+            if (chatSel.kind === 'tool' && chatSel.toolUseId === toolUseId) return;
+            nextSel = { kind: 'tool', msgIdx: Number(best.dataset.msgIdx), toolUseId };
+        } else {
+            const msgIdx = Number(best.dataset.msgIdx);
+            if (chatSel.kind === 'message' && chatSel.msgIdx === msgIdx) return;
+            nextSel = { kind: 'message', msgIdx };
+        }
+        chatSel = nextSel;
         chatHighlightSelection();
         renderInvocationDetails();
     });
@@ -7763,16 +8441,31 @@ function chatScrollSpyHandler() {
 function chatResetDetails() {
     chatSelect({ kind: 'session' });
 }
-// Salta a la observación (mensaje) anterior/siguiente en el orden del stream.
+// Elementos-observación en orden de stream: burbujas de mensaje + tarjetas de tool.
+// Es la misma lista que sigue el scroll-spy, para que el contador "obs N/M" y la
+// navegación prev/next sean coherentes con lo que se muestra al hacer scroll.
+function chatObsElements() {
+    return [...document.querySelectorAll('#chat-col .msg-row[data-msg-idx], #chat-col .chat-tool[data-tool-use-id]')];
+}
+function chatSelFromEl(el) {
+    return el.classList.contains('chat-tool')
+        ? { kind: 'tool', msgIdx: Number(el.dataset.msgIdx), toolUseId: el.dataset.toolUseId }
+        : { kind: 'message', msgIdx: Number(el.dataset.msgIdx) };
+}
+function chatObsIndexOf(els) {
+    if (chatSel.kind === 'tool') return els.findIndex(el => el.classList.contains('chat-tool') && el.dataset.toolUseId === chatSel.toolUseId);
+    if (chatSel.kind === 'message') return els.findIndex(el => !el.classList.contains('chat-tool') && Number(el.dataset.msgIdx) === chatSel.msgIdx);
+    return -1;
+}
+// Salta a la observación (mensaje o tool) anterior/siguiente en el orden del stream.
 function chatNavObservation(dir) {
-    const rows = [...document.querySelectorAll('#chat-col .msg-row[data-msg-idx]')];
-    if (!rows.length) return;
-    const cur = (chatSel.kind === 'message' || chatSel.kind === 'tool') ? chatSel.msgIdx : null;
-    let pos = rows.findIndex(r => Number(r.dataset.msgIdx) === cur);
-    if (pos === -1) pos = dir > 0 ? -1 : rows.length;
+    const els = chatObsElements();
+    if (!els.length) return;
+    let pos = chatObsIndexOf(els);
+    if (pos === -1) pos = dir > 0 ? -1 : els.length;
     const next = pos + dir;
-    if (next < 0 || next >= rows.length) return;
-    chatSelect({ kind: 'message', msgIdx: Number(rows[next].dataset.msgIdx) }, { scroll: true });
+    if (next < 0 || next >= els.length) return;
+    chatSelect(chatSelFromEl(els[next]), { scroll: true });
 }
 let chatEventsBound = false;
 function chatBindEvents() {
@@ -7781,6 +8474,16 @@ function chatBindEvents() {
     const col = document.getElementById('chat-col');
     const det = document.getElementById('chat-details');
     if (col) col.addEventListener('click', e => {
+        const showAll = e.target.closest('.chat-focus-show-all');
+        if (showAll) {
+            chatFocusTurn = null;
+            // Re-render completo sin foco: cabecera, métricas, chat, session-cards y
+            // secciones de overview vuelven a reflejar la sesión entera.
+            renderTranscriptMeta(chatActiveSessionId);
+            renderTranscript();
+            if (chatActiveSessionId) history.replaceState(null, '', '#session/' + chatActiveSessionId);
+            return;
+        }
         const more = e.target.closest('.msg-readmore');
         if (more) {
             e.stopPropagation();
@@ -7834,6 +8537,8 @@ function chatBindEvents() {
         const nav = e.target.closest('.cd-nav-prev, .cd-nav-next');
         if (nav) { if (!nav.disabled) chatNavObservation(nav.classList.contains('cd-nav-prev') ? -1 : 1); return; }
         if (e.target.closest('.cd-back')) { if (chatBackSel) chatSelect(chatBackSel); return; }
+        const modeT = e.target.closest('.cd-mode-toggle');
+        if (modeT) { chatDetailsEnhanced = !chatDetailsEnhanced; try { localStorage.setItem('ccpanel-obs-enhanced', chatDetailsEnhanced ? '1' : '0'); } catch (err) {} renderInvocationDetails(); return; }
         const spy = e.target.closest('.cd-spy-toggle');
         if (spy) { chatSpyEnabled = !chatSpyEnabled; renderInvocationDetails(); return; }
         if (e.target.closest('.cd-refresh')) { renderInvocationDetails(); return; }
@@ -7849,7 +8554,7 @@ function chatBindEvents() {
 function renderInvocationDetails() {
     const panel = document.getElementById('chat-details');
     if (!panel) return;
-    if (!transcriptData || !transcriptData.length) { panel.innerHTML = '<div class="cd-empty">No invocation data.</div>'; return; }
+    if (!transcriptData || !transcriptData.length) { panel.innerHTML = '<div class="cd-empty">No trace data.</div>'; return; }
     const sessionId = chatActiveSessionId || (transcriptData[0] && transcriptData[0].sid) || '';
     const turns = buildTurns();
     const session = sessions.find(s => s.session_id === sessionId);
@@ -7869,29 +8574,31 @@ function renderInvocationDetails() {
         const ws = t ? (chatTsMs(t.started) || o.startMs) : o.startMs;
         const we = Math.max(t ? (chatTsMs(t.ended) || ws) : ws, (o.startMs || 0) + o.durMs);
         v.kindChip = 'tool'; v.kindCls = 'tool'; v.ipTitle = o.name;
-        v.chips = [o.name, formatTime(o.ts), t ? ('turn #' + t.idx) : ''];
+        v.obsTitle = chatToolDescriptor(o.name, o.input);
+        v.chips = [o.name, formatTime(o.ts), t ? ('trace #' + t.idx) : ''];
         v.metrics = [
             ['cost', '≡', 'Lines', formatNumber(o.outLines)],
-            ['tot', '∑', 'Total', formatNumber((o.parentTokens.input || 0) + (o.parentTokens.output || 0) + (o.parentTokens.cacheRead || 0))],
+            ['tot', '∑', 'Total', formatTokens((o.parentTokens.input || 0) + (o.parentTokens.output || 0) + (o.parentTokens.cacheRead || 0))],
             ['in', '↓', 'Input', formatNumber(o.inputLen)],
             ['out', '↑', 'Output', formatNumber(o.outLen)],
+            ['cache', '⇊', 'Cache', formatTokens((o.parentTokens.cacheRead || 0) + (o.parentTokens.cacheCreate || 0))],
             ['dur', '⏱', 'Duration', chatDur(o.durMs)],
         ];
         v.winStart = ws; v.winEnd = Math.max(we, ws + 1);
         v.ganttRows = [];
-        if (t) v.ganttRows.push({ label: `#${t.idx} ${shortModel(o.model) || 'turn'}`, startMs: ws, durMs: (we - ws), color: '#cbd5e1', turnIdx: t.idx });
+        if (t) v.ganttRows.push({ label: `#${t.idx} ${shortModel(o.model) || 'trace'}`, startMs: ws, durMs: (we - ws), color: '#cbd5e1', turnIdx: t.idx });
         v.ganttRows.push({ label: o.name, startMs: o.startMs, durMs: o.durMs, color: o.isError ? '#dc2626' : '#e82a6b' });
         v.metaRows = [
             ['🔧', 'Tool', o.name, 'accent'],
             ['#', 'tool_use_id', o.toolUseId || '-', 'mono'],
-            ['≡', 'Turn', t ? ('#' + t.idx) : '-', ''],
+            ['≡', 'Trace', t ? ('#' + t.idx) : '-', ''],
             ['◷', 'Time', formatTime(o.ts), ''],
             ['⏱', 'Duration', chatDur(o.durMs), ''],
             ['⬇', 'Input', (o.inputKeys.length ? o.inputKeys.length + ' keys · ' : '') + formatNumber(o.inputLen) + ' chars', ''],
             ['⬆', 'Output', formatNumber(o.outLen) + ' chars · ' + formatNumber(o.outLines) + ' lines', ''],
             ['⚠', 'Error', o.isError ? 'true' : 'false', o.isError ? 'accent' : ''],
             ['✦', 'Model (req)', shortModel(o.model) || '-', ''],
-            ['∑', 'Tokens (req)', `↓${formatNumber(o.parentTokens.input)} ↑${formatNumber(o.parentTokens.output)} ⇊${formatNumber(o.parentTokens.cacheRead)}`, ''],
+            ['∑', 'Tokens (req)', `↓${formatTokens(o.parentTokens.input)} ↑${formatTokens(o.parentTokens.output)} ⇊${formatTokens(o.parentTokens.cacheRead)}`, ''],
         ];
         v.jsonObj = { kind: 'tool', name: o.name, tool_use_id: o.toolUseId, turn: t ? t.idx : null, time: o.ts, duration: chatDur(o.durMs), input_keys: o.inputKeys, input_chars: o.inputLen, output_chars: o.outLen, output_lines: o.outLines, is_error: o.isError, request_model: shortModel(o.model), request_tokens: o.parentTokens };
         chatBackSel = t ? { kind: 'turn', turnIdx: t.idx } : { kind: 'session' };
@@ -7899,13 +8606,21 @@ function renderInvocationDetails() {
         const o = chatMessageObservation(turns, sel.msgIdx);
         const t = o.turn;
         v.kindChip = 'observation'; v.kindCls = 'obs'; v.ipTitle = o.role + ' message';
-        v.chips = [o.role, formatTime(o.ts), t ? ('turn #' + t.idx) : ''];
+        {
+            const isAsst = o.msg.type === 'assistant';
+            let prev = '';
+            for (const b of o.cl.blocks) { if (b.type === 'text' && b.text) { prev = b.text; break; } }
+            prev = prev.replace(/\s+/g, ' ').trim().slice(0, 60);
+            const base = isAsst ? 'Claude Response' : (o.role + ' message');
+            v.obsTitle = prev ? `${base}: ${prev}` : base;
+        }
+        v.chips = [o.role, formatTime(o.ts), t ? ('trace #' + t.idx) : ''];
         v.metrics = [
             ['cost', '$', 'Cost', formatCost(turnCost(o.tokens, o.model))],
-            ['tot', '∑', 'Total', formatNumber((o.tokens.input || 0) + (o.tokens.output || 0) + (o.tokens.cacheRead || 0) + (o.tokens.cacheCreate || 0))],
-            ['in', '↓', 'Input', formatNumber(o.tokens.input)],
-            ['out', '↑', 'Output', formatNumber(o.tokens.output)],
-            ['dur', '⇊', 'Cache R', formatNumber(o.tokens.cacheRead)],
+            ['tot', '∑', 'Total', formatTokens((o.tokens.input || 0) + (o.tokens.output || 0) + (o.tokens.cacheRead || 0) + (o.tokens.cacheCreate || 0))],
+            ['in', '↓', 'Input', formatTokens(o.tokens.input)],
+            ['out', '↑', 'Output', formatTokens(o.tokens.output)],
+            ['cache', '⇊', 'Cache', formatTokens((o.tokens.cacheRead || 0) + (o.tokens.cacheCreate || 0))],
         ];
         // En vez de gantt, un desglose del contenido del mensaje.
         v.sectionTitle = 'Content';
@@ -7917,10 +8632,10 @@ function renderInvocationDetails() {
         </div>`;
         v.metaRows = [
             ['◆', 'Type', o.category, ''],
-            ['≡', 'Turn', t ? ('#' + t.idx) : '-', ''],
+            ['≡', 'Trace', t ? ('#' + t.idx) : '-', ''],
             ['◷', 'Time', formatTime(o.ts), ''],
             ['✦', 'Model', shortModel(o.model) || '-', ''],
-            ['∑', 'Tokens', `↓${formatNumber(o.tokens.input)} ↑${formatNumber(o.tokens.output)} ⇊${formatNumber(o.tokens.cacheRead)} ⇈${formatNumber(o.tokens.cacheCreate)}`, ''],
+            ['∑', 'Tokens', `↓${formatTokens(o.tokens.input)} ↑${formatTokens(o.tokens.output)} ⇊${formatTokens(o.tokens.cacheRead)} ⇈${formatTokens(o.tokens.cacheCreate)}`, ''],
             ['🧩', 'Blocks', `${o.nText} text · ${o.nThink} thinking · ${o.nTool} tools`, ''],
             ['↔', 'Text len', formatNumber(o.textLen) + ' chars', ''],
         ];
@@ -7936,30 +8651,31 @@ function renderInvocationDetails() {
         v.winStart = startMs || 0;
         v.winEnd = Math.max(spanEnd, (startMs || 0) + 1);
         const tok = turn.tokens;
-        v.kindChip = 'invocation'; v.kindCls = ''; v.ipTitle = 'Invocation';
-        v.ganttRows = [{ label: `#${turn.idx} · ${shortModel(turn.model) || 'invocation'}`, startMs: v.winStart, durMs: v.winEnd - v.winStart, color: '#e82a6b' }]
+        v.kindChip = 'trace'; v.kindCls = ''; v.ipTitle = 'Trace';
+        v.ganttRows = [{ label: `#${turn.idx} · ${shortModel(turn.model) || 'trace'}`, startMs: v.winStart, durMs: v.winEnd - v.winStart, color: '#e82a6b' }]
             .concat(spans.map((s, i) => ({ label: s.name, startMs: s.startMs, durMs: s.durMs, color: s.isError ? '#dc2626' : chatPalette(i + 1), tool: { msgIdx: s.msgIdx, toolUseId: s.toolUseId } })));
         v.chips = [`${spans.length} ${spans.length === 1 ? 'call' : 'calls'}`, formatTime(turn.started), sessionId.slice(0, 8) + '… #' + turn.idx];
         v.metrics = [
             ['cost', '$', 'Cost', formatCost(turnCost(tok, turn.model))],
-            ['tot', '∑', 'Total', formatNumber((tok.input || 0) + (tok.output || 0) + (tok.cacheRead || 0) + (tok.cacheCreate || 0))],
-            ['in', '↓', 'Input', formatNumber(tok.input)],
-            ['out', '↑', 'Output', formatNumber(tok.output)],
+            ['tot', '∑', 'Total', formatTokens((tok.input || 0) + (tok.output || 0) + (tok.cacheRead || 0) + (tok.cacheCreate || 0))],
+            ['in', '↓', 'Input', formatTokens(tok.input)],
+            ['out', '↑', 'Output', formatTokens(tok.output)],
+            ['cache', '⇊', 'Cache', formatTokens((tok.cacheRead || 0) + (tok.cacheCreate || 0))],
             ['dur', '⏱', 'Duration', chatDur(v.winEnd - v.winStart)],
         ];
         const toolNames = [...turn.tools.entries()].map(([n, c]) => `${n}${c > 1 ? '×' + c : ''}`).join(', ');
         v.metaRows = [
-            ['#', 'Trace ID', sessionId, 'mono'],
-            ['#', 'Invocation', '#' + turn.idx, 'accent'],
+            ['#', 'Session ID', sessionId, 'mono'],
+            ['#', 'Trace', '#' + turn.idx, 'accent'],
             ['◷', 'Start time', formatTime(turn.started), ''],
             ['◷', 'Finish time', formatTime(turn.ended), ''],
             ['⏱', 'Duration', chatDur(v.winEnd - v.winStart), ''],
-            ['◆', 'Span Kind', 'invocation', ''],
+            ['◆', 'Span Kind', 'trace', ''],
             ['✦', 'Model', shortModel(turn.model) || '-', ''],
-            ['∑', 'Tokens', `↓${formatNumber(tok.input)} ↑${formatNumber(tok.output)} ⇊${formatNumber(tok.cacheRead)}`, ''],
+            ['∑', 'Tokens', `↓${formatTokens(tok.input)} ↑${formatTokens(tok.output)} ⇊${formatTokens(tok.cacheRead)}`, ''],
             ['🔧', 'Tools', toolNames || '-', ''],
         ];
-        v.jsonObj = { kind: 'invocation', invocation: turn.idx, trace_id: sessionId, model: shortModel(turn.model), started: turn.started, ended: turn.ended, duration: chatDur(v.winEnd - v.winStart), cost: turnCost(tok, turn.model), tokens: tok, tools: Object.fromEntries(turn.tools), spans: spans.map(s => ({ name: s.name, duration: chatDur(s.durMs), error: s.isError })) };
+        v.jsonObj = { kind: 'trace', trace: turn.idx, session_id: sessionId, model: shortModel(turn.model), started: turn.started, ended: turn.ended, duration: chatDur(v.winEnd - v.winStart), cost: turnCost(tok, turn.model), tokens: tok, tools: Object.fromEntries(turn.tools), spans: spans.map(s => ({ name: s.name, duration: chatDur(s.durMs), error: s.isError })) };
         chatBackSel = { kind: 'session' };
     } else {
         const starts = turns.map(t => chatTsMs(t.started)).filter(x => x != null);
@@ -7977,13 +8693,14 @@ function renderInvocationDetails() {
         v.chips = [`${turns.length} ${turns.length === 1 ? 'trace' : 'traces'}`, formatTime(turns.length ? turns[0].started : (session && session.started)), sessionId.slice(0, 12) + '…'];
         v.metrics = [
             ['cost', '$', 'Cost', formatCost(totals.cost)],
-            ['tot', '∑', 'Total', formatNumber(totals.total)],
-            ['in', '↓', 'Input', formatNumber(totals.input)],
-            ['out', '↑', 'Output', formatNumber(totals.output)],
+            ['tot', '∑', 'Total', formatTokens(totals.total)],
+            ['in', '↓', 'Input', formatTokens(totals.input)],
+            ['out', '↑', 'Output', formatTokens(totals.output)],
+            ['cache', '⇊', 'Cache', formatTokens((totals.cacheRead || 0) + (totals.cacheCreate || 0))],
             ['dur', '⏱', 'Duration', chatDur(v.winEnd - v.winStart)],
         ];
         v.metaRows = [
-            ['#', 'Trace ID', sessionId, 'mono'],
+            ['#', 'Session ID', sessionId, 'mono'],
             ['◷', 'Start time', formatTime(turns.length ? turns[0].started : (session && session.started)), ''],
             ['◷', 'Finish time', formatTime(turns.length ? turns[turns.length - 1].ended : ''), ''],
             ['⏱', 'Duration', chatDur(v.winEnd - v.winStart), ''],
@@ -8001,22 +8718,28 @@ function renderInvocationDetails() {
     let headerTurn = null;
     if (sel.kind === 'turn') headerTurn = turns.find(t => t.idx === sel.turnIdx);
     else if (sel.kind === 'message' || sel.kind === 'tool') headerTurn = chatTurnOf(turns, sel.msgIdx);
-    const kindGlyph = v.kindChip === 'session' ? '≡' : v.kindChip === 'invocation' ? '✦' : v.kindChip === 'tool' ? '🔧' : '◉';
+    const kindGlyph = v.kindChip === 'session' ? '≡' : v.kindChip === 'trace' ? '✦' : v.kindChip === 'tool' ? '🔧' : '◉';
     const kindChipHtml = `<span class="cd-kind ${v.kindCls}">${kindGlyph} ${v.kindChip}</span>`;
     let titleHtml;
     if (headerTurn) {
-        const full = (headerTurn.prompt || '').replace(/\s+/g, ' ').trim();
-        const preview = full.slice(0, 70);
-        const previewHtml = full ? ` <span class="cd-turn-sep">-</span> <span class="cd-turn-preview" title="${escapeHtml(full)}">${escapeHtml(preview)}${full.length > 70 ? '…' : ''}</span>` : '';
-        titleHtml = `Details of: <b class="cd-turn-no">Turn #${headerTurn.idx}</b>${previewHtml} ${kindChipHtml}`;
+        const turnNo = `<b class="cd-turn-no">Trace #${headerTurn.idx}</b>`;
+        let detailHtml;
+        if (chatDetailsEnhanced && v.obsTitle) {
+            // Vista mejorada: tras el turno, la observación concreta (estilo Langfuse).
+            detailHtml = ` <span class="cd-turn-sep">·</span> <span class="cd-obs-label" title="${escapeHtml(v.obsTitle)}">${escapeHtml(v.obsTitle)}</span>`;
+        } else {
+            const full = (headerTurn.prompt || '').replace(/\s+/g, ' ').trim();
+            const preview = full.slice(0, 70);
+            detailHtml = full ? ` <span class="cd-turn-sep">-</span> <span class="cd-turn-preview" title="${escapeHtml(full)}">${escapeHtml(preview)}${full.length > 70 ? '…' : ''}</span>` : '';
+        }
+        titleHtml = `Details of: ${turnNo}${detailHtml} ${kindChipHtml}`;
     } else {
         titleHtml = `Details of: ${kindChipHtml}`;
     }
     // Navegación a la observación anterior / siguiente (sobre el orden del stream).
-    const obsRows = [...document.querySelectorAll('#chat-col .msg-row[data-msg-idx]')];
+    const obsRows = chatObsElements();
     const obsTotal = obsRows.length;
-    let obsPos = -1;
-    if (sel.kind === 'message' || sel.kind === 'tool') obsPos = obsRows.findIndex(r => Number(r.dataset.msgIdx) === sel.msgIdx);
+    const obsPos = (sel.kind === 'message' || sel.kind === 'tool') ? chatObsIndexOf(obsRows) : -1;
     const navPrevOff = obsTotal === 0 || obsPos === 0;
     const navNextOff = obsTotal === 0 || (obsPos >= 0 && obsPos >= obsTotal - 1);
     const navHtml = `<div class="cd-nav">
@@ -8031,11 +8754,14 @@ function renderInvocationDetails() {
         ? `<div class="inv-json">${escapeHtml(JSON.stringify(v.jsonObj, null, 2))}</div>`
         : `<div class="inv-badge">Claude Code · transcript</div><div class="inv-meta">${v.metaRows.map(([ic, k, val, cls]) => chatMetaRow(ic, k, val, cls)).join('')}</div>`;
 
+    const modeToggleHtml = `<button type="button" class="cd-refresh cd-mode-toggle${chatDetailsEnhanced ? ' on' : ''}" title="${chatDetailsEnhanced ? 'Vista observación: NUEVA (clic para volver a la clásica)' : 'Vista observación: CLÁSICA (clic para probar la nueva)'}">${chatDetailsEnhanced ? '✨' : '▢'}</button>`;
+
     panel.innerHTML = `
         <div class="cd-head${hasBack ? ' has-back' : ''}">
             <button type="button" class="cd-back" title="Up one level">←</button>
             <span class="cd-title">${titleHtml}</span>
             <button type="button" class="cd-spy-toggle cd-refresh" title="${chatSpyEnabled ? 'Seguir scroll: ON' : 'Seguir scroll: OFF'}">${chatSpyEnabled ? '🧲' : '📌'}</button>
+            ${modeToggleHtml}
             <button type="button" class="cd-refresh" title="Refrescar">⟳</button>
         </div>
         <div class="cd-scroll">
@@ -8095,9 +8821,9 @@ function renderTranscript() {
         const cacheRead = Number(msg.cache_read_tokens) || 0;
         if (inTok || outTok) {
             const t = [];
-            if (inTok) t.push(`\u2193${formatNumber(inTok)}`);
-            if (cacheRead) t.push(`\u21CA${formatNumber(cacheRead)}`);
-            if (outTok) t.push(`\u2191${formatNumber(outTok)}`);
+            if (inTok) t.push(`\u2193${formatTokens(inTok)}`);
+            if (cacheRead) t.push(`\u21CA${formatTokens(cacheRead)}`);
+            if (outTok) t.push(`\u2191${formatTokens(outTok)}`);
             parts.push(`<span class="meta-tokens">${t.join(' ')}</span>`);
         }
         if (msg.ts) parts.push(`<span class="meta-time">${formatTime(msg.ts)}</span>`);
@@ -8140,7 +8866,7 @@ function renderTranscript() {
     }
     const renderedToolUseIds = new Set();
 
-    function renderToolStep(toolUse, resultEntry, allowResult, collapsed) {
+    function renderToolStep(toolUse, resultEntry, allowResult, collapsed, nested) {
         const openAttr = collapsed ? '' : ' open';
         const toolName = toolUse.name || 'tool';
         const toolId = toolUse.id ? String(toolUse.id) : '';
@@ -8248,15 +8974,30 @@ function renderTranscript() {
                 </div>
             </details>`;
 
-        return `<div class="tool-step v2" data-tool-name="${escapeHtml(toolName)}">
+        // Anidado dentro de una tarjeta .chat-tool (que ya aporta caja + cabecera
+        // con el nombre): se aplana y se omite el ts-head para no duplicar caja ni
+        // título. La fila de "Collapse/Expand all" se conserva en la jumpbar.
+        const headHtml = nested ? '' : `
             <div class="ts-head">
                 <span class="ts-head-icon">🔧</span>
                 <span class="ts-head-tool">${escapeHtml(toolName)}</span>
                 <span class="ts-head-type" title="Block type">tool_use</span>
                 ${toolIdShort ? `<span class="ts-head-id" title="${escapeHtml(toolId)}">${escapeHtml(toolIdShort)}</span>` : ''}
                 <button type="button" class="ts-toggle-all" data-ts-toggle="${collapsed ? 'expand' : 'collapse'}" title="Collapse / expand Input · Output · Metadata">${collapsed ? '▸ Expand all' : '▾ Collapse all'}</button>
-            </div>
-            ${jumpHtml}
+            </div>`;
+        const nestedToggle = nested ? `<button type="button" class="ts-jumpbar-toggle ts-toggle-all" data-ts-toggle="${collapsed ? 'expand' : 'collapse'}" title="Collapse / expand Input · Output · Metadata">${collapsed ? '▸ Expand all' : '▾ Collapse all'}</button>` : '';
+        const jumpHtmlFinal = nested
+            ? `<div class="ts-jumpbar">
+                <span class="ts-jumpbar-label">Jump to</span>
+                <a href="#${inputAnchorId}" class="ts-jumpbar-link in">Input</a>
+                ${outputBody ? `<a href="#${outputAnchorId}" class="ts-jumpbar-link out">Output</a>` : ''}
+                <a href="javascript:void(0)" class="ts-jumpbar-link meta" data-ts-meta-open="1">Metadata</a>
+                ${nestedToggle}
+            </div>`
+            : jumpHtml;
+        return `<div class="tool-step v2${nested ? ' nested' : ''}" data-tool-name="${escapeHtml(toolName)}">
+            ${headHtml}
+            ${jumpHtmlFinal}
             ${inputSection}
             ${outputSection}
             ${metadataSection}
@@ -8278,16 +9019,16 @@ function renderTranscript() {
         html.push(`<section class="turn-group" data-turn-no="${t.idx}">
             <header class="turn-group-header">
                 <div class="turn-head-top">
-                    <button type="button" class="turn-toggle" data-turn-toggle title="Collapse / expand this turn">\u25BE</button>
-                    <span class="turn-no" title="Turn number within the session">#${t.idx}</span>
+                    <button type="button" class="turn-toggle" data-turn-toggle title="Collapse / expand this trace">\u25BE</button>
+                    <span class="turn-no" title="Trace number within the session">#${t.idx}</span>
                     <span class="turn-head-time" title="Prompt time">${escapeHtml(formatTime(t.started))}</span>
-                    ${wallMs ? `<span class="turn-head-dur" title="Turn wall-clock duration">${formatMs(wallMs)}</span>` : ''}
+                    ${wallMs ? `<span class="turn-head-dur" title="Trace wall-clock duration">${formatMs(wallMs)}</span>` : ''}
                     <span class="turn-head-model" title="Modelo usado">${escapeHtml(shortModel(t.model) || '')}</span>
-                    <span class="turn-head-stat" title="Turn total tokens: input+output+cache">\u2211 ${formatNumber(tokens)} tok</span>
-                    <span class="turn-head-cost" title="Turn billable cost">${formatCost(costVal)}</span>
+                    <span class="turn-head-stat" title="Trace total tokens: input+output+cache">\u2211 ${formatTokens(tokens)} tok</span>
+                    <span class="turn-head-cost" title="Trace billable cost">${formatCost(costVal)}</span>
                 </div>
                 <div class="turn-head-prompt" title="${escapeHtml(t.prompt)}">${escapeHtml(promptPreview)}</div>
-                ${toolBadges ? `<div class="turn-head-tools" title="Tools used in this turn">${toolBadges}</div>` : ''}
+                ${toolBadges ? `<div class="turn-head-tools" title="Tools used in this trace">${toolBadges}</div>` : ''}
             </header>
             <div class="turn-group-body">`);
         turnOpen = true;
@@ -8322,14 +9063,25 @@ function renderTranscript() {
         const turns = buildTurns();
         const idxToTurn = new Map();
         for (const t of turns) for (let i = t.startIdx; i <= t.endIdx; i++) idxToTurn.set(i, t.idx);
-        const totals = chatTotals(sessionId, turns);
+        // En modo foco la cabecera resume SOLO ese trace; en sesión completa, toda la sesión.
+        const headTurn = chatFocusTurn != null ? turns.find(t => t.idx === chatFocusTurn) : null;
+        let totals, headTitle;
+        if (headTurn) {
+            const tk = headTurn.tokens;
+            totals = { cost: turnCost(tk, headTurn.model), input: tk.input, output: tk.output, models: headTurn.model ? 1 : 0, modelName: shortModel(headTurn.model) };
+            const prev = String(headTurn.prompt || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+            headTitle = `Trace #${headTurn.idx}${prev ? ' · ' + prev : ''}`;
+        } else {
+            totals = chatTotals(sessionId, turns);
+            headTitle = chatSessionTitle(sessionId);
+        }
 
         const headHtml = `<div class="chat-head-card">
-            <div class="chat-head-title">${escapeHtml(chatSessionTitle(sessionId))}</div>
+            <div class="chat-head-title">${escapeHtml(headTitle)}</div>
             <div class="chat-head-metrics">
                 <span class="chat-metric cost"><span class="cm-ic">$</span><span class="cm-lab">Cost</span><span class="cm-val">${formatCost(totals.cost)}</span></span>
-                <span class="chat-metric in"><span class="cm-ic">↓</span><span class="cm-lab">Input</span><span class="cm-val">${formatNumber(totals.input)} tokens</span></span>
-                <span class="chat-metric out"><span class="cm-ic">↑</span><span class="cm-lab">Output</span><span class="cm-val">${formatNumber(totals.output)} tokens</span></span>
+                <span class="chat-metric in"><span class="cm-ic">↓</span><span class="cm-lab">Input</span><span class="cm-val">${formatTokens(totals.input)} tokens</span></span>
+                <span class="chat-metric out"><span class="cm-ic">↑</span><span class="cm-lab">Output</span><span class="cm-val">${formatTokens(totals.output)} tokens</span></span>
                 ${totals.models > 1 ? `<span class="chat-metric models">${totals.models} models used</span>` : (totals.modelName ? `<span class="chat-metric models">${escapeHtml(totals.modelName)}</span>` : '')}
             </div>
         </div>`;
@@ -8346,19 +9098,29 @@ function renderTranscript() {
             if (msg.type === 'assistant') {
                 let bodyMd = '';
                 const extras = [];
+                let hasThinking = false, hasTool = false;
                 for (const b of cl.blocks) {
                     if (b.type === 'thinking' && b.thinking && b.thinking.trim()) {
+                        hasThinking = true;
                         extras.push(`<details class="chat-tool thinking"><summary><span class="ct-ic">💭</span><span class="ct-name">Thinking</span><span class="ct-count">${formatNumber(b.thinking.length)} chars</span></summary><div class="chat-tool-body"><div class="chat-tool-think-text">${escapeHtml(b.thinking)}</div></div></details>`);
                     } else if (b.type === 'text' && b.text && b.text.trim()) {
                         bodyMd += renderMd(b.text);
                     } else if (b.type === 'tool_use') {
+                        hasTool = true;
                         const useId = b.id;
                         const resultEntry = useId ? toolResultByUseId.get(useId) : null;
-                        const step = renderToolStep(b, resultEntry, true, true);
+                        const step = renderToolStep(b, resultEntry, true, true, true);
                         extras.push(`<details class="chat-tool" open data-msg-idx="${mi}" data-tool-use-id="${escapeHtml(useId || '')}" data-tool-name="${escapeHtml(b.name || 'tool')}"><summary><span class="ct-ic">🔧</span><span class="ct-name">${escapeHtml(b.name || 'tool')}</span><span class="ct-count">1 call</span></summary><div class="chat-tool-body">${step}</div></details>`);
                     }
                 }
                 if (!bodyMd && !extras.length) continue;
+                // Mensaje del asistente que es SOLO llamada(s) a herramienta (sin texto
+                // ni thinking propios): se muestran las tarjetas de tool sueltas, sin el
+                // bubble "Assistant" vacío, que sería una caja redundante.
+                if (!bodyMd && !hasThinking && hasTool) {
+                    parts.push(`<div class="chat-tools standalone" data-msg-idx="${mi}" data-turn="${turnIdx}">${extras.join('')}</div>`);
+                    continue;
+                }
                 const inner = (bodyMd ? chatClampWrap(bodyMd) : '') + (extras.length ? `<div class="chat-tools">${extras.join('')}</div>` : '');
                 parts.push(chatBubble('left', 'bot', 'Assistant', msg.ts, turnIdx, mi, inner));
                 continue;
@@ -8510,6 +9272,40 @@ function renderTranscript() {
     // Re-apply transcript search if active
     const searchQuery = document.getElementById('transcript-search-input').value.trim();
     if (searchQuery.length >= 2) doTranscriptSearch(searchQuery);
+
+    applyChatTraceFocus();
+}
+
+// Compara el «started» de un turno (string de fecha de ClickHouse) de forma tolerante:
+// exacto o, si falla, a nivel de segundo (por si difieren los milisegundos).
+function sameTurnStart(a, b) {
+    if (a == null || b == null) return false;
+    a = String(a); b = String(b);
+    if (a === b) return true;
+    return a.slice(0, 19) === b.slice(0, 19);
+}
+
+// Modo «foco de trace»: en la Conversación deja visible solo el turno chatFocusTurn
+// y añade una cinta para volver a la sesión completa. Sin foco, lo muestra todo.
+function applyChatTraceFocus() {
+    const col = document.getElementById('chat-col');
+    if (!col) return;
+    const old = col.querySelector('.chat-focus-banner');
+    if (old) old.remove();
+    const rows = col.querySelectorAll('.chat-stream > [data-turn]');
+    if (chatFocusTurn == null) {
+        rows.forEach(r => { r.style.display = ''; });
+        return;
+    }
+    rows.forEach(r => {
+        r.style.display = (String(r.dataset.turn) === String(chatFocusTurn)) ? '' : 'none';
+    });
+    const banner = document.createElement('div');
+    banner.className = 'chat-focus-banner';
+    banner.innerHTML = `<span>Showing <b>Trace #${chatFocusTurn}</b> only</span>` +
+        `<button type="button" class="chat-focus-show-all">Show full session</button>`;
+    const stream = col.querySelector('.chat-stream');
+    if (stream) col.insertBefore(banner, stream); else col.appendChild(banner);
 }
 
 function updateStickyOffset() {
@@ -8760,9 +9556,9 @@ function openTimelineModal(node) {
     const meta = [];
     if (node.meta) meta.push(node.meta);
     if (node.model) meta.push(node.model);
-    if (msg.input_tokens || msg.output_tokens) meta.push(`in ${formatNumber(msg.input_tokens)} · out ${formatNumber(msg.output_tokens)}`);
+    if (msg.input_tokens || msg.output_tokens) meta.push(`in ${formatTokens(msg.input_tokens)} · out ${formatTokens(msg.output_tokens)}`);
     if (msg.cache_read_tokens || msg.cache_creation_tokens) {
-        meta.push(`cache ${formatNumber((Number(msg.cache_read_tokens) || 0) + (Number(msg.cache_creation_tokens) || 0))}`);
+        meta.push(`cache ${formatTokens((Number(msg.cache_read_tokens) || 0) + (Number(msg.cache_creation_tokens) || 0))}`);
     }
     document.getElementById('timeline-modal-meta').innerHTML = meta.map(m => `<span>${escapeHtml(String(m))}</span>`).join('');
     document.getElementById('timeline-modal-preview').textContent = node.preview || '(no preview)';
@@ -9099,7 +9895,7 @@ function updateScrollMetrics() {
     metricsEl.innerHTML =
         `<span>\u23F1 <span class="val">${formatDuration(m.elapsed)}</span></span>` +
         `<span class="val">${formatCost(cost)}</span>` +
-        `<span>\u2193<span class="val">${formatNumber(m.inTok)}</span> \u2191<span class="val">${formatNumber(m.outTok)}</span> \u21CA<span class="val">${formatNumber(m.cacheRead)}</span> \u21C8<span class="val">${formatNumber(m.cacheCreate)}</span></span>` +
+        `<span>\u2193<span class="val">${formatTokens(m.inTok)}</span> \u2191<span class="val">${formatTokens(m.outTok)}</span> \u21CA<span class="val">${formatTokens(m.cacheRead)}</span> \u21C8<span class="val">${formatTokens(m.cacheCreate)}</span></span>` +
         `<span>User <span class="val">${m.userPrompts}</span></span>` +
         `<span>Agent <span class="val">${m.assistantMsgs}</span></span>` +
         `<span>Thoughts <span class="val">${m.thoughts}</span></span>` +
@@ -9141,12 +9937,16 @@ function handleRoute() {
 
     const header = document.querySelector('header');
     if (hash.startsWith('session/')) {
-        const sessionId = hash.slice(8);
+        // #session/<id>  o  #session/<id>/t/<started>  (foco en un trace concreto)
+        const rest = hash.slice(8);
+        const tMarker = rest.indexOf('/t/');
+        const sessionId = tMarker >= 0 ? rest.slice(0, tMarker) : rest;
+        const focusStarted = tMarker >= 0 ? decodeURIComponent(rest.slice(tMarker + 3)) : null;
         listView.style.display = 'none';
         header.style.display = 'none';
         transcriptView.style.display = 'block';
         window.scrollTo(0, 0);
-        loadTranscript(sessionId);
+        loadTranscript(sessionId, focusStarted);
     } else {
         listView.style.display = 'block';
         header.style.display = '';

@@ -8,9 +8,9 @@ A local observability dashboard for Claude Code sessions. Claude Scope reads the
 
 Features:
 
-* **Traces and observations** grouped by session, turn, and trace.
+* **Sessions, traces, and observations** (Langfuse-aligned: session = conversation, trace = one interaction/prompt, observation = a step).
 * **Real billable cost** by model, including input, output, cache reads/writes, server tools, and service-tier adjustments. Costs are deduplicated by `requestId`.
-* **Per-turn and per-session details**, including prompts, responses, tool calls, tool inputs/outputs, and token usage for each step.
+* **Per-trace and per-session details**, including prompts, responses, tool calls, tool inputs/outputs, and token usage for each step.
 * **Filters** by date, project, model, and tool.
 
 > Want a preview? Jump to [The panel views](#the-panel-views) below.
@@ -149,11 +149,10 @@ At the top, in the header, you’ll find:
 * **Data source**, showing the folder currently being read.
 * **Panel zoom**, to adjust the interface scale.
 
-Below the header, you choose how to group the data:
+Below the header, you choose how to group the data (aligned with Langfuse terminology, where a **trace** is a single interaction/prompt and a **session** is the whole conversation):
 
-* **Group by trace**: the default view. Each session appears as a trace row, with all its turns nested below. This is the best view for walking through a full session.
-* **Group by turn**: one row per prompt, useful for comparing individual turns.
-* **Group by session**: one row per session, useful as a summary view.
+* **Traces**: the default view. One row per trace (a single prompt and everything the agent did to answer it), like Langfuse's Tracing table. Each row shows the Langfuse-style **Name** (`[project] Turn N`, with the project derived automatically from the session path), token usage, **cost** (hover it for the input / output / cache breakdown), and the **number of observations** (steps) per trace, counted the same way Langfuse does. **Expand any row** to see the trace's metric cards, open it focused on its own conversation, and browse its list of observations.
+* **Sessions**: one row per session (conversation), with all its traces nested below, and the same cost breakdown on hover. This is the best view for walking through a full session.
 
 You can also filter by **project, model, tool, and time range**, with a **Clear filters** option to reset everything.
 
@@ -161,9 +160,9 @@ The stats bar summarizes traces, tokens, total cost, API time, and permissions. 
 
 ### The conversation
 
-Click a trace to open the session as a **chat**: System / You / Assistant bubbles, with the tokens and cost for each turn, plus rendered content such as Markdown, code blocks, and ASCII output.
+Click a row to open the session as a **chat**: System / You / Assistant bubbles, with the tokens and cost for each trace, plus rendered content such as Markdown, code blocks, and ASCII output.
 
-Selecting a turn opens the **Details of invocation** panel on the right. It includes cards for cost, **total** tokens, input, and output, using the same colors as the session cards. It also shows a **spans** diagram of the invocation and its metadata.
+Selecting a trace opens the **Trace details** panel on the right. It includes cards for cost, **total** tokens, input, output, and cache, using the same colors as the session cards. It also shows a **spans** diagram of the trace and its metadata.
 
 The divider between the chat and the details panel is **draggable**, so you can widen whichever side you need.
 
