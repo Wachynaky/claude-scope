@@ -8,3 +8,7 @@ dist/
 .vscode/
 .venv/
 .venv-*/
+# Prototipos de diseño (borradores), no forman parte de la app que se distribuye
+prototypes/
+# Capturas sueltas de trabajo en la raíz
+/ejemplo-visor.png
