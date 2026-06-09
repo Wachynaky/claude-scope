@@ -3335,30 +3335,32 @@ tbody td + td { border-left: 1px solid var(--line); }
 
 /* Popover de desglose de coste (estilo Langfuse), posicionado por JS sobre body. */
 .cost-bd-pop {
-    position: fixed; z-index: 9999; width: 248px; padding: 13px 15px;
+    position: fixed; z-index: 9999; width: 320px; padding: 15px 17px;
     background: var(--surface, #fff); color: var(--text, #1c1b22);
     border: 1px solid var(--line, #e6e3ec); border-radius: 9px;
     box-shadow: 0 16px 44px -16px rgba(20, 19, 26, .28), 0 4px 14px -6px rgba(20, 19, 26, .12);
-    font-size: 12px; pointer-events: none;
+    font-size: 16px; pointer-events: none;
 }
 .cost-bd-pop.hidden { display: none; }
-.cost-bd-pop .cbp-title { font-weight: 700; margin-bottom: 10px; }
-.cost-bd-pop .cbp-sec { margin-bottom: 9px; }
+.cost-bd-pop .cbp-title { font-weight: 700; font-size: 17px; margin-bottom: 11px; }
+.cost-bd-pop .cbp-sec { margin-bottom: 10px; }
 .cost-bd-pop .cbp-head {
     display: flex; justify-content: space-between; gap: 16px;
-    border-bottom: 1px solid var(--line, #e6e3ec); padding-bottom: 3px; margin-bottom: 3px;
-    font-size: 11px; font-weight: 600;
+    border-bottom: 1px solid var(--line, #e6e3ec); padding-bottom: 4px; margin-bottom: 4px;
+    font-size: 16px; font-weight: 600;
 }
 .cost-bd-pop .cbp-row {
     display: flex; justify-content: space-between; gap: 16px;
-    font-size: 11px; color: var(--muted, #6b6878);
+    font-size: 15px; color: var(--muted, #6b6878);
 }
 .cost-bd-pop .cbp-row .cbp-k { margin-right: 14px; }
+.cost-bd-pop .cbp-v { display: inline-flex; align-items: baseline; gap: 8px; }
+.cost-bd-pop .cbp-pct { font-size: 13px; font-weight: 700; color: var(--accent-dim, #8b5cf6); font-variant-numeric: tabular-nums; }
 .cost-bd-pop .mono { font-family: var(--tg-mono, ui-monospace, monospace); font-variant-numeric: tabular-nums; }
 .cost-bd-pop .cbp-total {
     display: flex; justify-content: space-between; gap: 16px;
-    border-top: 1px solid var(--text, #1c1b22); padding-top: 6px; margin-top: 2px;
-    font-size: 11px; font-weight: 700;
+    border-top: 1px solid var(--text, #1c1b22); padding-top: 7px; margin-top: 3px;
+    font-size: 17px; font-weight: 700;
 }
 
 /* micro-barra de magnitud de tokens (ancho calculado en el render). */
@@ -7375,11 +7377,12 @@ function buildCostBreakdownHtml(cell) {
     const stC = Number(d.cSt) || 0;
     const totC = Number(d.cTot) || 0;
     const otherC = crC + c5C + c1C + stC;
+    const pct = v => totC > 0 ? `<span class="cbp-pct">${(v * 100 / totC).toFixed(1)}%</span>` : '';
     const sec = (label, total, subs) => {
         const subRows = subs.filter(s => s[1] > 0).map(s =>
-            `<div class="cbp-row"><span class="cbp-k">${s[0]}</span><span class="mono">${formatCostFull(s[1])}</span></div>`).join('');
+            `<div class="cbp-row"><span class="cbp-k">${s[0]}</span><span class="cbp-v">${pct(s[1])}<span class="mono">${formatCostFull(s[1])}</span></span></div>`).join('');
         return `<div class="cbp-sec">
-            <div class="cbp-head"><span>${label}</span><span class="mono">${formatCostFull(total)}</span></div>
+            <div class="cbp-head"><span>${label}</span><span class="cbp-v">${pct(total)}<span class="mono">${formatCostFull(total)}</span></span></div>
             ${subRows}
         </div>`;
     };
