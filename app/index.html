@@ -4873,6 +4873,7 @@ const ansiUp = new AnsiUp();
 // Server-tool prices are per 1000 requests. Service-tier multipliers apply on
 // top of token-based costs (priority ~ 2x, batch ~ 0.5x).
 let PRICING = {
+    fable:       { input: 10, output: 50, cache_read: 1.00, cache_creation_5m: 12.50, cache_creation_1h: 20.00 },
     'opus-4.5+': { input: 5,  output: 25, cache_read: 0.50, cache_creation_5m: 6.25,  cache_creation_1h: 10.00 },
     'opus-4.0':  { input: 15, output: 75, cache_read: 1.50, cache_creation_5m: 18.75, cache_creation_1h: 30.00 },
     sonnet:      { input: 3,  output: 15, cache_read: 0.30, cache_creation_5m: 3.75,  cache_creation_1h: 6.00 },
@@ -4900,6 +4901,7 @@ function detectPricingTier(model) {
     if (!model) return null;
     const m = String(model).toLowerCase();
     if (m === '<synthetic>') return null;
+    if (m.includes('fable')) return 'fable';
     if (m.includes('haiku')) return 'haiku';
     if (m.includes('opus')) {
         const ver = m.match(/opus-(\d+)-(\d+)/);
