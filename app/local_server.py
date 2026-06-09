@@ -34,6 +34,10 @@ from typing import Any
 
 
 BASE_DIR = Path(os.environ.get("CLAUDE_SCOPE_BASE_DIR") or Path(__file__).resolve().parent)
+# Repo root (parent of app/) and the prototypes folder, served under /prototypes/
+# so alternative views can be opened with --view without moving them into app/.
+REPO_ROOT = BASE_DIR.parent
+PROTOTYPES_DIR = REPO_ROOT / "prototypes"
 LOCAL_DATA_ROOT = Path(os.environ.get("CLAUDE_SCOPE_LOCAL_DATA_DIR") or (BASE_DIR / "local-data" / "projects"))
 LOCAL_DATA_GLOB = os.environ.get("CLAUDE_SCOPE_LOCAL_GLOB") or str(LOCAL_DATA_ROOT / "*" / "*.jsonl")
 HOME_DATA_GLOB = os.environ.get("CLAUDE_SCOPE_HOME_GLOB") or str(Path.home() / ".claude" / "projects" / "*" / "*.jsonl")
@@ -302,6 +306,21 @@ class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, directory=str(BASE_DIR), **kwargs)
 
+    def translate_path(self, path: str) -> str:
+        """Serve everything from app/ (BASE_DIR), except /prototypes/* which is
+        resolved from the repo root so the prototype views (kept outside app/)
+        can be opened directly. The base implementation strips ?/# and discards
+        '..' segments, so this stays inside the repo."""
+        clean = path.split("?", 1)[0].split("#", 1)[0]
+        if clean == "/prototypes" or clean.startswith("/prototypes/"):
+            saved = self.directory
+            try:
+                self.directory = str(REPO_ROOT)
+                return super().translate_path(path)
+            finally:
+                self.directory = saved
+        return super().translate_path(path)
+
     # ---- GET --------------------------------------------------------------
 
     def do_GET(self) -> None:
@@ -501,7 +520,34 @@ def parse_args() -> argparse.Namespace:
                         help="query timeout in seconds (max_execution_time)")
     parser.add_argument("--no-open", action="store_true",
                         help="don't open the browser automatically on startup")
+    parser.add_argument("--view", default="app",
+                        help="which page to open on startup: 'app' (default, the "
+                             "real dashboard), 'v1' / 'v2' (Traces prototype views), "
+                             "or any path under the server root (e.g. /prototypes/foo.html)")
     return parser.parse_args()
+
+
+# Named views → URL path. They all open the real dashboard (index.html); the
+# Traces table design is chosen via the ?design= query the app reads on load:
+#   classic → the existing table · new → the observation-viewer design.
+# The standalone prototypes are still reachable under /prototypes/* (see
+# Handler.translate_path) for reference.
+VIEW_PATHS = {
+    "app": "/",
+    "classic": "/?design=classic",
+    "v1": "/?design=classic",
+    "new": "/?design=new",
+    "v2": "/?design=new",
+}
+
+
+def resolve_view_path(view: str) -> str:
+    """Map a --view value to a URL path. Accepts a named view (app/classic/new,
+    v1/v2 aliases) or a raw path; anything else is treated as a path under the
+    server root."""
+    if view in VIEW_PATHS:
+        return VIEW_PATHS[view]
+    return view if view.startswith("/") else "/" + view
 
 
 def main() -> int:
@@ -515,15 +561,19 @@ def main() -> int:
     server = ThreadingHTTPServer((args.host, args.port), Handler)
     server.query_timeout = args.timeout
     url = f"http://{args.host}:{args.port}"
+    view_path = resolve_view_path(args.view)
+    open_url = url + view_path
     print(f"Serving {BASE_DIR}")
     print(f"Reading JSONL from: {select_data_glob()}")
     print(f"Config file: {CONFIG_FILE}")
-    print(f"Open {url}")
+    if args.view != "app":
+        print(f"View: {args.view} -> {view_path}")
+    print(f"Open {open_url}")
 
     if not args.no_open:
         def _open() -> None:
             try:
-                webbrowser.open(url)
+                webbrowser.open(open_url)
             except Exception:
                 pass  # headless / WSL without a browser — keep serving anyway
         # Small delay so the socket is already listening when the browser hits it.

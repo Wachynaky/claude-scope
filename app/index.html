@@ -201,7 +201,7 @@ header h1 {
 }
 
 /* --- Búsqueda tipo pastilla --- */
-.app-header .search-box { flex: 1 1 220px; max-width: 440px; min-width: 180px; }
+.app-header .search-box { flex: 0 1 230px; max-width: 270px; min-width: 150px; }
 .app-header .search-box input {
     width: 100%;
     height: 38px;
@@ -386,7 +386,7 @@ header h1 {
 /* Tokens / Cost: una sola cifra (el total) como valor principal, y debajo el desglose
    de lo que la compone — barra de composición proporcional + leyenda etiquetada
    (Input/Output/Cache[/Tools]), para entenderlo de un vistazo. Mismo diseño en ambas. */
-#metric-tokens .cost-total, #metric-cost .cost-total { white-space: nowrap; }
+#metric-tokens .cost-total, #metric-cost .cost-total { white-space: nowrap; font-size: 23px; }
 #metric-tokens-sub, #metric-cost-sub { display: flex; flex-direction: column; align-items: stretch; gap: 3px; overflow: visible; white-space: normal; }
 .stat-sub .cost-bar { display: flex; height: 5px; border-radius: 99px; overflow: hidden; background: var(--line, #e6e3ec); }
 .stat-sub .cost-bar i { display: block; height: 100%; }
@@ -394,7 +394,10 @@ header h1 {
 .stat-sub .cost-bar .seg-out    { background: #059669; }
 .stat-sub .cost-bar .seg-cache  { background: #6366f1; }
 .stat-sub .cost-bar .seg-server { background: #a78bfa; }
-.stat-sub .cost-legend { display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: 10.5px; line-height: 1.3; }
+.stat-sub .cost-legend { display: flex; flex-direction: column; gap: 4px; font-size: 12px; line-height: 1.35; }
+.stat-sub .cost-legend > span { display: flex; align-items: baseline; gap: 2px; }
+.stat-sub .cost-legend .lg-v { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 700; }
+.stat-sub .cost-legend .lg-pct { color: var(--accent-dim); font-weight: 800; margin-left: 7px; }
 .stat-sub .cost-legend > span::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 2px; margin-right: 4px; vertical-align: middle; background: currentColor; opacity: .85; }
 .stat-sub .cost-legend .tb-in     { color: #b45309; font-weight: 600; }
 .stat-sub .cost-legend .tb-out    { color: #047857; font-weight: 600; }
@@ -4365,6 +4368,200 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
    las tool calls del chat) se movió a la cabecera del chat (chat-head-card). */
 .filters-bar .filters-toggles > label { display: none; }
 .turn-bulk-controls:has(#turns-expand-all) { display: none; }
+
+/* ════════════════════════════════════════════════════════════════════════
+   Diseño alternativo de Traces (id="turn-design-new-wrap"): lista desplegable
+   con métricas + observaciones, y visor de observación a la derecha. Todo el
+   CSS va prefijado con t2- para no colisionar con .obs-*/.stat-* existentes.
+   ════════════════════════════════════════════════════════════════════════ */
+#turn-design-new-wrap { --t2-mono: var(--mono, ui-monospace, "SF Mono", Menlo, Consolas, monospace);
+    --t2-cin: #f59e0b; --t2-cout: #059669; --t2-ccache: #6366f1; --t2-viewer-w: 440px; }
+.t2-layout { --t2-cin: #f59e0b; --t2-cout: #059669; --t2-ccache: #6366f1; --t2-mono: var(--mono, ui-monospace, "SF Mono", Menlo, Consolas, monospace);
+    display: grid; grid-template-columns: minmax(0,1fr) 8px var(--t2-viewer-w, 440px); align-items: start;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-panel); box-shadow: var(--shadow-card); }
+/* La lista crece a su altura natural (la página scrollea y se ven todos los traces);
+   el visor y el divisor quedan fijos (sticky) a la derecha mientras desplazas. */
+.t2-main { min-width: 0; overflow-x: hidden; padding: 12px 14px 20px; }
+.t2-resizer { cursor: col-resize; position: sticky; top: 12px; align-self: start; height: calc(100vh - 96px); }
+.t2-resizer::before { content: ""; position: absolute; left: 3px; top: 0; bottom: 0; width: 2px; background: var(--line-strong); border-radius: 2px; transition: background .15s, width .15s; }
+.t2-resizer:hover::before, body.t2-resizing .t2-resizer::before { width: 3px; background: var(--accent-strong); }
+/* Asa (grip) visible en el centro del divisor para indicar que se puede arrastrar. */
+.t2-resizer::after { content: ""; position: absolute; left: -4px; top: 50%; transform: translateY(-50%); width: 15px; height: 50px; border: 1px solid var(--line-strong); border-radius: 8px; background-color: var(--surface); background-image: radial-gradient(circle, var(--muted) 1.1px, transparent 1.6px); background-size: 5px 5px; background-position: center; box-shadow: var(--shadow-card); transition: border-color .15s, box-shadow .15s; }
+.t2-resizer:hover::after, body.t2-resizing .t2-resizer::after { border-color: var(--accent); box-shadow: var(--shadow-hover); }
+.t2-viewer { position: sticky; top: 12px; align-self: start; height: calc(100vh - 96px); overflow-y: auto; overflow-x: hidden;
+    border-left: 1px solid var(--line); background: var(--surface); min-width: 0; }
+
+/* lista de traces */
+.t2-tt-head, .t2-row { display: grid; grid-template-columns: 46px minmax(0,1fr) 104px 96px; align-items: center; gap: 10px; }
+.t2-tt-head > span, .t2-row > span { min-width: 0; overflow: hidden; }
+.t2-tt-head { padding: 8px 12px; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-dim); font-weight: 700; border-bottom: 1px solid var(--line); position: sticky; top: -12px; background: var(--surface); z-index: 2; }
+.t2-tt-head .r { text-align: right; }
+.t2-trace { border-bottom: 1px solid var(--line); }
+.t2-row { padding: 10px 12px; cursor: pointer; position: relative; transition: background .12s; }
+.t2-row:hover { background: var(--surface-sunk); }
+.t2-trace.open > .t2-row { background: var(--accent-soft); }
+.t2-row::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, var(--accent-strong), var(--accent), var(--accent-dim)); opacity: 0; transition: opacity .15s; }
+.t2-row:hover::after { opacity: .45; } .t2-trace.open > .t2-row::after { opacity: 1; }
+.t2-no { font-family: var(--t2-mono); font-size: 12px; color: var(--text-dim); display: flex; align-items: center; gap: 6px; }
+.t2-no .t2-chev { width: 11px; height: 11px; flex: none; transition: transform .18s; }
+.t2-trace.open .t2-no .t2-chev { transform: rotate(90deg); color: var(--accent); }
+.t2-no b { color: var(--text-soft); font-weight: 600; }
+.t2-prompt { font-size: 12.5px; color: var(--text); padding-right: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.t2-started { font-size: 11px; color: var(--muted); font-family: var(--t2-mono); }
+.t2-cost { text-align: right; }
+.t2-cost .pill { font-family: var(--t2-mono); font-size: 12px; background: var(--accent-soft); color: var(--accent-dim); font-weight: 700; padding: 2px 8px; border-radius: 7px; }
+.t2-row .tokmini { align-items: flex-end; }
+
+/* panel desplegado del trace */
+.t2-detail-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .26s cubic-bezier(.4,0,.2,1); background: var(--surface-2); }
+.t2-trace.open .t2-detail-wrap { grid-template-rows: 1fr; }
+.t2-detail-inner { overflow: hidden; }
+.t2-detail { padding: 6px 14px 16px; border-top: 1px solid var(--accent-line); }
+
+/* stat-strip de métricas del trace */
+.t2-strip { display: flex; align-items: stretch; gap: 12px; background: transparent; border: none; overflow: visible; margin: 12px 0 18px; }
+.t2-cell { flex: 1 1 0; min-width: 0; padding: 10px 13px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 1px; }
+.t2-cell:last-child { border-right: none; }
+/* Métricas del trace como cards elevadas (sombra abajo) separadas entre sí. */
+.t2-strip > .t2-cell { border: 1px solid var(--line); border-radius: 11px; background: var(--surface); box-shadow: 0 7px 16px -8px rgba(15,23,42,.22); }
+/* Card unificada de metadatos (Observations · Duration · Model) en filas k/v. */
+.t2-cell-meta { justify-content: center; gap: 0; }
+.t2-meta-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 6px 0; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.t2-meta-row:first-child { border-top: none; }
+.t2-meta-row .k { font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); font-weight: 700; flex: none; }
+.t2-meta-row .v { font-size: 13.5px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.t2-cell .t2-lab { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .5px; font-weight: 700; }
+.t2-cell .t2-val { color: var(--text); font-size: 17px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.t2-cell .t2-val.accent { color: var(--accent-dim); }
+.t2-cell .t2-sub { font-size: 10px; color: var(--text-dim); font-variant-numeric: tabular-nums; margin-top: 2px; }
+/* celda con desglose: total grande + barra + líneas Input/Output/Cache */
+.t2-mb-total { font-size: 20px; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.t2-mb-total.accent { color: var(--accent-dim); }
+.t2-mb-bar { display: flex; height: 6px; border-radius: 99px; overflow: hidden; background: var(--line); margin: 6px 0 7px; }
+.t2-mb-bar i { display: block; height: 100%; }
+.t2-mb-lines { display: flex; flex-direction: column; gap: 2px; }
+.t2-mb-line { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 11px; font-variant-numeric: tabular-nums; }
+.t2-mb-line .k { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; }
+.t2-mb-line .k b { width: 8px; height: 8px; border-radius: 3px; display: inline-block; }
+.t2-mb-line .v { font-family: var(--t2-mono); color: var(--text); }
+.t2-mb-line .v .pct { color: var(--accent-dim); font-weight: 800; font-size: 12px; margin-left: 7px; }
+.t2-mb-line.in .k { color: #b45309; } .t2-mb-line.out .k { color: #047857; } .t2-mb-line.cache .k { color: #4338ca; }
+
+/* lista de observaciones personalizada por tipo */
+.t2-obs-head { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin: 2px 2px 7px; display: flex; align-items: center; gap: 8px; }
+.t2-obs-head .count { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; color: var(--text-soft); }
+.t2-obs-list { display: flex; flex-direction: column; gap: 6px; }
+.t2-obs { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--line-strong); border-radius: 9px; padding: 8px 11px; cursor: pointer; transition: box-shadow .13s, border-color .13s; }
+.t2-obs:hover { box-shadow: var(--shadow-hover); }
+.t2-obs.t-request { border-left-color: #d97706; } .t2-obs.t-thinking { border-left-color: #7c3aed; }
+.t2-obs.t-tool { border-left-color: var(--accent); } .t2-obs.t-generation { border-left-color: #059669; }
+.t2-obs.t-result { border-left-color: #0d9488; } .t2-obs.t-system { border-left-color: #475569; }
+.t2-obs.selected { border-color: var(--accent-line); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent-line) inset; }
+.t2-obs-ic { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex: none; }
+.t2-obs-ic.t-request { background: #fef3c7; color: #b45309; } .t2-obs-ic.t-thinking { background: #ede9fe; color: #6d28d9; }
+.t2-obs-ic.t-tool { background: var(--accent-soft); color: var(--accent-dim); } .t2-obs-ic.t-generation { background: #dcfce7; color: #15803d; }
+.t2-obs-ic.t-result { background: #ccfbf1; color: #0f766e; } .t2-obs-ic.t-system { background: #e2e8f0; color: #475569; }
+.t2-obs-main { min-width: 0; overflow: hidden; }
+.t2-obs-top { display: flex; align-items: center; gap: 7px; margin-bottom: 1px; }
+.t2-obs-top .execution-badge { font-size: 9px; padding: 1px 7px; }
+.t2-obs-num { font-family: var(--t2-mono); font-size: 10px; color: var(--text-dim); }
+.t2-obs-title { font-size: 12px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.t2-obs-side { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; text-align: right; font-variant-numeric: tabular-nums; flex: none; }
+.t2-obs-side .c { font-size: 14.5px; font-weight: 700; color: var(--text); }
+.t2-obs-side .tk { font-size: 12px; color: var(--text-dim); font-family: var(--t2-mono); }
+.t2-obs-empty, .t2-obs-loading { padding: 14px; color: var(--muted); font-size: 12.5px; }
+
+/* ── Observation viewer (right panel) ── */
+.t2-vw-empty { height: 100%; min-height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--text-dim); padding: 40px; text-align: center; }
+.t2-vw-empty .ic { width: 54px; height: 54px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-size: 24px; }
+.t2-vw-empty b { color: var(--text-soft); }
+.t2-vw-head { position: sticky; top: 0; z-index: 2; background: var(--surface); border-bottom: 1px solid var(--line); padding: 12px 15px; }
+.t2-vw-eyebrow { font-size: 10px; color: var(--muted); font-family: var(--t2-mono); display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.t2-vw-eyebrow b { color: var(--accent-dim); font-weight: 700; } .t2-vw-eyebrow .sep { opacity: .4; }
+.t2-vw-titlerow { display: flex; align-items: center; gap: 8px; }
+.t2-vw-ic { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex: none; }
+.t2-vw-ic.t-request { background: #fef3c7; color: #b45309; } .t2-vw-ic.t-thinking { background: #ede9fe; color: #6d28d9; }
+.t2-vw-ic.t-tool { background: var(--accent-soft); color: var(--accent-dim); } .t2-vw-ic.t-generation { background: #dcfce7; color: #15803d; }
+.t2-vw-ic.t-result { background: #ccfbf1; color: #0f766e; } .t2-vw-ic.t-system { background: #e2e8f0; color: #475569; }
+.t2-vw-titlerow h2 { font-size: 14px; font-weight: 750; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.t2-vw-body { padding: 13px 15px 124px; }
+.t2-vw-nav { display: flex; gap: 8px; align-items: center; margin: 11px 0 0; }
+.t2-vw-sec-note { font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--text-dim); font-size: 9.5px; background: var(--surface-2); border: 1px solid var(--line); padding: 1px 7px; border-radius: 999px; margin-left: 7px; }
+/* Bloque de Tokens/coste fijo en la cabecera del visor (misma altura siempre). */
+.t2-vw-striplab { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin: 12px 0 7px; }
+.t2-vw-nav button { flex: 1; font-size: 12px; font-weight: 700; padding: 7px 8px; border: 1px solid var(--accent-line); border-radius: 8px; background: var(--accent-soft); color: var(--accent-dim); cursor: pointer; transition: background .12s, border-color .12s, color .12s; }
+.t2-vw-nav button:hover:not(:disabled) { border-color: var(--accent); background: var(--accent); color: #fff; }
+.t2-vw-nav button:disabled { opacity: .4; cursor: default; }
+.t2-vw-nav .pos { flex: none; font-size: 11px; color: var(--text-dim); font-weight: 700; min-width: 52px; text-align: center; }
+.t2-vw-sec { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 16px 0 8px; font-weight: 700; }
+.t2-vw-sec:first-child { margin-top: 0; }
+.t2-vw-strip { display: flex; align-items: stretch; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; box-shadow: var(--shadow-card); }
+.t2-vw-strip .t2-cell { padding: 9px 11px; }
+.t2-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+.t2-chip { background: var(--surface-2); border: 1px solid var(--line); padding: 4px 9px; border-radius: 8px; font-size: 11px; color: var(--text-soft); }
+.t2-chip .mono { font-family: var(--t2-mono); color: var(--text-dim); }
+
+/* Etiquetas Input/Output y firma de invocación (el visor de código reutiliza
+   el componente .cv-view existente de la app vía codeViewer/diffViewer). */
+.t2-ts-label { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin: 0 0 6px; }
+.t2-ts-label.in { color: var(--accent-dim); } .t2-ts-label.out { color: #047857; }
+.t2-ts-label .b { margin-left: auto; font-size: 10px; font-weight: 600; color: var(--text-dim); text-transform: none; letter-spacing: 0; }
+.t2-ts-invoke { display: flex; align-items: center; gap: 8px; padding: 8px 10px; margin: 0 0 11px; background: #0d1117; border: 1px solid #30363d; border-radius: 8px; overflow: auto; }
+.t2-ts-invoke code { font-family: var(--t2-mono); font-size: 12px; color: #c9d1d9; white-space: nowrap; }
+
+/* burbuja de mensaje + thinking */
+/* Burbuja de mensaje (conversación): cabecera con acento + avatar, cuerpo elevado
+   y esquina de "origen" recta para que se lea claramente como un chat. */
+.t2-msg { position: relative; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow-card); margin-top: 2px; }
+.t2-msg.bot { background: var(--surface); border-color: var(--accent-line); border-top-left-radius: 5px; }
+.t2-msg.you { background: #fffaf3; border-color: #ffe0b2; border-top-right-radius: 5px; }
+.t2-msg-hd { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+.t2-msg.bot .t2-msg-hd { background: linear-gradient(90deg, var(--accent-soft), transparent 80%); }
+.t2-msg.you .t2-msg-hd { background: linear-gradient(90deg, #fff3e0, transparent 80%); }
+.t2-msg-av { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex: none; box-shadow: 0 1px 3px rgba(0,0,0,.20); }
+.t2-msg-av.you { background: #1f2937; color: #fff; } .t2-msg-av.bot { background: linear-gradient(150deg, var(--accent-strong), var(--accent)); color: #fff; }
+.t2-msg-role { font-size: 12.5px; font-weight: 800; } .t2-msg.bot .t2-msg-role { color: var(--accent-dim); }
+.t2-msg-time { font-size: 10px; color: var(--text-dim); margin-left: auto; font-family: var(--t2-mono); }
+.t2-msg-body { padding: 12px 13px; font-size: 13px; line-height: 1.58; color: var(--text); word-break: break-word; }
+.t2-msg-body > :first-child { margin-top: 0; } .t2-msg-body > :last-child { margin-bottom: 0; }
+.t2-msg-body p { margin: 0 0 8px; }
+.t2-msg-body ul, .t2-msg-body ol { margin: 4px 0 8px; padding-left: 20px; }
+.t2-msg-body li { margin: 2px 0; }
+.t2-msg-body h1, .t2-msg-body h2, .t2-msg-body h3 { font-size: 13.5px; font-weight: 750; margin: 12px 0 6px; }
+.t2-msg-body code { background: var(--surface-2); color: var(--accent-dim); padding: 2px 5px; border-radius: 4px; font-family: var(--t2-mono); font-size: 12px; }
+.t2-msg-body pre { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 11px 13px; overflow: auto; margin: 8px 0; }
+.t2-msg-body pre code { background: none; color: #c9d1d9; padding: 0; font-size: 12px; line-height: 1.55; }
+.t2-msg-body blockquote { margin: 8px 0; padding: 2px 0 2px 12px; border-left: 3px solid var(--accent-line); color: var(--text-soft); }
+.t2-msg-body.mono { font-family: var(--t2-mono); font-size: 12px; white-space: pre-wrap; }
+.t2-think { background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 10px; padding: 11px 13px; white-space: pre-wrap; color: #4c1d95; font-family: var(--t2-mono); font-size: 12px; line-height: 1.55; }
+.t2-note { background: var(--surface); border: 1px dashed var(--line-strong); border-radius: 8px; padding: 10px 12px; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+.t2-note b { color: var(--text-soft); }
+
+/* switcher de diseño: reusa .view-switcher; lo separamos un poco */
+/* Switchers (Traces/Sessions · Tabla/Visor) movidos al header, junto al apagado. */
+.app-header .header-switcher { flex: none; align-self: center; }
+.app-header #trace-design-switcher { margin-left: 2px; }
+/* Empuja a la derecha el grupo de vista + utilidades; separa con una línea fina
+   los controles de vista (switchers) de las utilidades (carpeta · zoom · power). */
+.app-header #home-view-switcher { margin-left: auto; }
+.app-header .header-sep { width: 1px; height: 26px; background: var(--line-strong); flex: none; align-self: center; opacity: .55; margin: 0 4px; }
+.app-header .stats-bar { margin: 0; }
+/* El header va en una sola línea; la búsqueda encoge si falta espacio. */
+.app-header { flex-wrap: nowrap; gap: 12px; }
+.app-header .search-box { flex: 1 1 110px; min-width: 80px; max-width: 240px; }
+/* Filtros embebidos en la stat-strip: 3 columnas (2 filtros · 2 filtros · botones). */
+#stat-strip { overflow: visible; }   /* deja ver el popover del rango de fechas */
+.stat-cell.stat-filters { flex: 2.9 1 0; flex-direction: row; align-items: stretch; justify-content: flex-start; gap: 16px; padding: 8px 16px; overflow: visible; }
+.stat-filters .filt-col { display: flex; flex-direction: column; gap: 8px; justify-content: center; min-width: 0; }
+.stat-filters .filt-col-actions { margin-left: auto; justify-content: center; }
+.stat-filters .filter-chip { flex-direction: column; gap: 3px; min-width: 0; margin: 0; }
+.stat-filters .filter-chip select { min-width: 0; width: 100%; max-width: 220px; height: 30px; }
+.stat-filters .range-picker, .stat-filters .range-picker-btn { width: 100%; }
+.stat-filters .filt-col-actions .filter-chip { width: 100%; }
+.stat-filters .filt-col-actions .filter-chip button { width: 100%; }
+/* "Traces" es solo un número: más estrecha para dar sitio a los filtros. */
+#stat-strip > .stat-cell:first-child { flex: 0.55 1 0; border-top-left-radius: var(--radius-panel); border-bottom-left-radius: var(--radius-panel); }
+#stat-strip > .stat-cell:last-child { border-top-right-radius: var(--radius-panel); border-bottom-right-radius: var(--radius-panel); }
 </style>
 </head>
 <body>
@@ -4392,6 +4589,15 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
                 <button data-token-mode="cc">Same as Claude Code</button>
             </div>
         </div>
+        <div class="view-switcher header-switcher" id="home-view-switcher">
+            <button data-home-view="turns" class="active">Traces</button>
+            <button data-home-view="traces">Sessions</button>
+        </div>
+        <div class="view-switcher header-switcher" id="trace-design-switcher" title="Diseño de la tabla de Traces">
+            <button data-trace-design="classic" class="active">Table</button>
+            <button data-trace-design="new">Viewer</button>
+        </div>
+        <span class="header-sep" aria-hidden="true"></span>
         <div class="stats-bar" id="stats-bar"></div>
         <div class="zoom-control" id="zoom-control" title="Panel text size">
             <button type="button" id="zoom-out" class="zoom-btn" title="Decrease text size" aria-label="Decrease size">−</button>
@@ -4402,48 +4608,6 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
     </header>
 
     <div id="session-list-view">
-        <div class="filter-strip">
-            <div class="view-switcher" id="home-view-switcher">
-                <button data-home-view="turns" class="active">Traces</button>
-                <button data-home-view="traces">Sessions</button>
-            </div>
-            <div class="filter-group filter-group-controls">
-            <label class="filter-chip"><span class="filter-chip-label">Project</span><select id="filter-project-select"><option value="">All</option></select></label>
-            <label class="filter-chip"><span class="filter-chip-label">Model</span><select id="filter-model-select"><option value="">All</option></select></label>
-            <label class="filter-chip"><span class="filter-chip-label">Tool</span><select id="filter-tool-select"><option value="">All</option></select></label>
-            <div class="filter-chip range-picker" id="range-picker">
-                <span class="filter-chip-label">Time range</span>
-                <button type="button" id="range-picker-btn" class="range-picker-btn">
-                    <span class="range-picker-icon" aria-hidden="true">🕒</span>
-                    <span id="range-picker-label">Last 7 days</span>
-                    <span class="range-picker-caret">▾</span>
-                </button>
-                <div id="range-picker-popover" class="range-picker-popover hidden" role="dialog" aria-label="Time range">
-                    <div class="range-picker-presets">
-                        <button type="button" class="range-preset" data-range="1h">Last 1 hour</button>
-                        <button type="button" class="range-preset" data-range="6h">Last 6 hours</button>
-                        <button type="button" class="range-preset" data-range="1d">Last 24 hours</button>
-                        <button type="button" class="range-preset" data-range="7d">Last 7 days</button>
-                        <button type="button" class="range-preset" data-range="30d">Last 30 days</button>
-                        <button type="button" class="range-preset" data-range="">All time</button>
-                    </div>
-                    <div class="range-picker-divider"></div>
-                    <div class="range-picker-custom">
-                        <label>From <input type="datetime-local" id="range-picker-from"></label>
-                        <label>To <input type="datetime-local" id="range-picker-to"></label>
-                        <div class="range-picker-custom-actions">
-                            <button type="button" id="range-picker-apply">Apply custom</button>
-                            <button type="button" id="range-picker-cancel" class="range-picker-secondary">Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            </div>
-            <div class="filter-group filter-group-actions">
-            <span class="filter-chip"><button id="clear-session-filters">Clear filters</button></span>
-            <span class="filter-chip"><button type="button" id="dashboard-charts-toggle" class="charts-toggle-btn" title="Hide all dashboard charts">Hide all</button></span>
-            </div>
-        </div>
         <section class="stat-strip" id="stat-strip">
             <div class="stat-cell">
                 <div class="stat-label">Traces</div>
@@ -4460,15 +4624,45 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
                 <div class="stat-value stat-accent" id="metric-cost">-</div>
                 <div class="stat-sub" id="metric-cost-sub">estimated</div>
             </div>
-            <div class="stat-cell">
-                <div class="stat-label">API errors</div>
-                <div class="stat-value" id="metric-errors">-</div>
-                <div class="stat-sub" id="metric-errors-sub">sessions affected</div>
-            </div>
-            <div class="stat-cell">
-                <div class="stat-label">Permissions</div>
-                <div class="stat-value" id="metric-permissions">-</div>
-                <div class="stat-sub" id="metric-permissions-sub">events / approvals / rejects</div>
+            <div class="stat-cell stat-filters">
+                <div class="filt-col">
+                    <label class="filter-chip"><span class="filter-chip-label">Project</span><select id="filter-project-select"><option value="">All</option></select></label>
+                    <label class="filter-chip"><span class="filter-chip-label">Model</span><select id="filter-model-select"><option value="">All</option></select></label>
+                </div>
+                <div class="filt-col">
+                    <label class="filter-chip"><span class="filter-chip-label">Tool</span><select id="filter-tool-select"><option value="">All</option></select></label>
+                    <div class="filter-chip range-picker" id="range-picker">
+                        <span class="filter-chip-label">Time range</span>
+                        <button type="button" id="range-picker-btn" class="range-picker-btn" title="Time range">
+                            <span class="range-picker-icon" aria-hidden="true">🕒</span>
+                            <span id="range-picker-label">Last 7 days</span>
+                            <span class="range-picker-caret">▾</span>
+                        </button>
+                        <div id="range-picker-popover" class="range-picker-popover hidden" role="dialog" aria-label="Time range">
+                            <div class="range-picker-presets">
+                                <button type="button" class="range-preset" data-range="1h">Last 1 hour</button>
+                                <button type="button" class="range-preset" data-range="6h">Last 6 hours</button>
+                                <button type="button" class="range-preset" data-range="1d">Last 24 hours</button>
+                                <button type="button" class="range-preset" data-range="7d">Last 7 days</button>
+                                <button type="button" class="range-preset" data-range="30d">Last 30 days</button>
+                                <button type="button" class="range-preset" data-range="">All time</button>
+                            </div>
+                            <div class="range-picker-divider"></div>
+                            <div class="range-picker-custom">
+                                <label>From <input type="datetime-local" id="range-picker-from"></label>
+                                <label>To <input type="datetime-local" id="range-picker-to"></label>
+                                <div class="range-picker-custom-actions">
+                                    <button type="button" id="range-picker-apply">Apply custom</button>
+                                    <button type="button" id="range-picker-cancel" class="range-picker-secondary">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filt-col filt-col-actions">
+                    <span class="filter-chip"><button id="clear-session-filters">Clear filters</button></span>
+                    <span class="filter-chip"><button type="button" id="dashboard-charts-toggle" class="charts-toggle-btn" title="Hide all dashboard charts">Hide all</button></span>
+                </div>
             </div>
         </section>
         <div class="hidden-charts-bar hidden" id="hidden-charts-bar">
@@ -4492,25 +4686,13 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
             </div>
         </section>
         <section class="dashboard" id="dashboard">
-            <div class="chart-panel" data-chart-id="token-mix" data-chart-name="Token Mix">
-                <div class="chart-head"><span>Token Mix</span><span class="muted" id="token-mix-meta"></span><button type="button" class="chart-hide-btn" title="Hide chart">×</button></div>
-                <div id="token-mix-chart"></div>
-            </div>
-            <div class="chart-panel" data-chart-id="cost-mix" data-chart-name="Cost Mix">
-                <div class="chart-head"><span>Cost Mix</span><span class="muted" id="cost-mix-meta"></span><button type="button" class="chart-hide-btn" title="Hide chart">×</button></div>
-                <div id="cost-mix-chart"></div>
-            </div>
-            <div class="chart-panel" data-chart-id="model-cost" data-chart-name="Model Cost">
-                <div class="chart-head"><span>Model Cost</span><span class="muted">top models</span><button type="button" class="chart-hide-btn" title="Hide chart">×</button></div>
-                <div class="bar-list" id="model-cost-chart"></div>
-            </div>
             <div class="chart-panel" data-chart-id="tool-calls" data-chart-name="Tool Calls">
                 <div class="chart-head"><span>Tool Calls</span><span class="muted">top tools · click to filter</span><button type="button" class="chart-hide-btn" title="Hide chart">×</button></div>
                 <div class="bar-list" id="tool-call-chart"></div>
             </div>
-            <div class="chart-panel" data-chart-id="mcp-servers" data-chart-name="MCP Servers">
-                <div class="chart-head"><span>MCP Servers</span><span class="muted" id="mcp-chart-meta">calls per server</span><button type="button" class="chart-hide-btn" title="Hide chart">×</button></div>
-                <div class="bar-list" id="mcp-server-chart"></div>
+            <div class="chart-panel" data-chart-id="model-cost" data-chart-name="Model Cost">
+                <div class="chart-head"><span>Model Cost</span><span class="muted">top models</span><button type="button" class="chart-hide-btn" title="Hide chart">×</button></div>
+                <div class="bar-list" id="model-cost-chart"></div>
             </div>
             <div class="chart-panel" data-chart-id="projects" data-chart-name="Projects">
                 <div class="chart-head"><span>Projects</span><span class="muted">cost split</span><button type="button" class="chart-hide-btn" title="Hide chart">×</button></div>
@@ -4566,6 +4748,17 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
                 </thead>
                 <tbody id="turn-tbody"></tbody>
             </table>
+        </div>
+        <!-- Diseño alternativo de la tabla de Traces: lista desplegable con métricas
+             y observaciones + visor de observación a la derecha. Conmutable con el
+             switcher "Tabla / Visor" o ?design=new. Reutiliza turns[] y el pipeline
+             de observaciones de la app (datos reales). -->
+        <div class="hidden" id="turn-design-new-wrap">
+            <div class="t2-layout" id="t2-layout">
+                <div class="t2-main" id="t2-main"></div>
+                <div class="t2-resizer" id="t2-resizer"></div>
+                <aside class="t2-viewer" id="t2-viewer"></aside>
+            </div>
         </div>
         <div class="section-title hidden" id="trace-group-title">
             <h2>Sessions grouped with traces</h2>
@@ -5635,11 +5828,16 @@ function groupSum(rows, keyFn, valueFn) {
 // Desglose visual de una métrica (cards Tokens y Cost de la barra de stats): barra de
 // composición proporcional + leyenda etiquetada con cada partida y su valor formateado.
 // parts = [{ label, val, cls, seg, tip }]; las partidas con valor 0 se omiten.
-function metricBreakdownHTML(parts, total, fmt) {
+function metricBreakdownHTML(parts, total, fmt, showPct) {
     const denom = total || 1;
     const shown = parts.filter(p => p.val > 0);
     const bar = shown.map(p => `<i class="${p.seg}" style="width:${Math.max(2, p.val * 100 / denom)}%"></i>`).join('');
-    const legend = shown.map(p => `<span class="${p.cls}" title="${p.tip}: ${fmt(p.val)}">${p.label} ${fmt(p.val)}</span>`).join('');
+    const legend = shown.map(p => {
+        const pct = (showPct && denom > 0) ? Math.round(p.val * 100 / denom) : null;
+        const pctTag = pct != null ? `<span class="lg-pct">${pct}%</span>` : '';
+        const pctTip = pct != null ? ` (${pct}%)` : '';
+        return `<span class="${p.cls}" title="${p.tip}: ${fmt(p.val)}${pctTip}"><span class="lg-k">${p.label}</span><span class="lg-v">${fmt(p.val)}${pctTag}</span></span>`;
+    }).join('');
     return `<span class="cost-bar" title="Composición del total">${bar}</span><span class="cost-legend">${legend}</span>`;
 }
 
@@ -5706,7 +5904,7 @@ function renderDashboard() {
         { label: 'Cache',  val: cacheCost,        cls: 'tb-cache',    seg: 'seg-cache',  tip: 'Lectura + escritura de caché' },
         { label: 'Tools',  val: serverCost,       cls: 'cost-server', seg: 'seg-server', tip: `Server tools (web_search ${webSearch} · web_fetch ${webFetch})` },
     ];
-    setHTML('metric-cost-sub', metricBreakdownHTML(costParts, totalCost, formatCost));
+    setHTML('metric-cost-sub', metricBreakdownHTML(costParts, totalCost, formatCost, true));
     setText('metric-errors', formatNumber(apiErrors));
     setText('metric-errors-sub', apiErrors ? `${sessionsWithErrors} / ${sessCount} sessions affected` : 'no errors detected');
     setText('metric-permissions', formatNumber(permissionEvents));
@@ -6364,6 +6562,10 @@ function getFilteredTurns() {
     if (sessionFilters.model) {
         list = list.filter(t => shortModel(t.model) === sessionFilters.model);
     }
+    if (sessionFilters.tool) {
+        // turns guardan `tools` como cadena separada por comas (sessions usan array).
+        list = list.filter(t => String(t.tools || '').split(',').map(s => s.trim()).includes(sessionFilters.tool));
+    }
     if (fullTextSessionIds) {
         list = list.filter(t => fullTextSessionIds.has(t.session_id));
     }
@@ -6392,17 +6594,23 @@ function sessionsContaining(turnRows) {
 function renderHomeView() {
     const isTurns = homeViewMode === 'turns';
     const isTraces = homeViewMode === 'traces';
+    const newDesign = isTurns && traceDesign === 'new';   // tabla de Traces con el diseño "Visor"
     document.getElementById('session-table-title').classList.toggle('hidden', isTurns || isTraces);
     document.getElementById('session-table-wrap').classList.toggle('hidden', isTurns || isTraces);
-    document.getElementById('turn-table-title').classList.toggle('hidden', !isTurns);
-    document.getElementById('turn-table-wrap').classList.toggle('hidden', !isTurns);
+    document.getElementById('turn-table-title').classList.toggle('hidden', !isTurns || newDesign);
+    document.getElementById('turn-table-wrap').classList.toggle('hidden', !isTurns || newDesign);
+    document.getElementById('turn-design-new-wrap').classList.toggle('hidden', !newDesign);
     document.getElementById('trace-group-title').classList.toggle('hidden', !isTraces);
     document.getElementById('trace-group-wrap').classList.toggle('hidden', !isTraces);
     document.querySelectorAll('#home-view-switcher button').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.homeView === homeViewMode);
     });
+    // El switcher de diseño solo es relevante en la vista de Traces.
+    const dsw = document.getElementById('trace-design-switcher');
+    if (dsw) dsw.classList.toggle('hidden', !isTurns);
     if (isTurns || isTraces) loadTurns().then(() => {
         if (isTraces) renderTraceGroupList();
+        else if (newDesign) renderTraceDesignNew();
     });
 }
 
@@ -6521,6 +6729,9 @@ function cm(cls, ic, lab, val, title) {
 }
 
 function renderTurnList() {
+    // El diseño "Visor" se refresca con los mismos disparadores (carga, filtros,
+    // búsqueda); la tabla clásica sigue renderizándose debajo aunque esté oculta.
+    if (homeViewMode === 'turns' && traceDesign === 'new') renderTraceDesignNew();
     const tbody = document.getElementById('turn-tbody');
     if (!tbody) return;
     if (!turnsLoaded) {
@@ -8120,6 +8331,8 @@ async function loadTurnObservations(sessionId, turnNo) {
         data.isSidechain::Bool AS is_sidechain,
         data.message.usage.input_tokens::UInt64 AS input_tokens,
         data.message.usage.output_tokens::UInt64 AS output_tokens,
+        data.message.usage.cache_read_input_tokens::UInt64 AS cache_read_tokens,
+        data.message.usage.cache_creation_input_tokens::UInt64 AS cache_creation_tokens,
         -- content: JSON de bloques para el renderer (los strings se envuelven en text).
         multiIf(
             dynamicType(data.message.content) = 'String',
@@ -8183,6 +8396,7 @@ async function loadTurnObservations(sessionId, turnNo) {
 )
 SELECT g.type AS type, g.role AS role, g.ts AS ts, g.model AS model, g.content AS content,
        g.input_tokens AS input_tokens, g.output_tokens AS output_tokens,
+       g.cache_read_tokens AS cache_read_tokens, g.cache_creation_tokens AS cache_creation_tokens,
        g.is_meta AS is_meta, g.is_sidechain AS is_sidechain, g.request_id AS request_id
 FROM gen g
 INNER JOIN numbered n ON g.raw_turn = n.raw_turn
@@ -10505,6 +10719,363 @@ async function fetchHealth() {
     } catch (e) { return null; }
 }
 
+// ════════════════════════════════════════════════════════════════════════
+//  Diseño alternativo de la tabla de Traces (id="turn-design-new-wrap")
+//  Lista desplegable con métricas + observaciones y visor de observación a la
+//  derecha. Reutiliza turns[], el pipeline de observaciones y los visores de
+//  código/markdown ya existentes (datos reales). Conmutable con el switcher
+//  "Tabla / Visor" o ?design=new.
+// ════════════════════════════════════════════════════════════════════════
+let traceDesign = 'classic';
+let t2OpenTrace = null;        // "session:turn_no" del trace expandido
+let t2Sel = null;              // índice de observación seleccionada (en cache.rows)
+let t2SelTrace = null;         // clave del trace de la observación seleccionada
+let t2ViewerW = 440;
+const t2ObsCache = new Map();  // key -> { msgs, rows, resultByUseId, trace }
+const T2_ICON = { request: '🧑', thinking: '💭', tool: '⌘', generation: '✦', result: '↩', system: '⚙' };
+const T2_CHEV = '<svg class="t2-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M9 6l6 6-6 6"/></svg>';
+
+function t2Key(t) { return String(t.session_id) + ':' + String(t.turn_no); }
+
+function t2InitDesign() {
+    try {
+        const q = new URLSearchParams(location.search).get('design');
+        const stored = localStorage.getItem('ccpanel-trace-design');
+        if (q === 'new' || q === 'classic') traceDesign = q;
+        else if (stored === 'new' || stored === 'classic') traceDesign = stored;
+        // Ancho del visor: persistente entre sesiones (se ajusta con el divisor).
+        const w = parseInt(localStorage.getItem('ccpanel-t2-viewer-w'), 10);
+        if (w && w >= 300) {
+            t2ViewerW = w;
+            const ly = document.getElementById('t2-layout');
+            if (ly) ly.style.setProperty('--t2-viewer-w', t2ViewerW + 'px');
+        }
+    } catch (e) {}
+    document.querySelectorAll('#trace-design-switcher button').forEach(b =>
+        b.classList.toggle('active', b.dataset.traceDesign === traceDesign));
+}
+
+// ── Coste estimado por observación (la app solo desglosa coste por trace; aquí
+//    estimamos input/output del mensaje con el pricing del modelo). ──
+function t2ObsCost(m) {
+    const tier = detectPricingTier(m.model || '');
+    const p = (typeof PRICING !== 'undefined' && (PRICING[tier] || PRICING.sonnet)) || { input: 3, output: 15, cache_read: 0.3, cache_creation_5m: 3.75 };
+    const ti = Number(m.input_tokens) || 0, to = Number(m.output_tokens) || 0;
+    const cr = Number(m.cache_read_tokens) || 0, cw = Number(m.cache_creation_tokens) || 0;
+    const input = ti * p.input / 1e6, output = to * p.output / 1e6;
+    const cache = cr * (p.cache_read || 0) / 1e6 + cw * (p.cache_creation_5m || 0) / 1e6;
+    return { input, output, cache, total: input + output + cache };
+}
+function t2FmtMs(ms) { ms = Number(ms) || 0; return ms >= 1000 ? (ms / 1000).toFixed(2) + ' s' : Math.round(ms) + ' ms'; }
+
+// Celda "total grande + barra apilada + líneas Input/Output[/Cache]".
+function t2MbCell(label, total, parts, fmt, accent) {
+    const denom = total || 1;
+    const bar = parts.map(p => `<i style="width:${Math.max(2, p.val * 100 / denom).toFixed(2)}%;background:${p.color}"></i>`).join('')
+        || `<i style="width:100%;background:var(--line)"></i>`;
+    const lines = parts.map(p => {
+        const pct = (accent && denom > 0) ? `<span class="pct">${Math.round(p.val * 100 / denom)}%</span>` : '';
+        return `<div class="t2-mb-line ${p.cls}"><span class="k"><b style="background:${p.color}"></b>${p.label}</span><span class="v">${fmt(p.val)}${pct}</span></div>`;
+    }).join('');
+    return `<div class="t2-cell"><div class="t2-lab">${escapeHtml(label)}</div><div class="t2-mb-total${accent ? ' accent' : ''}">${fmt(total)}</div><div class="t2-mb-bar">${bar}</div><div class="t2-mb-lines">${lines}</div></div>`;
+}
+
+// Stat-strip de métricas del trace (datos reales: costBreakdown + tokens).
+function t2TraceStrip(t) {
+    const tIn = Number(t.input_tokens) || 0, tOut = Number(t.output_tokens) || 0;
+    const tCache = (Number(t.cache_read_tokens) || 0) + (Number(t.cache_creation_tokens) || 0);
+    const totTok = tIn + tOut + tCache;
+    const bd = costBreakdown(t);
+    const tokenParts = [
+        { cls: 'in', color: 'var(--t2-cin)', label: 'Input', val: tIn },
+        { cls: 'out', color: 'var(--t2-cout)', label: 'Output', val: tOut },
+        { cls: 'cache', color: 'var(--t2-ccache)', label: 'Cache', val: tCache },
+    ];
+    const costParts = [
+        { cls: 'in', color: 'var(--t2-cin)', label: 'Input', val: bd.input },
+        { cls: 'out', color: 'var(--t2-cout)', label: 'Output', val: bd.output },
+        { cls: 'cache', color: 'var(--t2-ccache)', label: 'Cache', val: bd.cacheRead + bd.cacheCreation },
+    ];
+    const obs = Number(t.observations) || 0, gens = Number(t.generations) || 0, thinks = Number(t.thinking_blocks) || 0;
+    const tools = String(t.tools || '');
+    return `<div class="t2-strip">
+        ${t2MbCell('Tokens', totTok, tokenParts, formatTokens, false)}
+        ${t2MbCell('Cost', Number(t.cost) || bd.total, costParts, formatCost, true)}
+        <div class="t2-cell t2-cell-meta">
+            <div class="t2-meta-row" title="Tool calls in the trace"><span class="k">Tool calls</span><span class="v" data-t2-tc>…</span></div>
+            <div class="t2-meta-row" title="${gens} responses · ${thinks} thinking"><span class="k">Observations</span><span class="v">${obs}</span></div>
+            <div class="t2-meta-row" title="Start ${escapeHtml(formatTime(t.started))}"><span class="k">Duration</span><span class="v">${t2FmtMs(t.wall_duration_ms)}</span></div>
+            <div class="t2-meta-row" title="${escapeHtml(tools || 'no tools')}"><span class="k">Model</span><span class="v">${escapeHtml(shortModel(t.model) || '-')}</span></div>
+        </div>
+    </div>`;
+}
+
+function renderTraceDesignNew() {
+    const main = document.getElementById('t2-main');
+    if (!main) return;
+    if (!turnsLoaded) { main.innerHTML = `<div class="t2-obs-loading">Loading traces…</div>`; return; }
+    const filtered = getFilteredTurns();
+    if (!filtered.length) { main.innerHTML = `<div class="t2-obs-empty">No traces found</div>`; return; }
+    const head = `<div class="t2-tt-head"><span>Trace</span><span>Prompt</span><span>Started</span><span class="r">Cost</span></div>`;
+    main.innerHTML = head + filtered.map(t => {
+        const key = t2Key(t);
+        const open = t2OpenTrace === key;
+        const prompt = String(t.prompt || '');
+        return `<div class="t2-trace${open ? ' open' : ''}" data-t2-key="${escapeHtml(key)}">
+            <div class="t2-row" data-t2-toggle="${escapeHtml(key)}">
+                <span class="t2-no">${T2_CHEV}<b>#${Number(t.turn_no) || ''}</b></span>
+                <span class="t2-prompt" title="${escapeHtml(prompt)}">${escapeHtml(prompt.slice(0, 200) || '(empty prompt)')}</span>
+                <span class="t2-started">${escapeHtml(formatTime(t.started))}</span>
+                <span class="t2-cost"><span class="pill">${formatCost(t.cost || 0)}</span></span>
+            </div>
+            <div class="t2-detail-wrap"><div class="t2-detail-inner"><div class="t2-detail">
+                ${t2TraceStrip(t)}
+                <div class="t2-obs-head">Observations <span class="count">${Number(t.observations) || 0}</span></div>
+                <div class="t2-obs-list" data-t2-obs="${escapeHtml(key)}"></div>
+            </div></div></div>
+        </div>`;
+    }).join('');
+    t2BindResizer();
+    t2RenderViewer();   // pinta el empty state (o re-pinta la observación seleccionada)
+    if (t2OpenTrace) {
+        const t = filtered.find(x => t2Key(x) === t2OpenTrace);
+        if (t) t2LoadObsInto(t);
+    }
+}
+
+// Carga (lazy, con cache) y pinta las observaciones del trace abierto.
+async function t2LoadObsInto(t) {
+    const key = t2Key(t);
+    const container = [...document.querySelectorAll('.t2-obs-list[data-t2-obs]')].find(el => el.dataset.t2Obs === key);
+    if (!container) return;
+    let cache = t2ObsCache.get(key);
+    if (!cache) {
+        container.innerHTML = `<div class="t2-obs-loading">Loading observations…</div>`;
+        try {
+            const msgs = await loadTurnObservations(t.session_id, t.turn_no);
+            const allRows = buildExecutionRows(msgs);
+            assignObsNumbers(allRows, msgs);            // numera sobre el conjunto completo
+            const resultByUseId = {};
+            msgs.forEach(m => parseContentBlocks(m.content).forEach(b => {
+                if (b.type === 'tool_result') { const id = b.tool_use_id || b.id; if (id) resultByUseId[id] = b; }
+            }));
+            // Las observaciones "result" no se listan: su contenido ya es el Output de
+            // la tool que se muestra en el visor de esa misma tool.
+            const rows = allRows.filter(r => r.type !== 'result');
+            const seen = {};
+            rows.forEach(r => { const k = r.idx + ':' + r.type; r._ord = (seen[k] = (seen[k] || 0)); seen[k]++; });
+            cache = { msgs, rows, resultByUseId, trace: t };
+            t2ObsCache.set(key, cache);
+        } catch (e) {
+            container.innerHTML = `<div class="t2-obs-empty">error: ${escapeHtml(e.message)}</div>`;
+            return;
+        }
+    }
+    container.innerHTML = cache.rows.map((r, i) => t2ObsItem(cache, r, i)).join('') || `<div class="t2-obs-empty">No observations</div>`;
+    // Rellena el contador de "Tool calls" de la card de métricas con el nº real.
+    const detail = container.closest('.t2-detail');
+    const tcEl = detail && detail.querySelector('[data-t2-tc]');
+    if (tcEl) tcEl.textContent = cache.rows.filter(r => r.type === 'tool').length;
+}
+
+function t2ObsItem(cache, r, i) {
+    const m = cache.msgs[r.idx] || {};
+    const cost = t2ObsCost(m);
+    const tok = (Number(m.input_tokens) || 0) + (Number(m.output_tokens) || 0);
+    const key = t2Key(cache.trace);
+    const sel = (t2SelTrace === key && t2Sel === i) ? ' selected' : '';
+    let title = r.title || '';
+    if (r.type === 'generation') title = 'Assistant response';
+    else if (r.type === 'request') title = r.title || 'Prompt';
+    return `<div class="t2-obs t-${r.type}${sel}" data-t2-obs-i="${i}" data-t2-obs-key="${escapeHtml(key)}">
+        <span class="t2-obs-ic t-${r.type}">${T2_ICON[r.type] || '•'}</span>
+        <span class="t2-obs-main">
+            <span class="t2-obs-top"><span class="execution-badge ${escapeHtml(r.type)}">${escapeHtml(obsTypeLabel(r.type))}</span>${r.obsNum != null ? `<span class="t2-obs-num">#${r.obsNum}</span>` : ''}</span>
+            <span class="t2-obs-title" title="${escapeHtml(r.title || '')}">${escapeHtml(title)}</span>
+        </span>
+        <span class="t2-obs-side"><span class="c">${formatCost(cost.total)}</span><span class="tk">${formatTokens(tok)} tok</span></span>
+    </div>`;
+}
+
+function t2SelectObs(key, i) {
+    t2SelTrace = key; t2Sel = i;
+    document.querySelectorAll('#t2-main .t2-obs').forEach(el =>
+        el.classList.toggle('selected', el.dataset.t2ObsKey === key && Number(el.dataset.t2ObsI) === i));
+    t2RenderViewer();
+}
+
+// Firma legible de la invocación de una tool.
+function t2InvSig(name, input) {
+    input = input || {};
+    if (name === 'Bash' && input.command) return `Bash(command=${JSON.stringify(String(input.command).split('\n')[0].slice(0, 90))})`;
+    if (name === 'Edit' || name === 'MultiEdit') return `${name}(file_path=${JSON.stringify(String(input.file_path || ''))}, …)`;
+    if (name === 'Write') return `Write(file_path=${JSON.stringify(String(input.file_path || ''))}, …)`;
+    try { return `${name}(${Object.entries(input).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(', ')})`.slice(0, 140); }
+    catch (e) { return `${name}(…)`; }
+}
+function t2ToolInputView(name, input) {
+    input = input || {};
+    if ((name === 'Edit' || name === 'MultiEdit') && input.old_string != null)
+        return diffViewer({ name: String(input.file_path || 'edit'), lang: cvLangFor(input.file_path), oldStr: String(input.old_string || ''), newStr: String(input.new_string || '') });
+    if (name === 'Write' && input.content != null)
+        return codeViewer({ name: String(input.file_path || 'write'), lang: cvLangFor(input.file_path), code: String(input.content || '') });
+    if (name === 'Bash' && input.command != null)
+        return codeViewer({ name: 'command', lang: 'bash', code: String(input.command || '') });
+    return codeViewer({ name: name + '(input)', lang: 'json', code: JSON.stringify(input, null, 2) });
+}
+function t2ResultText(content) {
+    if (content == null) return '';
+    if (typeof content === 'string') return content;
+    if (Array.isArray(content)) return content.map(c => typeof c === 'string' ? c : (c && (c.text || c.content) || '')).join('\n');
+    try { return JSON.stringify(content, null, 2); } catch (e) { return String(content); }
+}
+function t2Markdown(text) {
+    if (!text) return '<p class="muted">(empty)</p>';
+    try { if (window.marked && marked.parse) return marked.parse(text); } catch (e) {}
+    return '<p>' + escapeHtml(text).replace(/\n/g, '<br>') + '</p>';
+}
+
+// Contenido del visor según el tipo de observación.
+function t2ViewerContent(cache, r, m) {
+    const blocks = parseContentBlocks(m.content);
+    if (r.type === 'tool') {
+        const tools = blocks.filter(b => b.type === 'tool_use');
+        const b = tools[r._ord] || tools[0];
+        if (!b) return `<div class="t2-note">No tool data.</div>`;
+        const name = b.name || 'Tool';
+        const res = b.id ? cache.resultByUseId[b.id] : null;
+        const outStr = res ? t2ResultText(res.content) : '';
+        const outView = outStr !== ''
+            ? `<div class="t2-ts-label out" style="margin-top:14px">▸ Output<span class="b">${outStr.split('\n').length} lines</span></div>${codeViewer({ name: 'output', lang: 'text', code: outStr, ansi: true })}`
+            : `<div class="t2-ts-label out" style="margin-top:14px">▸ Output</div><div class="t2-note">No result captured for this call.</div>`;
+        return `<div class="t2-ts-invoke"><code>${escapeHtml(t2InvSig(name, b.input))}</code></div>
+            <div class="t2-ts-label in">▸ Input</div>${t2ToolInputView(name, b.input)}${outView}`;
+    }
+    if (r.type === 'generation') {
+        const text = blocks.filter(b => b.type === 'text').map(b => b.text || '').join('\n').trim();
+        return `<div class="t2-msg bot"><div class="t2-msg-hd"><span class="t2-msg-av bot">✦</span><span class="t2-msg-role">Assistant</span><span class="t2-msg-time">${escapeHtml(formatClock(m.ts))} · ${escapeHtml(shortModel(m.model))}</span></div><div class="t2-msg-body">${t2Markdown(text)}</div></div>`;
+    }
+    if (r.type === 'request') {
+        const text = blocks.filter(b => b.type === 'text').map(b => b.text || '').join('\n').trim() || r.title || '';
+        return `<div class="t2-msg you"><div class="t2-msg-hd"><span class="t2-msg-av you">🧑</span><span class="t2-msg-role">You</span><span class="t2-msg-time">${escapeHtml(formatClock(m.ts))}</span></div><div class="t2-msg-body mono">${escapeHtml(text)}</div></div>`;
+    }
+    if (r.type === 'thinking') {
+        const th = blocks.filter(b => b.type === 'thinking' && b.thinking);
+        const b = th[r._ord] || th[0];
+        const txt = b ? String(b.thinking || '').trim() : String(r.title || '');
+        return txt ? `<div class="t2-think">${escapeHtml(txt)}</div>`
+            : `<div class="t2-note">No reasoning text persisted (only the block signature). It used <b>${formatTokens(m.output_tokens)}</b> output tokens.</div>`;
+    }
+    if (r.type === 'result') {
+        const res = blocks.find(b => b.type === 'tool_result');
+        const txt = res ? t2ResultText(res.content) : String(r.title || '');
+        return `<div class="t2-ts-label out">▸ Tool result</div>${codeViewer({ name: 'result', lang: 'text', code: txt || '(empty)', ansi: true })}`;
+    }
+    return `<div class="t2-note">${escapeHtml(r.title || '')}</div>`;
+}
+
+function t2RenderViewer() {
+    const v = document.getElementById('t2-viewer');
+    if (!v) return;
+    if (t2SelTrace == null || t2Sel == null || !t2ObsCache.has(t2SelTrace)) {
+        v.innerHTML = `<div class="t2-vw-empty"><div class="ic">👁</div><div><b>Observation viewer</b><br>Select an observation to inspect its content, tokens and cost.</div></div>`;
+        return;
+    }
+    const cache = t2ObsCache.get(t2SelTrace);
+    const r = cache.rows[t2Sel], m = cache.msgs[r.idx] || {}, t = cache.trace;
+    const cost = t2ObsCost(m);
+    const cacheTok = (Number(m.cache_read_tokens) || 0) + (Number(m.cache_creation_tokens) || 0);
+    const totTok = (Number(m.input_tokens) || 0) + (Number(m.output_tokens) || 0) + cacheTok;
+    const tokParts = [
+        { cls: 'in', color: 'var(--t2-cin)', label: 'Input', val: Number(m.input_tokens) || 0 },
+        { cls: 'out', color: 'var(--t2-cout)', label: 'Output', val: Number(m.output_tokens) || 0 },
+        { cls: 'cache', color: 'var(--t2-ccache)', label: 'Cache', val: cacheTok },
+    ];
+    const costParts = [
+        { cls: 'in', color: 'var(--t2-cin)', label: 'Input', val: cost.input },
+        { cls: 'out', color: 'var(--t2-cout)', label: 'Output', val: cost.output },
+        { cls: 'cache', color: 'var(--t2-ccache)', label: 'Cache', val: cost.cache },
+    ];
+    const n = cache.rows.length;
+    const headTitle = r.type === 'tool' ? (String(r.title).split(' ')[0] || 'Tool') : obsTypeLabel(r.type);
+    v.innerHTML = `
+        <div class="t2-vw-head">
+            <div class="t2-vw-eyebrow"><span>session <b>${escapeHtml(String(t.session_id).slice(0, 8))}</b></span><span class="sep">/</span><span>trace <b>#${Number(t.turn_no) || ''}</b></span></div>
+            <div class="t2-vw-titlerow"><span class="t2-vw-ic t-${r.type}">${T2_ICON[r.type] || '•'}</span><h2>${escapeHtml(headTitle)}</h2><span class="execution-badge ${escapeHtml(r.type)}">${escapeHtml(obsTypeLabel(r.type))}</span></div>
+            <div class="t2-vw-nav"><button data-t2-nav="prev"${t2Sel === 0 ? ' disabled' : ''}>▲ Prev</button><span class="pos">obs ${t2Sel + 1} / ${n}</span><button data-t2-nav="next"${t2Sel === n - 1 ? ' disabled' : ''}>Next ▼</button></div>
+            <div class="t2-vw-striplab">Tokens &amp; cost <span class="t2-vw-sec-note">estimated</span></div>
+            <div class="t2-vw-strip">${t2MbCell('Tokens', totTok, tokParts, formatTokens, false)}${t2MbCell('Cost', cost.total, costParts, formatCost, true)}</div>
+        </div>
+        <div class="t2-vw-body">
+            <div class="t2-chips"><span class="t2-chip">🕑 ${escapeHtml(formatTime(m.ts || t.started))}</span><span class="t2-chip">✦ ${escapeHtml(shortModel(m.model || t.model))}</span>${m.request_id ? `<span class="t2-chip"><span class="mono">${escapeHtml(String(m.request_id).slice(0, 14))}</span></span>` : ''}</div>
+            ${t2ViewerContent(cache, r, m)}
+        </div>`;
+}
+
+function t2BindResizer() {
+    const rz = document.getElementById('t2-resizer'), layout = document.getElementById('t2-layout');
+    if (!rz || !layout || rz._t2bound) return;
+    rz._t2bound = true;
+    rz.addEventListener('mousedown', e => {
+        e.preventDefault(); document.body.classList.add('t2-resizing');
+        const sx = e.clientX, sw = t2ViewerW;
+        const mv = ev => { t2ViewerW = Math.max(300, Math.min(window.innerWidth - 360, sw - (ev.clientX - sx))); layout.style.setProperty('--t2-viewer-w', t2ViewerW + 'px'); };
+        const up = () => { document.body.classList.remove('t2-resizing'); try { localStorage.setItem('ccpanel-t2-viewer-w', String(Math.round(t2ViewerW))); } catch (_) {} window.removeEventListener('mousemove', mv); window.removeEventListener('mouseup', up); };
+        window.addEventListener('mousemove', mv); window.addEventListener('mouseup', up);
+    });
+}
+
+// Eventos del nuevo diseño (delegados en su contenedor).
+(function t2BindEvents() {
+    const wrap = document.getElementById('turn-design-new-wrap');
+    if (wrap) wrap.addEventListener('click', e => {
+        const obs = e.target.closest('.t2-obs');
+        if (obs) { t2SelectObs(obs.dataset.t2ObsKey, Number(obs.dataset.t2ObsI)); return; }
+        const nav = e.target.closest('[data-t2-nav]');
+        if (nav) {
+            if (t2SelTrace == null) return;
+            const cache = t2ObsCache.get(t2SelTrace); if (!cache) return;
+            const j = nav.dataset.t2Nav === 'prev' ? t2Sel - 1 : t2Sel + 1;
+            if (j >= 0 && j < cache.rows.length) {
+                t2SelectObs(t2SelTrace, j);
+                const el = [...document.querySelectorAll('.t2-obs')].find(x => x.dataset.t2ObsKey === t2SelTrace && Number(x.dataset.t2ObsI) === j);
+                if (el) el.scrollIntoView({ block: 'nearest' });
+            }
+            return;
+        }
+        const tog = e.target.closest('[data-t2-toggle]');
+        if (tog) {
+            // Toggle in situ (sin re-render completo) para no perder el scroll de la página.
+            const key = tog.dataset.t2Toggle;
+            const traceEl = tog.closest('.t2-trace');
+            if (t2OpenTrace === key) {
+                t2OpenTrace = null;
+                if (traceEl) traceEl.classList.remove('open');
+            } else {
+                if (t2OpenTrace) {
+                    const prev = [...document.querySelectorAll('#t2-main .t2-trace')].find(el => el.dataset.t2Key === t2OpenTrace);
+                    if (prev) prev.classList.remove('open');
+                }
+                t2OpenTrace = key;
+                if (traceEl) traceEl.classList.add('open');
+                const t = getFilteredTurns().find(x => t2Key(x) === key);
+                if (t) t2LoadObsInto(t);
+            }
+            return;
+        }
+    });
+    const dsw = document.getElementById('trace-design-switcher');
+    if (dsw) dsw.addEventListener('click', e => {
+        const btn = e.target.closest('button[data-trace-design]');
+        if (!btn) return;
+        traceDesign = btn.dataset.traceDesign;
+        try { localStorage.setItem('ccpanel-trace-design', traceDesign); } catch (_) {}
+        document.querySelectorAll('#trace-design-switcher button').forEach(b => b.classList.toggle('active', b.dataset.traceDesign === traceDesign));
+        renderHomeView();
+    });
+})();
+t2InitDesign();
+
 async function init() {
     await loadPricingConfig();
     HEALTH = await fetchHealth();
@@ -10776,16 +11347,15 @@ function renderDataSourceChip(health) {
         return '/' + parts[0] + '/…/' + parts.slice(-3).join('/');
     }
     const shortPath = shortenPath(fullPath);
-    const tip = `Mode: ${cfg.mode || 'auto'}\nGlob read by clickhouse-local:\n${fullPath}`;
-    const chip = document.createElement('span');
+    const plainMode = modeLabel.replace(/^\S+\s/, '');   // sin el emoji inicial
+    const tip = `Source folder · ${plainMode}\n${fullPath}\n\nClick to change folder`;
+    const chip = document.createElement('button');
     chip.id = 'data-source-chip';
+    chip.type = 'button';
     chip.title = tip;
-    chip.style.cssText = 'display:inline-flex;align-items:center;gap:6px;background:#eef4fb;border:1px solid var(--accent-line);color:var(--accent-dim);padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;cursor:pointer;margin-left:8px;max-width:540px';
-    chip.innerHTML = `
-        <span style="color:#64748b;font-weight:500">${escapeHtml(modeLabel)}</span>
-        <span style="color:#cbd5e1">·</span>
-        <code style="font-family:'SF Mono',Consolas,monospace;color:#0f172a;background:transparent;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:340px">${escapeHtml(shortPath)}</code>
-        <span style="color:var(--accent);text-decoration:underline">change</span>`;
+    chip.setAttribute('aria-label', tip);
+    chip.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;background:#eef4fb;border:1px solid var(--accent-line);color:var(--accent-dim);border-radius:8px;font-size:15px;cursor:pointer;margin-left:8px;flex:none';
+    chip.innerHTML = '📁';
     chip.addEventListener('click', () => openChangeFolder());
     bar.appendChild(chip);
 }
