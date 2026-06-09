@@ -2,15 +2,16 @@
 
 ![Claude Scope dashboard](img/claude-scope.png)
 
-A local observability dashboard for Claude Code sessions. Claude Scope reads the JSONL files in `~/.claude/projects/`, analyzes them with embedded ClickHouse via [chdb](https://github.com/chdb-io/chdb), and lets you explore everything in your browser.
+A local observability dashboard for Claude Code sessions. Claude Scope reads the JSONL files in `~/.claude/projects/`, analyzes them with embedded ClickHouse via [chdb](https://github.com/chdb-io/chdb), and lets you explore them in your browser.
 
 **Nothing leaves your machine.**
 
 Features:
 
 * **Sessions, traces, and observations** (OpenTelemetry-aligned: session = conversation, trace = one interaction/prompt, observation = a span/step).
-* **Real billable cost** by model, including input, output, cache reads/writes, server tools, and service-tier adjustments. Costs are deduplicated by `requestId`.
+* **Billable cost** by model, including input, output, cache reads/writes, server tools, and service-tier adjustments. Costs are deduplicated by `requestId`.
 * **Per-trace and per-session details**, including prompts, responses, tool calls, tool inputs/outputs, and token usage for each step.
+* **Two layouts for the Traces table**: a classic table, and a viewer layout with an expandable metrics panel per trace and an observation viewer on the right.
 * **Filters** by date, project, model, and tool.
 
 > Want a preview? Jump to [The panel views](#the-panel-views) below.
@@ -36,7 +37,7 @@ python3 app/local_server.py
 
 That’s it. The dashboard opens at `http://127.0.0.1:8765`.
 
-> The first time, `pip install` downloads chdb, which bundles the ClickHouse engine and may take a moment. After that, Claude Scope starts instantly and works offline.
+> The first time, `pip install` downloads chdb, which bundles the ClickHouse engine and may take a moment. After that, Claude Scope starts quickly and works offline.
 
 If you don’t have Python installed:
 
@@ -129,6 +130,7 @@ app/                     # The dashboard itself
 ```bash
 python3 app/local_server.py --port 9000   # Use another port; default is 8765
 python3 app/local_server.py --no-open     # Do not open the browser automatically
+python3 app/local_server.py --view viewer # Open the Traces table in the viewer layout ("table" for the classic one)
 ```
 
 ## The panel views
@@ -142,21 +144,24 @@ The dashboard is the main screen.
 At the top, in the header, you’ll find:
 
 * **Search**, to filter by message content.
-* **Token mode**, a toggle on the right that changes how tokens are counted across all metrics:
+* **Token mode**, a toggle that changes how tokens are counted across all metrics:
 
   * **All & Real data**: input + output + cache, deduplicated per request. This reflects what you actually consume.
   * **Same as Claude Code**: raw input + output only, like the “Total tokens” shown in `/config` → Stats. This is usually higher because it does not deduplicate requests or account for cache behavior in the same way.
-* **Data source**, showing the folder currently being read.
+* **Grouping** (Traces / Sessions) and, for Traces, the **layout** toggle (Table / Viewer).
+* **Data source**, a folder icon whose tooltip shows the folder currently being read; click it to change the source.
 * **Panel zoom**, to adjust the interface scale.
 
 Below the header, you choose how to group the data (aligned with OpenTelemetry tracing terminology, where a **trace** is a single interaction/prompt and a **session** is the whole conversation):
 
-* **Traces**: the default view. One row per trace (a single prompt and everything the agent did to answer it), like a distributed tracing table. Each row shows the **Name** (`[project] Turn N`, with the project derived automatically from the session path), token usage, **cost** (hover it for the input / output / cache breakdown), and the **number of observations** (spans/steps) per trace. **Expand any row** to see the trace's metric cards, open it focused on its own conversation, and browse its list of observations.
-* **Sessions**: one row per session (conversation), with all its traces nested below, and the same cost breakdown on hover. This is the best view for walking through a full session.
+* **Traces**: the default view. One row per trace (a single prompt and everything the agent did to answer it). The **Table / Viewer** toggle in the header switches between two layouts:
+  * **Table**: the classic table. Each row shows the **Name** (`[project] Turn N`, with the project derived automatically from the session path), token usage, **cost** (hover it for the input / output / cache breakdown), and the **number of observations** (spans/steps). Expand a row to see the trace's metric cards and its list of observations.
+  * **Viewer**: the trace list on the left and an observation viewer on the right (described in [The Traces viewer](#the-traces-viewer)).
+* **Sessions**: one row per session (conversation), with all its traces nested below, and the same cost breakdown on hover. Use this view to walk through a full session.
 
-You can also filter by **project, model, tool, and time range**, with a **Clear filters** option to reset everything.
+The stats bar summarizes **traces, tokens, and total cost** (with the input / output / cache breakdown), and holds the **filters**: project, model, tool, and time range, plus **Clear filters**.
 
-The stats bar summarizes traces, tokens, total cost, API time, and permissions. Below it, charts show **daily tokens, tokens per tool, token mix, cost mix, cost per model, tool calls, MCP servers, and projects**.
+Below it, charts show **daily tokens, tokens per tool, cost per model, tool calls, and projects**.
 
 ### The conversation
 
@@ -169,6 +174,28 @@ The divider between the chat and the details panel is **draggable**, so you can 
 ![Conversation with the details panel](img/conversacion-detalle.png)
 
 Each **tool call** (WebSearch, WebFetch, Read, Bash, and others) can be expanded to inspect its **Input**, **Output**, and **Metadata** tabs, so you can see exactly what was sent and what came back.
+
+### The Traces viewer
+
+With the **Viewer** layout selected (header toggle or `--view viewer`), the Traces table splits into two columns.
+
+On the left, each trace row (Trace #, prompt, start time, cost) expands to show:
+
+* **Metric cards**: Tokens and Cost, each with the input / output / cache breakdown (Cost also shows each part's percentage), plus a card with Tool calls, Observations, Duration, and Model.
+* The trace's **observations**, one row per step, marked by type (Prompt, Thinking, Tool, Response) with its tokens and cost.
+
+Clicking an observation opens the **observation viewer** on the right (sticky and resizable; its width is remembered). It shows the observation's tokens and cost (estimated per observation) and its content, depending on the type:
+
+* **Tool**: the invocation, plus the **Input** and **Output** in a code viewer.
+* **Response**: the assistant message, rendered as Markdown.
+* **Prompt**: the user message.
+* **Thinking**: the reasoning text when present.
+
+**Prev / Next** move between observations.
+
+![Traces viewer: trace metrics, the observation list, and the observation viewer showing an Edit diff](img/conversacion-detalle-V2.png)
+
+In the screenshot, trace #23 is expanded on the left — its Tokens and Cost cards, the Tool calls / Observations / Duration / Model card, and the observation list. On the right, the viewer shows an **Edit** observation with its tokens and cost, and its **Input** diff and **Output** in the code viewer.
 
 ## License
 
