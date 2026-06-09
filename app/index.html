@@ -4387,8 +4387,8 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
 .t2-resizer { cursor: col-resize; position: sticky; top: 12px; align-self: start; height: calc(100vh - 96px); }
 .t2-resizer::before { content: ""; position: absolute; left: 3px; top: 0; bottom: 0; width: 2px; background: var(--line-strong); border-radius: 2px; transition: background .15s, width .15s; }
 .t2-resizer:hover::before, body.t2-resizing .t2-resizer::before { width: 3px; background: var(--accent-strong); }
-/* Asa (grip) visible en el centro del divisor para indicar que se puede arrastrar. */
-.t2-resizer::after { content: ""; position: absolute; left: -4px; top: 50%; transform: translateY(-50%); width: 15px; height: 50px; border: 1px solid var(--line-strong); border-radius: 8px; background-color: var(--surface); background-image: radial-gradient(circle, var(--muted) 1.1px, transparent 1.6px); background-size: 5px 5px; background-position: center; box-shadow: var(--shadow-card); transition: border-color .15s, box-shadow .15s; }
+/* Asa (grip) visible en la parte superior del divisor para indicar que se puede arrastrar. */
+.t2-resizer::after { content: ""; position: absolute; left: -4px; top: 8px; width: 15px; height: 50px; border: 1px solid var(--line-strong); border-radius: 8px; background-color: var(--surface); background-image: radial-gradient(circle, var(--muted) 1.1px, transparent 1.6px); background-size: 5px 5px; background-position: center; box-shadow: var(--shadow-card); transition: border-color .15s, box-shadow .15s; }
 .t2-resizer:hover::after, body.t2-resizing .t2-resizer::after { border-color: var(--accent); box-shadow: var(--shadow-hover); }
 .t2-viewer { position: sticky; top: 12px; align-self: start; height: calc(100vh - 96px); overflow-y: auto; overflow-x: hidden;
     border-left: 1px solid var(--line); background: var(--surface); min-width: 0; }
