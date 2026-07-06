@@ -4901,7 +4901,7 @@ function detectPricingTier(model) {
     if (!model) return null;
     const m = String(model).toLowerCase();
     if (m === '<synthetic>') return null;
-    if (m.includes('fable')) return 'fable';
+    if (m.includes('fable') || m.includes('mythos')) return 'fable'; // Mythos 5 comparte tarifa con Fable 5
     if (m.includes('haiku')) return 'haiku';
     if (m.includes('opus')) {
         const ver = m.match(/opus-(\d+)-(\d+)/);
