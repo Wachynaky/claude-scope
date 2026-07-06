@@ -3993,8 +3993,8 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
 .msg-bubble.sys { background: var(--surface-2); }
 /* Burbujas de conversación con degradado suave (cada una en su familia de color). */
 .msg-bubble.bot { background: linear-gradient(160deg, #f4faf6 0%, #e7f2ec 100%); }
-.msg-bubble.you { background: linear-gradient(160deg, #fff8ef 0%, #ffe9d2 100%); color: var(--text); }
-.msg-bubble.you .msg-body { color: var(--text); }
+.msg-bubble.you { background: linear-gradient(160deg, #fffaf2 0%, #ffeccf 100%); color: #1b1b1e; }
+.msg-bubble.you .msg-body { color: #1b1b1e; }
 
 /* Cabecera de la card = barra tipo ux-row del prototipo (bleed a los bordes del bubble). */
 /* Cabecera ligera (sin barra) para que prompts/responses parezcan burbujas de chat. */
@@ -4054,15 +4054,17 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
 
 /* Prompt literal: respeta saltos de línea y sangrías sin interpretar markdown. */
 /* El prompt se muestra tal cual lo escribió el usuario (incluidos dibujos
-   ASCII). Como la burbuja es estrecha, NO envolvemos las líneas: usamos
-   monospace y scroll horizontal para que la alineación del dibujo se conserve,
-   igual que en la fila expandida de la tabla (que ocupa todo el ancho). */
+   ASCII): conservamos saltos de línea y sangrías con pre-wrap, pero ajustamos
+   los párrafos largos al ancho de la burbuja (word-break) para que se lean como
+   conversación en vez de quedar en una sola línea con scroll horizontal. Las
+   líneas anchas (p. ej. dibujos ASCII) siguen pudiendo desplazarse en horizontal. */
 .term-verbatim {
-    white-space: pre;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
     overflow-x: auto;
     font-family: 'SF Mono', Consolas, 'Courier New', monospace;
-    font-size: 12.5px;
-    line-height: 1.5;
+    font-size: 13.5px;
+    line-height: 1.55;
 }
 
 /* Plegado "Read more" */
