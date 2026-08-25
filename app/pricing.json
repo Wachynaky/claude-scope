@@ -1,6 +1,8 @@
 {
   "note": "Anthropic model pricing. 'models' holds the per-model rates published at https://platform.claude.com/docs/en/about-claude/pricing#model-pricing and is what the panel bills with; 'tiers' is the fallback for models that table does not list. Updating prices from the panel rewrites 'models' here and stamps 'models_checked_at'. Token rates are USD per million tokens. Server-tool rates are USD per 1000 requests. service_tier_multipliers apply on top of token rates (priority ~ 2x, batch ~ 0.5x). Edit these values if your plan, region, discount, or Claude Code billing differs.",
   "models_updated": "2026-08-25",
+  "models_checked_at": 1787653301,
+  "models_source": "https://platform.claude.com/docs/en/about-claude/pricing.md",
   "models": {
     "fable-5": {
       "input": 10.0,
