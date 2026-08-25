@@ -5023,7 +5023,9 @@ function detectPricingTier(model) {
         return 'opus-4.5+'; // unversioned opus assumed latest tier
     }
     if (m.includes('sonnet')) return 'sonnet';
-    return 'sonnet';
+    // Anything else is not an Anthropic model (a local Ollama model, say), so
+    // it gets no rate at all: charging it as Sonnet would invent a cost.
+    return null;
 }
 
 // Reduce a model id to the key used by the official pricing table:
@@ -5076,7 +5078,7 @@ function serverToolsCost(row) {
 
 function costBreakdown(row) {
     const tier = detectPricingTier(row.model);
-    const empty = { input: 0, output: 0, cacheRead: 0, cacheCreation5m: 0, cacheCreation1h: 0, cacheCreation: 0, serverTools: 0, total: 0, tier: tier };
+    const empty = { input: 0, output: 0, cacheRead: 0, cacheCreation5m: 0, cacheCreation1h: 0, cacheCreation: 0, serverTools: 0, total: 0, tier: tier, rateSource: 'none' };
     const p = ratesFor(row.model);
     if (!p) return empty;
     const mult = serviceTierMultiplier(row);
@@ -10897,8 +10899,8 @@ function t2InitDesign() {
 // ── Coste estimado por observación (la app solo desglosa coste por trace; aquí
 //    estimamos input/output del mensaje con el pricing del modelo). ──
 function t2ObsCost(m) {
-    const p = (typeof ratesFor === 'function' && ratesFor(m.model || ''))
-        || { input: 3, output: 15, cache_read: 0.3, cache_creation_5m: 3.75 };
+    const p = (typeof ratesFor === 'function' && ratesFor(m.model || '')) || null;
+    if (!p) return { input: 0, output: 0, cache: 0, total: 0 };
     const ti = Number(m.input_tokens) || 0, to = Number(m.output_tokens) || 0;
     const cr = Number(m.cache_read_tokens) || 0, cw = Number(m.cache_creation_tokens) || 0;
     const input = ti * p.input / 1e6, output = to * p.output / 1e6;
@@ -11220,7 +11222,7 @@ t2InitDesign();
 // where that rate comes from, so a wrong cost can be traced back to its source.
 
 function pricingRateFmt(v) {
-    return (v === null || v === undefined) ? '\u2014' : '$' + Number(v);
+    return (v === null || v === undefined) ? 'n/a' : '$' + Number(v);
 }
 
 // One row per pricing key: the official table, plus any model seen in the
@@ -11290,7 +11292,7 @@ function pricingPanelHtml() {
             ? '<span class="pricing-badge official" title="Rate published for this model">listed</span>'
             : r.source === 'bundled'
             ? `<span class="pricing-badge bundled" title="Not in the published table; priced with the ${escapeHtml(r.tier || '')} tier">tier</span>`
-            : '<span class="pricing-badge none">no price</span>';
+            : '<span class="pricing-badge none" title="Not an Anthropic model: no rate is applied and it adds no cost">no price</span>';
         const ids = r.ids.length ? `<span class="pricing-model-ids">${escapeHtml(r.ids.join(', '))}</span>` : '';
         const rates = r.rates || {};
         return `<tr class="${r.used ? 'used' : ''}">
