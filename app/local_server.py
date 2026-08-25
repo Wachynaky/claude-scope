@@ -10,6 +10,8 @@ of HTTP endpoints to the front-end:
   POST /config/pick-folder — open a native folder picker (Tk), return path.
   POST /upload-sessions    — receive uploaded .jsonl files, store under
                              local-data/projects/<bucket>/.
+  GET  /pricing            - official model pricing (see pricing_source.py).
+  POST /pricing/consent    - remember whether the panel may check pricing online.
   POST /reset              — clear config, return to first-run wizard.
   POST /query              — run a SELECT against the JSONL via chdb (embedded ClickHouse).
   POST /shutdown           — terminate the server (used by the panel's
@@ -27,10 +29,13 @@ import re
 import sys
 import threading
 import time
+import urllib.parse
 import webbrowser
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
+
+import pricing_source
 
 
 BASE_DIR = Path(os.environ.get("CLAUDE_SCOPE_BASE_DIR") or Path(__file__).resolve().parent)
@@ -90,6 +95,37 @@ def reset_config() -> None:
         CONFIG_FILE.unlink()
     except FileNotFoundError:
         pass
+
+
+# When the panel may read the official pricing page:
+#   manual   - only when the user presses Update prices in the pricing view
+#   startup  - on every start too, reporting what changed
+# Neither mode reaches the network on its own without the user having said so,
+# so "manual" is also the answer for anyone who wants the panel fully offline.
+PRICING_MODES = {"manual", "startup"}
+
+
+def normalize_pricing_mode(value: Any) -> str | None:
+    """Accept a mode name, or the earlier on/off form, and return a valid mode."""
+    if isinstance(value, bool):
+        return "startup" if value else "manual"
+    mode = str(value or "").strip().lower()
+    if mode in ("on", "true"):
+        return "startup"
+    if mode in ("off", "false"):
+        return "manual"
+    return mode if mode in PRICING_MODES else None
+
+
+def set_pricing_consent(mode: Any) -> dict:
+    """Persist the user's answer to the online-pricing prompt (merges config)."""
+    resolved = normalize_pricing_mode(mode)
+    if resolved is None:
+        raise ValueError(f"pricing mode must be one of {sorted(PRICING_MODES)}")
+    cfg = load_config()
+    cfg["pricing_update"] = resolved
+    save_config(cfg)
+    return cfg
 
 
 def resolve_custom_glob(path: str) -> str:
@@ -340,6 +376,10 @@ class Handler(SimpleHTTPRequestHandler):
         if self.path == "/config":
             self.send_json({"config": load_config(), "first_run": first_run()})
             return
+        parsed = urllib.parse.urlsplit(self.path)
+        if parsed.path == "/pricing":
+            self._handle_pricing(parsed.query)
+            return
         super().do_GET()
 
     # ---- POST -------------------------------------------------------------
@@ -359,6 +399,9 @@ class Handler(SimpleHTTPRequestHandler):
             return
         if self.path == "/config/pick-folder":
             self._handle_pick_folder()
+            return
+        if self.path == "/pricing/consent":
+            self._handle_pricing_consent()
             return
         if self.path == "/upload-sessions":
             self._handle_upload()
@@ -411,6 +454,11 @@ class Handler(SimpleHTTPRequestHandler):
             if mode not in VALID_MODES:
                 raise ValueError(f"mode must be one of {sorted(VALID_MODES)}")
             cfg: dict[str, Any] = {"mode": mode, "saved_at": int(time.time())}
+            # This handler rewrites the whole config file, so carry over the
+            # settings it does not own.
+            previous = load_config().get("pricing_update")
+            if previous:
+                cfg["pricing_update"] = previous
             if mode == "custom_path":
                 projects_dir = (payload.get("projects_dir") or "").strip()
                 if not projects_dir:
@@ -420,6 +468,26 @@ class Handler(SimpleHTTPRequestHandler):
                     raise ValueError(f"Folder does not exist: {p}")
                 cfg["projects_dir"] = str(p)
             save_config(cfg)
+            self.send_json({"ok": True, "config": cfg})
+        except Exception as exc:
+            self.send_text(400, str(exc))
+
+    def _handle_pricing(self, query: str = "") -> None:
+        """Serve the official rates. Never fails the caller: without a usable
+        answer the panel simply keeps its bundled pricing."""
+        params = urllib.parse.parse_qs(query)
+        force = params.get("force", ["0"])[0] not in ("0", "", "false")
+        try:
+            self.send_json({"ok": True, **pricing_source.fetch_pricing(force=force)})
+        except Exception as exc:
+            self.send_json({"ok": False, "error": str(exc),
+                            "source": pricing_source.PRICING_DOC_URL})
+
+    def _handle_pricing_consent(self) -> None:
+        try:
+            payload = self._read_json_body()
+            mode = payload.get("mode", payload.get("enabled"))
+            cfg = set_pricing_consent(mode)
             self.send_json({"ok": True, "config": cfg})
         except Exception as exc:
             self.send_text(400, str(exc))

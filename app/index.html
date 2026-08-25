@@ -3716,6 +3716,71 @@ tbody td + td { border-left: 1px solid var(--line); }
     padding: 20px;
 }
 
+.pricing-panel-card {
+    width: min(900px, 100%);
+    max-height: min(820px, 88vh);
+    overflow: auto;
+    background: #fff;
+    color: #1f2937;
+    border: 1px solid #d8e0ea;
+    border-radius: 14px;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+    padding: 22px 24px 20px;
+}
+.pricing-panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.pricing-panel-head h3 { margin: 0 0 4px; font-size: 16px; }
+.pricing-panel-status { font-size: 12px; color: #64748b; line-height: 1.5; }
+.pricing-panel-status a { color: var(--accent-dim, #a3134a); }
+.pricing-panel-actions { display: flex; align-items: center; gap: 8px; flex: none; }
+.pricing-panel-actions button { font: inherit; font-size: 12px; cursor: pointer; border-radius: 8px; padding: 6px 12px; border: 1px solid #cbd5e1; background: #fff; color: #334155; }
+.pricing-panel-actions button:hover { background: #f1f5f9; }
+.pricing-panel-actions button.primary { border-color: var(--accent, #e82a6b); background: var(--accent, #e82a6b); color: #fff; }
+.pricing-panel-actions button.primary:hover { filter: brightness(1.06); }
+.pricing-last-check { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px; margin-top: 14px; padding: 9px 13px; border-radius: 9px; background: var(--accent-soft, #fdeef4); border: 1px solid var(--accent-line, #f3c6d6); }
+.pricing-last-check .label { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; color: var(--accent-dim, #a3134a); }
+.pricing-last-check .value { font-size: 15px; font-weight: 650; color: #1f2937; font-variant-numeric: tabular-nums; }
+.pricing-last-check .age { font-size: 12px; color: #64748b; }
+.pricing-last-check.never { background: #f8fafc; border-color: #e2e8f0; }
+.pricing-last-check.never .label { color: #64748b; }
+.pricing-last-check.never .value { color: #475569; font-weight: 600; }
+.pricing-panel-note { margin: 14px 0 0; padding: 9px 12px; border-radius: 8px; background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; font-size: 12px; }
+.pricing-panel-note.info { background: var(--accent-soft, #fdeef4); border-color: var(--accent-line, #f3c6d6); color: var(--accent-dim, #a3134a); }
+.pricing-table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.pricing-table th { text-align: right; font-weight: 600; color: #64748b; padding: 6px 8px; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+.pricing-table th:first-child, .pricing-table td:first-child { text-align: left; }
+.pricing-table td { text-align: right; padding: 7px 8px; border-bottom: 1px solid #f1f5f9; }
+.pricing-table tr.used td { background: #f8fbff; }
+.pricing-table tr.used td:first-child { box-shadow: inset 2px 0 0 var(--accent, #e82a6b); }
+.pricing-model-ids { display: block; color: #94a3b8; font-size: 11px; margin-top: 2px; word-break: break-all; }
+.pricing-badge { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 10.5px; border: 1px solid transparent; }
+.pricing-badge.official { background: #ecfdf5; border-color: #a7f3d0; color: #047857; }
+.pricing-badge.bundled { background: #f1f5f9; border-color: #dbe3ec; color: #64748b; }
+.pricing-badge.none { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+.pricing-panel-foot { margin-top: 14px; font-size: 11.5px; color: #94a3b8; line-height: 1.6; }
+
+.pricing-modal-card {
+    width: min(520px, 100%);
+    background: #fff;
+    color: #1f2937;
+    border: 1px solid #d8e0ea;
+    border-radius: 14px;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+    padding: 24px;
+    font-size: 13px;
+    line-height: 1.55;
+}
+.pricing-modal-card h3 { margin: 0 0 10px; font-size: 16px; }
+.pricing-modal-card p { margin: 0 0 12px; color: #475569; }
+.pricing-modal-card .pricing-modal-source { font-size: 12px; color: #64748b; word-break: break-all; }
+.pricing-modal-options { margin: 0 0 12px; padding-left: 18px; color: #475569; }
+.pricing-modal-options li { margin-bottom: 6px; }
+.pricing-modal-options b { color: #1f2937; }
+.pricing-modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+.pricing-modal-actions button { font: inherit; cursor: pointer; border-radius: 8px; padding: 7px 14px; border: 1px solid #cbd5e1; background: #fff; color: #334155; }
+.pricing-modal-actions button:hover { background: #f1f5f9; }
+.pricing-modal-actions button.primary { border-color: var(--accent, #e82a6b); background: var(--accent, #e82a6b); color: #fff; }
+.pricing-modal-actions button.primary:hover { filter: brightness(1.06); }
+
 .timeline-modal-card {
     width: min(760px, 100%);
     max-height: min(760px, 90vh);
@@ -4867,6 +4932,31 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
     </div>
 </div>
 
+<div id="pricing-panel" class="modal-backdrop hidden">
+    <div class="pricing-panel-card" role="dialog" aria-modal="true" aria-labelledby="pricing-panel-title"></div>
+</div>
+
+<div id="pricing-modal" class="modal-backdrop hidden">
+    <div class="pricing-modal-card" role="dialog" aria-modal="true" aria-labelledby="pricing-modal-title">
+        <h3 id="pricing-modal-title">How should pricing stay up to date?</h3>
+        <p>Claude Scope prices your sessions with a rate table that goes stale whenever
+           Anthropic changes its prices or ships a new model. It can read the current rates
+           from the public pricing page, which is the only request that ever leaves your
+           machine: it downloads a public page and sends nothing about your sessions.</p>
+        <ul class="pricing-modal-options">
+            <li><b>Update manually</b> only reads the page when you press <b>Update prices</b>
+                in the pricing view, so the panel never reaches the network on its own.</li>
+            <li><b>Check on every start</b> reads it when you open the panel, at most once a
+                day, and tells you which models changed price.</li>
+        </ul>
+        <p class="pricing-modal-source" id="pricing-modal-source"></p>
+        <div class="pricing-modal-actions">
+            <button type="button" id="pricing-modal-manual">Update manually</button>
+            <button type="button" id="pricing-modal-startup" class="primary">Check on every start</button>
+        </div>
+    </div>
+</div>
+
 <script>
 const ansiUp = new AnsiUp();
 
@@ -4881,6 +4971,12 @@ let PRICING = {
     sonnet:      { input: 3,  output: 15, cache_read: 0.30, cache_creation_5m: 3.75,  cache_creation_1h: 6.00 },
     haiku:       { input: 1,  output: 5,  cache_read: 0.10, cache_creation_5m: 1.25,  cache_creation_1h: 2.00 },
 };
+// Per-model rates from Anthropic's published pricing table, keyed by short
+// model name ("opus-4.8"). Ships in pricing.json and is refreshed from the page
+// itself when the user allows the online check. The tier table above only
+// covers what this map does not list.
+let MODEL_PRICING = {};
+let MODEL_PRICING_META = { fetched_at: 0, source: '', stale: false, bundled_updated: '', changes: [] };
 let SERVER_TOOL_PRICING = { web_search_per_1k: 10.0, web_fetch_per_1k: 0.0 };
 let SERVICE_TIER_MULTIPLIERS = { standard: 1.0, priority: 2.0, batch: 0.5 };
 
@@ -4889,6 +4985,15 @@ async function loadPricingConfig() {
         const resp = await fetch('pricing.json', { cache: 'no-store' });
         if (!resp.ok) return;
         const cfg = await resp.json();
+        // pricing.json is the app's own pricing store: it ships with rates and
+        // a download rewrites it, so it also carries when the page was last read.
+        if (cfg.models) MODEL_PRICING = { ...MODEL_PRICING, ...cfg.models };
+        MODEL_PRICING_META = {
+            ...MODEL_PRICING_META,
+            bundled_updated: cfg.models_updated ? String(cfg.models_updated) : MODEL_PRICING_META.bundled_updated,
+            fetched_at: Number(cfg.models_checked_at) || MODEL_PRICING_META.fetched_at,
+            source: cfg.models_source || MODEL_PRICING_META.source || PRICING_PAGE_URL,
+        };
         if (cfg.tiers) PRICING = { ...PRICING, ...cfg.tiers };
         if (cfg.server_tools) SERVER_TOOL_PRICING = { ...SERVER_TOOL_PRICING, ...cfg.server_tools };
         if (cfg.service_tier_multipliers) SERVICE_TIER_MULTIPLIERS = { ...SERVICE_TIER_MULTIPLIERS, ...cfg.service_tier_multipliers };
@@ -4906,7 +5011,8 @@ function detectPricingTier(model) {
     if (m.includes('fable') || m.includes('mythos')) return 'fable'; // Mythos 5 comparte tarifa con Fable 5
     if (m.includes('haiku')) return 'haiku';
     if (m.includes('opus')) {
-        const ver = m.match(/opus-(\d+)-(\d+)/);
+        // Accepts both id and short forms: "opus-4-1" and "opus-4.1".
+        const ver = m.match(/opus-(\d+)[-.](\d+)/);
         if (ver) {
             const major = Number(ver[1]);
             const minor = Number(ver[2]);
@@ -4918,6 +5024,28 @@ function detectPricingTier(model) {
     }
     if (m.includes('sonnet')) return 'sonnet';
     return 'sonnet';
+}
+
+// Reduce a model id to the key used by the official pricing table:
+//   "claude-opus-4-8"           -> "opus-4.8"
+//   "claude-haiku-4-5-20251001" -> "haiku-4.5"
+//   "claude-3-5-haiku-20241022" -> "haiku-3.5"   (pre-4 naming order)
+function pricingKeyFor(model) {
+    if (!model) return '';
+    const m = String(model).toLowerCase().replace(/^claude-/, '').replace(/-\d{8}$/, '');
+    const legacy = m.match(/^(\d+)(?:-(\d+))?-(opus|sonnet|haiku)$/);
+    if (legacy) return legacy[3] + '-' + legacy[1] + (legacy[2] ? '.' + legacy[2] : '');
+    return m.replace(/-(\d+)-(\d+)$/, '-$1.$2');
+}
+
+// Rates for one model: the official per-model price when the panel has it,
+// otherwise the bundled tier table, which still covers models released after
+// the last pricing check (and every model when the check is off).
+function ratesFor(model) {
+    const exact = MODEL_PRICING[pricingKeyFor(model)];
+    if (exact) return exact;
+    const tier = detectPricingTier(model);
+    return (tier && PRICING[tier]) || null;
 }
 
 // Fallback when 5m/1h breakdown is missing in the row (older sessions or
@@ -4949,7 +5077,7 @@ function serverToolsCost(row) {
 function costBreakdown(row) {
     const tier = detectPricingTier(row.model);
     const empty = { input: 0, output: 0, cacheRead: 0, cacheCreation5m: 0, cacheCreation1h: 0, cacheCreation: 0, serverTools: 0, total: 0, tier: tier };
-    const p = tier ? PRICING[tier] : null;
+    const p = ratesFor(row.model);
     if (!p) return empty;
     const mult = serviceTierMultiplier(row);
     const { t5m, t1h } = splitCacheCreation(row);
@@ -4969,6 +5097,7 @@ function costBreakdown(row) {
         serverTools,
         total: input + output + cacheRead + cacheCreation + serverTools,
         tier,
+        rateSource: MODEL_PRICING[pricingKeyFor(row.model)] ? 'official' : 'bundled',
     };
 }
 
@@ -5814,7 +5943,7 @@ function updateStats() {
     // Las métricas de cabecera (sessions / tokens / total cost) se han eliminado
     // por estar duplicadas en la barra de stats. En #stats-bar solo queda el chip
     // con la ruta del histórico, que renderDataSourceChip mantiene (idempotente).
-    if (typeof HEALTH !== 'undefined' && HEALTH) renderDataSourceChip(HEALTH);
+    if (typeof HEALTH !== 'undefined' && HEALTH) { renderDataSourceChip(HEALTH); renderPricingChip(); }
 }
 
 function setText(id, text) {
@@ -10613,9 +10742,12 @@ function buildCumulativeMetrics() {
 function computeCumulativeCost(m, sessionId) {
     const session = sessions.find(s => s.session_id === sessionId);
     const model = session ? session.model : '';
-    const tier = detectPricingTier(model);
-    const p = PRICING[tier];
-    return (m.inTok * p.input + m.outTok * p.output + m.cacheRead * p.cache_read + m.cacheCreate * p.cache_creation) / 1_000_000;
+    const p = ratesFor(model);
+    if (!p) return 0;
+    // The per-message metrics carry no 5m/1h split, so cache writes are priced
+    // at the 1h rate, the same conservative assumption splitCacheCreation makes.
+    return (m.inTok * p.input + m.outTok * p.output + m.cacheRead * p.cache_read
+            + m.cacheCreate * p.cache_creation_1h) / 1_000_000;
 }
 
 let lastScrollMetricsIdx = -1;
@@ -10765,8 +10897,8 @@ function t2InitDesign() {
 // ── Coste estimado por observación (la app solo desglosa coste por trace; aquí
 //    estimamos input/output del mensaje con el pricing del modelo). ──
 function t2ObsCost(m) {
-    const tier = detectPricingTier(m.model || '');
-    const p = (typeof PRICING !== 'undefined' && (PRICING[tier] || PRICING.sonnet)) || { input: 3, output: 15, cache_read: 0.3, cache_creation_5m: 3.75 };
+    const p = (typeof ratesFor === 'function' && ratesFor(m.model || ''))
+        || { input: 3, output: 15, cache_read: 0.3, cache_creation_5m: 3.75 };
     const ti = Number(m.input_tokens) || 0, to = Number(m.output_tokens) || 0;
     const cr = Number(m.cache_read_tokens) || 0, cw = Number(m.cache_creation_tokens) || 0;
     const input = ti * p.input / 1e6, output = to * p.output / 1e6;
@@ -11083,6 +11215,387 @@ function t2BindResizer() {
 })();
 t2InitDesign();
 
+// ── Pricing panel ─────────────────────────────────────────────────────────
+// Shows every model the panel can price, which rate it uses for each one and
+// where that rate comes from, so a wrong cost can be traced back to its source.
+
+function pricingRateFmt(v) {
+    return (v === null || v === undefined) ? '\u2014' : '$' + Number(v);
+}
+
+// One row per pricing key: the official table, plus any model seen in the
+// sessions that the table does not cover (priced by the bundled tier).
+function pricingRows() {
+    const rows = new Map();
+    for (const [key, rates] of Object.entries(MODEL_PRICING)) {
+        rows.set(key, { key, rates, source: 'official', used: false, ids: [] });
+    }
+    const seen = (typeof sessions !== 'undefined' && sessions ? sessions : [])
+        .map(s => s && s.model).filter(m => m && m !== '<synthetic>');
+    for (const id of new Set(seen)) {
+        const key = pricingKeyFor(id);
+        const row = rows.get(key);
+        if (row) { row.used = true; row.ids.push(id); continue; }
+        const rates = ratesFor(id);
+        rows.set(key, {
+            key, rates, used: true, ids: [id],
+            source: rates ? 'bundled' : 'none',
+            tier: detectPricingTier(id),
+        });
+    }
+    return [...rows.values()].sort((a, b) => (b.used - a.used) || a.key.localeCompare(b.key));
+}
+
+function pricingPanelHtml() {
+    const on = (pricingMode() === 'startup');
+    const meta = MODEL_PRICING_META || {};
+    const rows = pricingRows();
+    const usedCount = rows.filter(r => r.used).length;
+
+    const checked = meta.fetched_at > 0;
+    const bundled = meta.bundled_updated ? ` (updated ${meta.bundled_updated})` : '';
+    const cadence = on ? 'checked on every start' : 'updated manually';
+    const status = checked
+        ? `Official rates from Anthropic's pricing page, ${cadence}`
+          + (meta.stale ? ' \u00b7 last known copy: the page could not be read' : '')
+        : `Rates shipped with the panel${bundled}, ${cadence}`;
+    const lastCheck = checked
+        ? `<div class="pricing-last-check">
+               <span class="label">Last checked</span>
+               <span class="value">${escapeHtml(pricingDateLabel(meta.fetched_at))}</span>
+               <span class="age">${escapeHtml(pricingAgeLabel(meta.fetched_at))}</span>
+           </div>`
+        : `<div class="pricing-last-check never">
+               <span class="label">Last checked</span>
+               <span class="value">Never</span>
+               <span class="age">press Update prices to read the current table</span>
+           </div>`;
+
+    let note = '';
+    if (meta.unreachable) {
+        note = '<p class="pricing-panel-note">The pricing page could not be read. Check the connection and try '
+             + '<b>Update prices</b> again; meanwhile the rates below are the last ones the panel knows.</p>';
+    } else if (!checked) {
+        note = '<p class="pricing-panel-note">Anthropic publishes no pricing API, so these rates were copied from '
+             + 'its pricing page when this version shipped and go stale when prices change. '
+             + 'Press <b>Update prices</b> to read the current table.</p>';
+    } else if ((meta.changes || []).length) {
+        const list = meta.changes.map(c => `${c.model} ${pricingRateFmt(c.from && c.from.input)}/${pricingRateFmt(c.from && c.from.output)} \u2192 ${pricingRateFmt(c.to && c.to.input)}/${pricingRateFmt(c.to && c.to.output)}`).join(', ');
+        note = `<p class="pricing-panel-note info">Anthropic changed prices since the previous check: `
+             + `${escapeHtml(list)}. The panel already bills with the new ones.</p>`;
+    }
+
+    const body = rows.map(r => {
+        const badge = r.source === 'official'
+            ? '<span class="pricing-badge official" title="Rate published for this model">listed</span>'
+            : r.source === 'bundled'
+            ? `<span class="pricing-badge bundled" title="Not in the published table; priced with the ${escapeHtml(r.tier || '')} tier">tier</span>`
+            : '<span class="pricing-badge none">no price</span>';
+        const ids = r.ids.length ? `<span class="pricing-model-ids">${escapeHtml(r.ids.join(', '))}</span>` : '';
+        const rates = r.rates || {};
+        return `<tr class="${r.used ? 'used' : ''}">
+            <td><b>${escapeHtml(r.key)}</b> ${badge}${ids}</td>
+            <td>${pricingRateFmt(rates.input)}</td>
+            <td>${pricingRateFmt(rates.cache_creation_5m)}</td>
+            <td>${pricingRateFmt(rates.cache_creation_1h)}</td>
+            <td>${pricingRateFmt(rates.cache_read)}</td>
+            <td>${pricingRateFmt(rates.output)}</td>
+        </tr>`;
+    }).join('');
+
+    return `
+        <div class="pricing-panel-head">
+            <div>
+                <h3 id="pricing-panel-title">Model pricing</h3>
+                <div class="pricing-panel-status">${escapeHtml(status)}<br>
+                    <a href="${escapeHtml(meta.source || PRICING_PAGE_URL)}" target="_blank" rel="noreferrer noopener">${escapeHtml(meta.source || PRICING_PAGE_URL)}</a>
+                </div>
+            </div>
+            <div class="pricing-panel-actions">
+                <button type="button" id="pricing-panel-toggle" title="${on ? 'Only read the page when you press Update prices' : 'Also read the page when the panel starts'}">${on ? 'Switch to manual updates' : 'Check on every start'}</button>
+                <button type="button" id="pricing-panel-refresh" class="primary">Update prices</button>
+                <button type="button" id="pricing-panel-close">Close</button>
+            </div>
+        </div>
+        ${lastCheck}
+        ${note}
+        <table class="pricing-table">
+            <thead><tr>
+                <th>Model</th><th>Input</th><th>5m write</th><th>1h write</th><th>Cache read</th><th>Output</th>
+            </tr></thead>
+            <tbody>${body}</tbody>
+        </table>
+        <p class="pricing-panel-foot">
+            USD per million tokens. Highlighted rows are the ${usedCount} model${usedCount === 1 ? '' : 's'} present in
+            the loaded sessions. Server tools and the priority/batch multipliers are not in this table; they are applied
+            on top when a request carries them.
+        </p>`;
+}
+
+function renderPricingPanel() {
+    const panel = document.getElementById('pricing-panel');
+    if (!panel) return;
+    const card = panel.querySelector('.pricing-panel-card');
+    card.innerHTML = pricingPanelHtml();
+    card.querySelector('#pricing-panel-close').addEventListener('click', closePricingPanel);
+    card.querySelector('#pricing-panel-toggle').addEventListener('click', onPricingToggle);
+    const refresh = card.querySelector('#pricing-panel-refresh');
+    if (refresh) refresh.addEventListener('click', onPricingRefresh);
+}
+
+function openPricingPanel() {
+    const panel = document.getElementById('pricing-panel');
+    if (!panel) return;
+    renderPricingPanel();
+    panel.classList.remove('hidden');
+    panel.addEventListener('click', onPricingPanelBackdrop);
+    document.addEventListener('keydown', onPricingPanelKey);
+}
+
+function closePricingPanel() {
+    const panel = document.getElementById('pricing-panel');
+    if (!panel) return;
+    panel.classList.add('hidden');
+    panel.removeEventListener('click', onPricingPanelBackdrop);
+    document.removeEventListener('keydown', onPricingPanelKey);
+}
+
+function onPricingPanelBackdrop(e) {
+    if (e.target === document.getElementById('pricing-panel')) closePricingPanel();
+}
+
+function onPricingPanelKey(e) {
+    if (e.key === 'Escape') closePricingPanel();
+}
+
+// Flips between the two cadences. Rates already downloaded stay in use either
+// way: manual means stop reaching the network by itself, not go back to prices
+// already known to be older.
+async function onPricingToggle() {
+    const next = pricingMode() === 'startup' ? 'manual' : 'startup';
+    setPricingMode(next);
+    if (next === 'startup' && MODEL_PRICING_META.fetched_at === 0) {
+        await onPricingRefresh();
+        return;
+    }
+    renderPricingPanel();
+    renderPricingChip();
+}
+
+async function onPricingRefresh() {
+    const button = document.getElementById('pricing-panel-refresh');
+    if (button) { button.disabled = true; button.textContent = 'Updating\u2026'; }
+    const data = await fetchOfficialPricing('force');
+    const changes = data ? applyOfficialPricing(data) : [];
+    if (!data) MODEL_PRICING_META = { ...MODEL_PRICING_META, unreachable: true };
+    renderPricingPanel();
+    renderPricingChip();
+    if (changes.length) offerPricingReload(changes);
+}
+
+// Costs already on screen were computed with the previous rates, so changing
+// them mid-session needs a reload to be consistent. Offer it, don't force it.
+function offerPricingReload(changes) {
+    const card = document.querySelector('#pricing-panel .pricing-panel-card');
+    if (!card) return;
+    const note = document.createElement('p');
+    note.className = 'pricing-panel-note';
+    note.innerHTML = `Rates changed for <b>${escapeHtml(changes.map(c => c.model).join(', '))}</b>. `
+        + 'The figures already on screen were computed with the previous ones. '
+        + '<button type="button" id="pricing-reload-now" style="font:inherit;margin-left:6px;cursor:pointer;'
+        + 'border:1px solid #fdba74;background:#fff;color:#9a3412;border-radius:6px;padding:2px 9px">Reload</button>';
+    card.appendChild(note);
+    const button = note.querySelector('#pricing-reload-now');
+    if (button) button.addEventListener('click', () => location.reload());
+}
+
+// ── Official pricing ──────────────────────────────────────────────────────
+// Anthropic publishes no pricing endpoint, so the rates come from its public
+// pricing page, downloaded and parsed by the local server (GET /pricing). That
+// request is the only thing this panel ever sends outside the machine, so it
+// stays behind an explicit yes/no the first time and can be flipped later from
+// the toolbar.
+
+const PRICING_PAGE_URL = 'https://platform.claude.com/docs/en/about-claude/pricing#model-pricing';
+
+// Install the downloaded rates over the bundled ones. What moved is decided by
+// the server, which compares each download against the previous one, so this
+// reports real price changes instead of the permanent gap between the official
+// table and the coarse tier fallback.
+function applyOfficialPricing(data) {
+    const models = (data && data.models) || {};
+    const changes = (data && data.changes) || [];
+    MODEL_PRICING = { ...MODEL_PRICING, ...models };
+    MODEL_PRICING_META = {
+        ...MODEL_PRICING_META,
+        unreachable: false,
+        fetched_at: Number(data && data.fetched_at) || 0,
+        source: (data && (data.page || data.source)) || PRICING_PAGE_URL,
+        stale: !!(data && data.stale),
+        changes,
+    };
+    return changes;
+}
+
+// kind 'force' downloads again; otherwise the server answers from pricing.json
+// when it was read less than a day ago, and downloads when it was not.
+async function fetchOfficialPricing(kind) {
+    const query = kind === 'force' ? '?force=1' : '';
+    try {
+        const r = await fetch('/pricing' + query, { cache: 'no-store' });
+        if (!r.ok) return null;
+        const data = await r.json();
+        return (data && data.ok) ? data : null;
+    } catch (e) {
+        return null;   // offline, or the page moved: bundled rates stay in place
+    }
+}
+
+// When the panel may read the pricing page: 'manual' (only on demand) or
+// 'startup' (on every start too). Empty until the user has been asked.
+function pricingMode() {
+    const stored = ((HEALTH && HEALTH.config) || {}).pricing_update;
+    if (stored === 'startup' || stored === 'on' || stored === true) return 'startup';
+    if (stored === 'manual' || stored === 'off' || stored === false) return 'manual';
+    return '';
+}
+
+function setPricingMode(mode) {
+    const cfg = (HEALTH && HEALTH.config) || {};
+    if (HEALTH) HEALTH.config = { ...cfg, pricing_update: mode };
+    return fetch('/pricing/consent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode }),
+    }).catch(() => {});
+}
+
+// Resolves with the chosen mode, or null if the dialog was dismissed without
+// answering, in which case the question comes back on the next start.
+function askPricingConsent() {
+    const modal = document.getElementById('pricing-modal');
+    const startup = document.getElementById('pricing-modal-startup');
+    const manual = document.getElementById('pricing-modal-manual');
+    const src = document.getElementById('pricing-modal-source');
+    if (!modal || !startup || !manual) return Promise.resolve(null);
+    if (src) src.textContent = PRICING_PAGE_URL;
+    modal.classList.remove('hidden');
+    return new Promise(resolve => {
+        const close = (answer) => {
+            modal.classList.add('hidden');
+            startup.removeEventListener('click', onStartup);
+            manual.removeEventListener('click', onManual);
+            modal.removeEventListener('click', onBackdrop);
+            document.removeEventListener('keydown', onKey);
+            resolve(answer);
+        };
+        const onStartup = () => close('startup');
+        const onManual = () => close('manual');
+        const onBackdrop = (e) => { if (e.target === modal) close(null); };
+        const onKey = (e) => { if (e.key === 'Escape') close(null); };
+        startup.addEventListener('click', onStartup);
+        manual.addEventListener('click', onManual);
+        modal.addEventListener('click', onBackdrop);
+        document.addEventListener('keydown', onKey);
+    });
+}
+
+// Startup check. Runs before the sessions are loaded so every figure on screen
+// is already priced with the rates in force, and opens the pricing view when
+// Anthropic has changed a price since the previous check.
+async function applyPricingUpdate() {
+    let mode = pricingMode();
+    if (!mode) {
+        const answer = await askPricingConsent();
+        if (answer === null) return;
+        setPricingMode(answer);
+        mode = answer;
+    }
+    // In manual mode there is nothing to ask for: pricing.json already holds
+    // the rates and the date of the last check, loaded by loadPricingConfig().
+    if (mode !== 'startup') return;
+    const data = await fetchOfficialPricing();
+    if (!data) return;
+    const changes = applyOfficialPricing(data);
+    if (changes.length) pendingPricingChanges = changes;
+}
+
+// Set by the startup check so the pricing view can be shown once the panel has
+// finished loading, instead of popping up over a half-drawn dashboard.
+let pendingPricingChanges = null;
+
+function showPendingPricingChanges() {
+    if (!pendingPricingChanges || !pendingPricingChanges.length) return;
+    pendingPricingChanges = null;
+    openPricingPanel();
+}
+
+function pricingDateLabel(ts) {
+    if (!ts) return '';
+    try {
+        return new Date(ts * 1000).toLocaleString(undefined, {
+            day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+        });
+    } catch (e) {
+        return new Date(ts * 1000).toISOString().slice(0, 16).replace('T', ' ');
+    }
+}
+
+function pricingAgeLabel(ts) {
+    if (!ts) return 'never';
+    const mins = Math.max(0, Math.round((Date.now() / 1000 - ts) / 60));
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins} min ago`;
+    const hours = Math.round(mins / 60);
+    if (hours < 24) return `${hours} h ago`;
+    return `${Math.round(hours / 24)} d ago`;
+}
+
+function renderPricingChip() {
+    const bar = document.getElementById('stats-bar');
+    if (!bar) return;
+    const existing = document.getElementById('pricing-chip');
+    if (existing) existing.remove();
+
+    const on = (pricingMode() === 'startup');
+    const meta = MODEL_PRICING_META || {};
+    const checked = meta.fetched_at > 0;
+    const cadence = on ? 'checked on every start' : 'updated manually';
+    const bundled = meta.bundled_updated ? ` (updated ${meta.bundled_updated})` : '';
+    const foot = '\n\nClick to see the models and their prices';
+    let tip;
+    if (!checked) {
+        tip = `Rates shipped with the panel${bundled} \u00b7 ${cadence}`
+            + (meta.unreachable ? '\nThe pricing page could not be read on the last try' : '')
+            + foot;
+    } else {
+        const moved = (meta.changes || []).map(c => c.model).slice(0, 6);
+        tip = `Official pricing \u00b7 ${Object.keys(MODEL_PRICING).length} models \u00b7 ${cadence}\n`
+            + `Read ${pricingAgeLabel(meta.fetched_at)}${meta.stale ? ' (last known, page unreachable)' : ''}\n`
+            + `${meta.source}`
+            + (moved.length ? `\n\nPrice changed since the previous check: ${moved.join(', ')}` : '')
+            + foot;
+    }
+
+    const chip = document.createElement('button');
+    chip.id = 'pricing-chip';
+    chip.type = 'button';
+    chip.title = tip;
+    chip.setAttribute('aria-label', tip);
+    const dim = !checked;
+    chip.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;'
+        + (dim ? 'background:#f1f5f9;border:1px solid #dbe3ec;color:#94a3b8;' : 'background:#eef4fb;border:1px solid var(--accent-line);color:var(--accent-dim);')
+        + 'border-radius:8px;font-size:15px;cursor:pointer;margin-left:6px;flex:none'
+        + (dim ? ';filter:grayscale(1);opacity:.8' : '');
+    chip.innerHTML = '\u{1F3F7}\u{FE0F}';
+    chip.addEventListener('click', onPricingChipClick);
+    bar.appendChild(chip);
+}
+
+function onPricingChipClick() {
+    openPricingPanel();
+}
+
 async function init() {
     await loadPricingConfig();
     HEALTH = await fetchHealth();
@@ -11098,9 +11611,12 @@ async function init() {
         showWelcomeScreen(HEALTH);
         return;
     }
+    await applyPricingUpdate();
     await loadSessions();
     renderDataSourceChip(HEALTH);
+    renderPricingChip();
     handleRoute();
+    showPendingPricingChanges();
 }
 
 function configCardStyle() {

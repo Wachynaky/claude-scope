@@ -1,40 +1,148 @@
 {
-  "note": "Estimated Anthropic API pricing. Token rates are USD per million tokens. Server-tool rates are USD per 1000 requests. service_tier_multipliers apply on top of token rates (priority ~ 2x, batch ~ 0.5x). Adjust if your plan, region, discount, or Claude Code billing differs.",
+  "note": "Anthropic model pricing. 'models' holds the per-model rates published at https://platform.claude.com/docs/en/about-claude/pricing#model-pricing and is what the panel bills with; 'tiers' is the fallback for models that table does not list. Updating prices from the panel rewrites 'models' here and stamps 'models_checked_at'. Token rates are USD per million tokens. Server-tool rates are USD per 1000 requests. service_tier_multipliers apply on top of token rates (priority ~ 2x, batch ~ 0.5x). Edit these values if your plan, region, discount, or Claude Code billing differs.",
+  "models_updated": "2026-08-25",
+  "models": {
+    "fable-5": {
+      "input": 10.0,
+      "cache_creation_5m": 12.5,
+      "cache_creation_1h": 20.0,
+      "cache_read": 1.0,
+      "output": 50.0
+    },
+    "mythos-5": {
+      "input": 10.0,
+      "cache_creation_5m": 12.5,
+      "cache_creation_1h": 20.0,
+      "cache_read": 1.0,
+      "output": 50.0
+    },
+    "opus-5": {
+      "input": 5.0,
+      "cache_creation_5m": 6.25,
+      "cache_creation_1h": 10.0,
+      "cache_read": 0.5,
+      "output": 25.0
+    },
+    "opus-4.8": {
+      "input": 5.0,
+      "cache_creation_5m": 6.25,
+      "cache_creation_1h": 10.0,
+      "cache_read": 0.5,
+      "output": 25.0
+    },
+    "opus-4.7": {
+      "input": 5.0,
+      "cache_creation_5m": 6.25,
+      "cache_creation_1h": 10.0,
+      "cache_read": 0.5,
+      "output": 25.0
+    },
+    "opus-4.6": {
+      "input": 5.0,
+      "cache_creation_5m": 6.25,
+      "cache_creation_1h": 10.0,
+      "cache_read": 0.5,
+      "output": 25.0
+    },
+    "opus-4.5": {
+      "input": 5.0,
+      "cache_creation_5m": 6.25,
+      "cache_creation_1h": 10.0,
+      "cache_read": 0.5,
+      "output": 25.0
+    },
+    "opus-4.1": {
+      "input": 15.0,
+      "cache_creation_5m": 18.75,
+      "cache_creation_1h": 30.0,
+      "cache_read": 1.5,
+      "output": 75.0
+    },
+    "opus-4": {
+      "input": 15.0,
+      "cache_creation_5m": 18.75,
+      "cache_creation_1h": 30.0,
+      "cache_read": 1.5,
+      "output": 75.0
+    },
+    "sonnet-5": {
+      "input": 2.0,
+      "cache_creation_5m": 2.5,
+      "cache_creation_1h": 4.0,
+      "cache_read": 0.2,
+      "output": 10.0
+    },
+    "sonnet-4.6": {
+      "input": 3.0,
+      "cache_creation_5m": 3.75,
+      "cache_creation_1h": 6.0,
+      "cache_read": 0.3,
+      "output": 15.0
+    },
+    "sonnet-4.5": {
+      "input": 3.0,
+      "cache_creation_5m": 3.75,
+      "cache_creation_1h": 6.0,
+      "cache_read": 0.3,
+      "output": 15.0
+    },
+    "sonnet-4": {
+      "input": 3.0,
+      "cache_creation_5m": 3.75,
+      "cache_creation_1h": 6.0,
+      "cache_read": 0.3,
+      "output": 15.0
+    },
+    "haiku-4.5": {
+      "input": 1.0,
+      "cache_creation_5m": 1.25,
+      "cache_creation_1h": 2.0,
+      "cache_read": 0.1,
+      "output": 5.0
+    },
+    "haiku-3.5": {
+      "input": 0.8,
+      "cache_creation_5m": 1.0,
+      "cache_creation_1h": 1.6,
+      "cache_read": 0.08,
+      "output": 4.0
+    }
+  },
   "tiers": {
     "fable": {
       "input": 10,
       "output": 50,
-      "cache_read": 1.00,
-      "cache_creation_5m": 12.50,
-      "cache_creation_1h": 20.00
+      "cache_read": 1.0,
+      "cache_creation_5m": 12.5,
+      "cache_creation_1h": 20.0
     },
     "opus-4.5+": {
       "input": 5,
       "output": 25,
-      "cache_read": 0.50,
+      "cache_read": 0.5,
       "cache_creation_5m": 6.25,
-      "cache_creation_1h": 10.00
+      "cache_creation_1h": 10.0
     },
     "opus-4.0": {
       "input": 15,
       "output": 75,
-      "cache_read": 1.50,
+      "cache_read": 1.5,
       "cache_creation_5m": 18.75,
-      "cache_creation_1h": 30.00
+      "cache_creation_1h": 30.0
     },
     "sonnet": {
       "input": 3,
       "output": 15,
-      "cache_read": 0.30,
+      "cache_read": 0.3,
       "cache_creation_5m": 3.75,
-      "cache_creation_1h": 6.00
+      "cache_creation_1h": 6.0
     },
     "haiku": {
       "input": 1,
       "output": 5,
-      "cache_read": 0.10,
+      "cache_read": 0.1,
       "cache_creation_5m": 1.25,
-      "cache_creation_1h": 2.00
+      "cache_creation_1h": 2.0
     }
   },
   "server_tools": {

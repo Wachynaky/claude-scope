@@ -4,7 +4,7 @@
 
 A local observability dashboard for Claude Code sessions. Claude Scope reads the JSONL files in `~/.claude/projects/`, analyzes them with embedded ClickHouse via [chdb](https://github.com/chdb-io/chdb), and lets you explore them in your browser.
 
-**Nothing leaves your machine.**
+**Nothing leaves your machine.** The one exception is optional and asked for up front: reading Anthropic's public pricing page so cost figures stay current. It downloads a public page and sends nothing about your sessions. See [Model pricing](#model-pricing).
 
 Features:
 
@@ -13,6 +13,7 @@ Features:
 * **Per-trace and per-session details**, including prompts, responses, tool calls, tool inputs/outputs, and token usage for each step.
 * **Two layouts for the Traces table**: a classic table, and a viewer layout with an expandable metrics panel per trace and an observation viewer on the right.
 * **Filters** by date, project, model, and tool.
+* **Model pricing kept current**, read from Anthropic's published rate table, with a view listing every model and the exact rate applied to it.
 
 > Want a preview? Jump to [The panel views](#the-panel-views) below.
 
@@ -119,7 +120,8 @@ requirements.txt         # Dependency: chdb (embedded ClickHouse)
 app/                     # The dashboard itself
 ├─ index.html            # Single-page app
 ├─ local_server.py       # HTTP server + chdb queries; opens the browser
-├─ pricing.json          # Anthropic pricing
+├─ pricing_source.py     # Reads Anthropic's published pricing table (runs standalone too)
+├─ pricing.json          # Anthropic pricing: per-model rates + tier fallback (updated in place)
 └─ assets/vendor/        # Vendored marked + ansi_up dependencies for offline use
 ```
 
@@ -131,6 +133,34 @@ app/                     # The dashboard itself
 python3 app/local_server.py --port 9000   # Use another port; default is 8765
 python3 app/local_server.py --no-open     # Do not open the browser automatically
 python3 app/local_server.py --view viewer # Open the Traces table in the viewer layout ("table" for the classic one)
+```
+
+## Model pricing
+
+Costs are only as good as the rates behind them, and Anthropic publishes no pricing API. Claude Scope ships the rates in `app/pricing.json` and can refresh them from the ["Model pricing" table](https://platform.claude.com/docs/en/about-claude/pricing#model-pricing) of the public pricing page.
+
+The first time you open the panel it asks how that should work. There are two answers, and neither reaches the network without you having said so:
+
+* **Update manually**: the page is read only when you press **Update prices** in the pricing view.
+* **Check on every start**: it is read when you open the panel, at most once a day, and if Anthropic changed a price the pricing view opens with the details.
+
+Click the price tag button in the header to open the pricing view:
+
+* Every model Claude Scope can price, with input, 5m and 1h cache writes, cache read and output rates.
+* The models present in your loaded sessions are highlighted at the top with their real ids. A `listed` badge means the rate is published for that exact model; `tier` means it is not in the table and a coarse fallback tier is being used (a local Ollama model, for instance).
+* **Last checked** shows when the official table was last read.
+* **Update prices** reads it again; the button next to it switches between the two cadences above.
+
+Rates live in `app/pricing.json`, inside the app itself, and nowhere else. The file that ships with Claude Scope is the same one an update rewrites, so there is a single place holding the prices: a download refreshes the `models` section and stamps `models_checked_at`, which is what **Last checked** shows after a reload. Nothing about pricing is written outside the app folder. A fresh download is at most one a day; if the page cannot be read, the stored rates stay in use and the view says so.
+
+The rest of the file is yours to edit and is preserved on every update: server tool prices, the priority and batch multipliers, and the fallback tiers used for models the published table does not list.
+
+The lookup is a standalone script, handy for checking rates without opening the panel:
+
+```bash
+python3 app/pricing_source.py            # print the current table
+python3 app/pricing_source.py --force    # ignore the cache and download again
+python3 app/pricing_source.py --json     # machine-readable
 ```
 
 ## The panel views
