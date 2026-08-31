@@ -4455,7 +4455,7 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
    CSS va prefijado con t2- para no colisionar con .obs-*/.stat-* existentes.
    ════════════════════════════════════════════════════════════════════════ */
 #turn-design-new-wrap { --t2-mono: var(--mono, ui-monospace, "SF Mono", Menlo, Consolas, monospace);
-    --t2-cin: #f59e0b; --t2-cout: #059669; --t2-ccache: #6366f1; --t2-viewer-w: 440px; }
+    --t2-cin: #f59e0b; --t2-cout: #059669; --t2-ccache: #6366f1; --t2-ccachew: #a855f7; --t2-viewer-w: 440px; }
 .t2-layout { --t2-cin: #f59e0b; --t2-cout: #059669; --t2-ccache: #6366f1; --t2-mono: var(--mono, ui-monospace, "SF Mono", Menlo, Consolas, monospace);
     display: grid; grid-template-columns: minmax(0,1fr) 8px var(--t2-viewer-w, 440px); align-items: start;
     background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-panel); box-shadow: var(--shadow-card); }
@@ -4526,6 +4526,7 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
 .t2-mb-line .v { font-family: var(--t2-mono); color: var(--text); }
 .t2-mb-line .v .pct { color: var(--accent-dim); font-weight: 800; font-size: 12px; margin-left: 7px; }
 .t2-mb-line.in .k { color: #b45309; } .t2-mb-line.out .k { color: #047857; } .t2-mb-line.cache .k { color: #4338ca; }
+.t2-mb-line.cacher .k { color: #4338ca; } .t2-mb-line.cachew .k { color: #7e22ce; }
 
 /* lista de observaciones personalizada por tipo */
 .t2-obs-head { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin: 2px 2px 7px; display: flex; align-items: center; gap: 8px; }
@@ -4629,16 +4630,17 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
 /* El header va en una sola línea; la búsqueda encoge si falta espacio. */
 .app-header { flex-wrap: nowrap; gap: 12px; }
 .app-header .search-box { flex: 1 1 110px; min-width: 80px; max-width: 240px; }
-/* Filtros embebidos en la stat-strip: 3 columnas (2 filtros · 2 filtros · botones). */
+/* Filtros embebidos en la stat-strip: 3 columnas equilibradas de 2 controles
+   (Project+Model · Tool+Origin · Time range+Clear) y las acciones al final. */
 #stat-strip { overflow: visible; }   /* deja ver el popover del rango de fechas */
-.stat-cell.stat-filters { flex: 2.9 1 0; flex-direction: row; align-items: stretch; justify-content: flex-start; gap: 16px; padding: 8px 16px; overflow: visible; }
-.stat-filters .filt-col { display: flex; flex-direction: column; gap: 8px; justify-content: center; min-width: 0; }
-.stat-filters .filt-col-actions { margin-left: auto; justify-content: center; }
-.stat-filters .filter-chip { flex-direction: column; gap: 3px; min-width: 0; margin: 0; }
-.stat-filters .filter-chip select { min-width: 0; width: 100%; max-width: 220px; height: 30px; }
+.stat-cell.stat-filters { flex: 3 1 0; flex-direction: row; align-items: stretch; justify-content: flex-start; gap: 14px; padding: 8px 16px; overflow: visible; }
+.stat-filters .filt-col { display: flex; flex: 1 1 0; flex-direction: column; gap: 8px; justify-content: center; min-width: 0; max-width: 230px; }
+.stat-filters .filt-col-actions { flex: 0 0 auto; margin-left: auto; justify-content: center; }
+.stat-filters .filter-chip { flex-direction: column; gap: 3px; min-width: 0; margin: 0; width: 100%; }
+.stat-filters .filter-chip select { min-width: 0; width: 100%; height: 30px; }
 .stat-filters .range-picker, .stat-filters .range-picker-btn { width: 100%; }
-.stat-filters .filt-col-actions .filter-chip { width: 100%; }
-.stat-filters .filt-col-actions .filter-chip button { width: 100%; }
+.stat-filters .filter-chip > button { width: 100%; height: 30px; }
+.stat-filters .filt-col-actions .filter-chip button { width: auto; padding: 0 14px; }
 /* "Traces" es solo un número: más estrecha para dar sitio a los filtros. */
 #stat-strip > .stat-cell:first-child { flex: 0.55 1 0; border-top-left-radius: var(--radius-panel); border-bottom-left-radius: var(--radius-panel); }
 #stat-strip > .stat-cell:last-child { border-top-right-radius: var(--radius-panel); border-bottom-right-radius: var(--radius-panel); }
@@ -4712,6 +4714,8 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
                 <div class="filt-col">
                     <label class="filter-chip"><span class="filter-chip-label">Tool</span><select id="filter-tool-select"><option value="">All</option></select></label>
                     <label class="filter-chip"><span class="filter-chip-label">Origin</span><select id="filter-entrypoint-select"><option value="">All</option></select></label>
+                </div>
+                <div class="filt-col">
                     <div class="filter-chip range-picker" id="range-picker">
                         <span class="filter-chip-label">Time range</span>
                         <button type="button" id="range-picker-btn" class="range-picker-btn" title="Time range">
@@ -4739,9 +4743,9 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
                             </div>
                         </div>
                     </div>
+                    <span class="filter-chip"><button id="clear-session-filters">Clear filters</button></span>
                 </div>
                 <div class="filt-col filt-col-actions">
-                    <span class="filter-chip"><button id="clear-session-filters">Clear filters</button></span>
                     <span class="filter-chip"><button type="button" id="dashboard-charts-toggle" class="charts-toggle-btn" title="Hide all dashboard charts">Hide all</button></span>
                 </div>
             </div>
@@ -7770,6 +7774,7 @@ function renderSessionCards(session) {
     const cR = Number(session.cache_read_tokens) || 0;
     const cW = Number(session.cache_creation_tokens) || 0;
     const cache = cR + cW;
+    const { t5m: c5m, t1h: c1h } = splitCacheCreation(session);
     const turnsCount = Number(session.user_msgs) || 0;
     const gens = Number(session.assistant_msgs) || Number(session.assistant_request_count) || 0;
     // Los tokens mostrados respetan el modo del selector (real / cc), igual que la
@@ -7789,7 +7794,7 @@ function renderSessionCards(session) {
             <div class="card-label"><span class="card-icon">💲</span>Total cost</div>
             <div class="card-value">${formatCost(session.cost || 0)}</div>
             <div class="card-sub">in ${formatCost(bd.input)} · out ${formatCost(bd.output)}</div>
-            <div class="card-sub">cache R ${formatCost(bd.cacheRead)} · W ${formatCost(bd.cacheCreation)}</div>
+            <div class="card-sub">cache read ${formatCost(bd.cacheRead)} · write ${formatCost(bd.cacheCreation)}</div>
             ${bd.serverTools ? `<div class="card-sub">server tools ${formatCost(bd.serverTools)}</div>` : ''}
             <div class="card-hint">billed by Anthropic</div>
         </div>
@@ -7811,11 +7816,12 @@ function renderSessionCards(session) {
             <div class="card-sub">${formatCost(bd.output)}</div>
             <div class="card-hint">responses + thinking + tool calls</div>
         </div>
-        <div class="session-card accent-cache" title="Cache read = previous context reused and cheap. Cache write = new context stored to reuse later.${showCC ? ' Not counted in «Same as Claude Code».' : ''}">
+        <div class="session-card accent-cache" title="Cache read (hits & refreshes) = previous context reused at 0.1x the input price. Cache write = new context stored to reuse later: 5m TTL at 1.25x, 1h TTL at 2x the input price.${showCC ? ' Not counted in «Same as Claude Code».' : ''}">
             <div class="card-label"><span class="card-icon">⇊</span>Cache</div>
             <div class="card-value">${formatTokens(cache)}</div>
-            <div class="card-sub">R ${formatTokens(cR)} · W ${formatTokens(cW)}</div>
-            <div class="card-sub">R ${formatCost(bd.cacheRead)} · W ${formatCost(bd.cacheCreation)}</div>
+            <div class="card-sub">hits &amp; refreshes ${formatTokens(cR)} · ${formatCost(bd.cacheRead)}</div>
+            ${c5m ? `<div class="card-sub">write 5m ${formatTokens(c5m)} · ${formatCost(bd.cacheCreation5m)}</div>` : ''}
+            <div class="card-sub">write 1h ${formatTokens(c1h)} · ${formatCost(bd.cacheCreation1h)}</div>
             <div class="card-hint">${showCC ? 'not included in cc total' : 'context reused across prompts'}</div>
         </div>
     `;
@@ -8505,6 +8511,8 @@ async function loadTurnObservations(sessionId, turnNo) {
         data.message.usage.output_tokens::UInt64 AS output_tokens,
         data.message.usage.cache_read_input_tokens::UInt64 AS cache_read_tokens,
         data.message.usage.cache_creation_input_tokens::UInt64 AS cache_creation_tokens,
+        data.message.usage.cache_creation.ephemeral_5m_input_tokens::UInt64 AS cache_creation_5m_tokens,
+        data.message.usage.cache_creation.ephemeral_1h_input_tokens::UInt64 AS cache_creation_1h_tokens,
         -- content: JSON de bloques para el renderer (los strings se envuelven en text).
         multiIf(
             dynamicType(data.message.content) = 'String',
@@ -8569,6 +8577,7 @@ async function loadTurnObservations(sessionId, turnNo) {
 SELECT g.type AS type, g.role AS role, g.ts AS ts, g.model AS model, g.content AS content,
        g.input_tokens AS input_tokens, g.output_tokens AS output_tokens,
        g.cache_read_tokens AS cache_read_tokens, g.cache_creation_tokens AS cache_creation_tokens,
+       g.cache_creation_5m_tokens AS cache_creation_5m_tokens, g.cache_creation_1h_tokens AS cache_creation_1h_tokens,
        g.is_meta AS is_meta, g.is_sidechain AS is_sidechain, g.request_id AS request_id
 FROM gen g
 INNER JOIN numbered n ON g.raw_turn = n.raw_turn
@@ -10930,16 +10939,22 @@ function t2InitDesign() {
         b.classList.toggle('active', b.dataset.traceDesign === traceDesign));
 }
 
-// ── Coste estimado por observación (la app solo desglosa coste por trace; aquí
-//    estimamos input/output del mensaje con el pricing del modelo). ──
+// ── Coste estimado por observación: mismo cálculo que el resto del panel
+//    (costBreakdown separa cache read y write 5m/1h con sus tarifas propias). ──
 function t2ObsCost(m) {
-    const p = (typeof ratesFor === 'function' && ratesFor(m.model || '')) || null;
-    if (!p) return { input: 0, output: 0, cache: 0, total: 0 };
-    const ti = Number(m.input_tokens) || 0, to = Number(m.output_tokens) || 0;
-    const cr = Number(m.cache_read_tokens) || 0, cw = Number(m.cache_creation_tokens) || 0;
-    const input = ti * p.input / 1e6, output = to * p.output / 1e6;
-    const cache = cr * (p.cache_read || 0) / 1e6 + cw * (p.cache_creation_5m || 0) / 1e6;
-    return { input, output, cache, total: input + output + cache };
+    return costBreakdown(m);
+}
+
+// Líneas de desglose de caché (tokens y coste) compartidas por la strip del trace
+// y el visor de observaciones: read siempre; write 5m solo si existe; el write sin
+// desglose se imputa como 1h (splitCacheCreation), la asunción con la que se cobra.
+function t2CacheParts(row, bd) {
+    const cr = Number(row.cache_read_tokens) || 0;
+    const { t5m, t1h } = splitCacheCreation(row);
+    const parts = [{ cls: 'cacher', color: 'var(--t2-ccache)', label: 'Cache read', tok: cr, cost: bd.cacheRead }];
+    if (t5m) parts.push({ cls: 'cachew', color: 'var(--t2-ccachew)', label: 'Cache write 5m', tok: t5m, cost: bd.cacheCreation5m });
+    parts.push({ cls: 'cachew', color: 'var(--t2-ccachew)', label: 'Cache write 1h', tok: t1h, cost: bd.cacheCreation1h });
+    return parts;
 }
 function t2FmtMs(ms) { ms = Number(ms) || 0; return ms >= 1000 ? (ms / 1000).toFixed(2) + ' s' : Math.round(ms) + ' ms'; }
 
@@ -10961,15 +10976,16 @@ function t2TraceStrip(t) {
     const tCache = (Number(t.cache_read_tokens) || 0) + (Number(t.cache_creation_tokens) || 0);
     const totTok = tIn + tOut + tCache;
     const bd = costBreakdown(t);
+    const cacheParts = t2CacheParts(t, bd);
     const tokenParts = [
         { cls: 'in', color: 'var(--t2-cin)', label: 'Input', val: tIn },
         { cls: 'out', color: 'var(--t2-cout)', label: 'Output', val: tOut },
-        { cls: 'cache', color: 'var(--t2-ccache)', label: 'Cache', val: tCache },
+        ...cacheParts.map(p => ({ cls: p.cls, color: p.color, label: p.label, val: p.tok })),
     ];
     const costParts = [
         { cls: 'in', color: 'var(--t2-cin)', label: 'Input', val: bd.input },
         { cls: 'out', color: 'var(--t2-cout)', label: 'Output', val: bd.output },
-        { cls: 'cache', color: 'var(--t2-ccache)', label: 'Cache', val: bd.cacheRead + bd.cacheCreation },
+        ...cacheParts.map(p => ({ cls: p.cls, color: p.color, label: p.label, val: p.cost })),
     ];
     const obs = Number(t.observations) || 0, gens = Number(t.generations) || 0, thinks = Number(t.thinking_blocks) || 0;
     const tools = String(t.tools || '');
@@ -11159,17 +11175,18 @@ function t2RenderViewer() {
     const cache = t2ObsCache.get(t2SelTrace);
     const r = cache.rows[t2Sel], m = cache.msgs[r.idx] || {}, t = cache.trace;
     const cost = t2ObsCost(m);
+    const cacheParts = t2CacheParts(m, cost);
     const cacheTok = (Number(m.cache_read_tokens) || 0) + (Number(m.cache_creation_tokens) || 0);
     const totTok = (Number(m.input_tokens) || 0) + (Number(m.output_tokens) || 0) + cacheTok;
     const tokParts = [
         { cls: 'in', color: 'var(--t2-cin)', label: 'Input', val: Number(m.input_tokens) || 0 },
         { cls: 'out', color: 'var(--t2-cout)', label: 'Output', val: Number(m.output_tokens) || 0 },
-        { cls: 'cache', color: 'var(--t2-ccache)', label: 'Cache', val: cacheTok },
+        ...cacheParts.map(p => ({ cls: p.cls, color: p.color, label: p.label, val: p.tok })),
     ];
     const costParts = [
         { cls: 'in', color: 'var(--t2-cin)', label: 'Input', val: cost.input },
         { cls: 'out', color: 'var(--t2-cout)', label: 'Output', val: cost.output },
-        { cls: 'cache', color: 'var(--t2-ccache)', label: 'Cache', val: cost.cache },
+        ...cacheParts.map(p => ({ cls: p.cls, color: p.color, label: p.label, val: p.cost })),
     ];
     const n = cache.rows.length;
     const headTitle = r.type === 'tool' ? (String(r.title).split(' ')[0] || 'Tool') : obsTypeLabel(r.type);
