@@ -5596,12 +5596,15 @@ async function loadTurns() {
             ),
             []
         ) AS tool_names,
-        -- Bloques de razonamiento (type:thinking) por mensaje. Casteamos el TEXTO
-        -- JSON (con fallback '[]') en vez del Dynamic directo: algunas filas reportan
-        -- dynamicType Array% pero no son casteables y el if() de ClickHouse evalúa
-        -- ambas ramas, así el cast nunca falla.
+        -- Bloques de razonamiento (type:thinking) por mensaje. Cuentan también los
+        -- que llegan sin texto (solo signature): Claude Code >= 2.1.247 ya no
+        -- persiste el texto del razonamiento de los modelos Claude 5 en el
+        -- transcript. Casteamos el TEXTO JSON (con fallback '[]') en vez del
+        -- Dynamic directo: algunas filas reportan dynamicType Array% pero no son
+        -- casteables y el if() de ClickHouse evalúa ambas ramas, así el cast
+        -- nunca falla.
         arrayCount(
-            x -> x.type::String = 'thinking' AND trimBoth(x.thinking::String) != '',
+            x -> x.type::String = 'thinking',
             CAST(if(data.type::String = 'assistant' AND dynamicType(data.message.content) LIKE 'Array%', toString(data.message.content), '[]'), 'Array(JSON)')
         ) AS thinking_blocks,
         -- ¿Tiene la fila de asistente algún bloque de texto? Define una «Claude
@@ -8482,8 +8485,11 @@ function buildExecutionRows(data = transcriptData, range = null) {
         } else if (cl.category === 'assistant') {
             let hasText = false;
             for (const block of cl.blocks) {
-                if (block.type === 'thinking' && block.thinking && block.thinking.trim()) {
-                    rows.push({ level: 1, type: 'thinking', title: block.thinking.slice(0, 220), meta: shortModel(msg.model), idx: i });
+                if (block.type === 'thinking') {
+                    // Con Claude Code >= 2.1.247 el texto del razonamiento no se
+                    // persiste (solo la firma del bloque): el span se lista igual.
+                    const txt = String(block.thinking || '').trim();
+                    rows.push({ level: 1, type: 'thinking', title: txt ? txt.slice(0, 220) : '(reasoning text not persisted, signature only)', meta: shortModel(msg.model), idx: i });
                 } else if (block.type === 'tool_use') {
                     const input = block.input && typeof block.input === 'object' ? Object.values(block.input).join(' ').slice(0, 160) : '';
                     rows.push({ level: 2, type: 'tool', title: `${block.name || 'Tool'} ${input}`.trim(), meta: shortModel(msg.model), idx: i });
@@ -8788,17 +8794,21 @@ function buildFullTraceRows(range = null) {
         } else if (cl.category === 'assistant') {
             let textPreview = '';
             let thinkingPreview = '';
+            let hasThinking = false;
             for (const block of cl.blocks) {
                 if (block.type === 'tool_use') {
                     const input = block.input && typeof block.input === 'object' ? JSON.stringify(block.input).slice(0, 280) : '';
                     rows.push({ ...base, kind: 'tool_call', tool: block.name || 'tool', preview: input });
-                } else if (block.type === 'thinking' && block.thinking && block.thinking.trim()) {
-                    thinkingPreview = thinkingPreview || block.thinking.slice(0, 320);
+                } else if (block.type === 'thinking') {
+                    // Cuenta también los bloques sin texto (Claude Code >= 2.1.247
+                    // solo persiste la firma del razonamiento).
+                    hasThinking = true;
+                    thinkingPreview = thinkingPreview || String(block.thinking || '').trim().slice(0, 320);
                 } else if (block.type === 'text' && block.text) {
                     textPreview += block.text.replace(/\s+/g, ' ').slice(0, 320);
                 }
             }
-            if (thinkingPreview) rows.push({ ...base, kind: 'thinking', tool: '', preview: thinkingPreview });
+            if (hasThinking) rows.push({ ...base, kind: 'thinking', tool: '', preview: thinkingPreview || '(reasoning text not persisted, signature only)' });
             if (textPreview.trim()) rows.push({ ...base, kind: 'generation', tool: '', preview: textPreview.trim() });
         }
     }
@@ -11268,9 +11278,11 @@ function t2ViewerContent(cache, r, m) {
         return `<div class="t2-msg you"><div class="t2-msg-hd"><span class="t2-msg-av you">🧑</span><span class="t2-msg-role">You</span><span class="t2-msg-time">${escapeHtml(formatClock(m.ts))}</span></div><div class="t2-msg-body mono">${escapeHtml(text)}</div></div>`;
     }
     if (r.type === 'thinking') {
-        const th = blocks.filter(b => b.type === 'thinking' && b.thinking);
+        // Todos los bloques thinking, con texto o sin él, para que _ord apunte
+        // al bloque correcto ahora que los vacíos también se listan.
+        const th = blocks.filter(b => b.type === 'thinking');
         const b = th[r._ord] || th[0];
-        const txt = b ? String(b.thinking || '').trim() : String(r.title || '');
+        const txt = b ? String(b.thinking || '').trim() : '';
         return txt ? `<div class="t2-think">${escapeHtml(txt)}</div>`
             : `<div class="t2-note">No reasoning text persisted (only the block signature). It used <b>${formatTokens(m.output_tokens)}</b> output tokens.</div>`;
     }
