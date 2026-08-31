@@ -4606,6 +4606,9 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
 .t2-msg.you .t2-msg-hd { background: linear-gradient(90deg, #fff3e0, transparent 80%); }
 .t2-msg-av { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex: none; box-shadow: 0 1px 3px rgba(0,0,0,.20); }
 .t2-msg-av.you { background: #1f2937; color: #fff; } .t2-msg-av.bot { background: linear-gradient(150deg, var(--accent-strong), var(--accent)); color: #fff; }
+.t2-msg.sys { background: #f8fafc; border-color: #cbd5e1; }
+.t2-msg.sys .t2-msg-hd { background: linear-gradient(90deg, #eef2f7, transparent 80%); }
+.t2-msg-av.sys { background: #64748b; color: #fff; }
 .t2-msg-role { font-size: 12.5px; font-weight: 800; } .t2-msg.bot .t2-msg-role { color: var(--accent-dim); }
 .t2-msg-time { font-size: 10px; color: var(--text-dim); margin-left: auto; font-family: var(--t2-mono); }
 .t2-msg-body { padding: 12px 13px; font-size: 13px; line-height: 1.58; color: var(--text); word-break: break-word; }
@@ -5555,6 +5558,7 @@ async function loadTurns() {
         data.requestId::String AS request_id,
         data.type::String AS type,
         data.isSidechain::Bool AS is_sidechain,
+        data.isMeta::Bool AS is_meta,
         data.message.model::String AS model,
         data.message.usage.service_tier::String AS service_tier,
         -- Texto del mensaje: string directo, o concatenación de los bloques 'text'
@@ -5679,9 +5683,19 @@ SELECT
     ) AS observations,
     countIf(type = 'assistant' AND req_seq = 1 AND is_sidechain = true) AS sidechain_generations,
     sumIf(marked.thinking_blocks, type = 'assistant' AND req_seq = 1) AS thinking_blocks,
-    -- Spans "system" del trace: peticiones de plan (mismo patrón que excluye
-    -- is_turn_start). Alimenta el filtro general por tipo de span.
-    countIf(type = 'user' AND content LIKE 'Implement the following plan:%') AS plan_blocks,
+    -- Spans "system" del trace: lo mismo que el panel etiqueta System en las
+    -- vistas de detalle (planes, task-notifications, interrupciones,
+    -- continuaciones e invocaciones de skill, es decir, mensajes meta con
+    -- texto). Alimenta el filtro general por tipo de span. Ojo: nada de
+    -- puntos y comas en estos comentarios, normalize_query del servidor
+    -- rechaza la consulta.
+    countIf(type = 'user' AND (
+        content LIKE 'Implement the following plan:%'
+        OR content LIKE '%<task-notification>%'
+        OR content LIKE '[Request interrupted by user%'
+        OR content LIKE '%This session is being continued from a previous conversation%'
+        OR (is_meta = true AND content != '')
+    )) AS system_spans,
     arrayStringConcat(arrayDistinct(arrayFlatten(groupArrayIf(tool_names, req_seq = 1))), ', ') AS tools
 FROM marked
 WHERE turn_no > 0
@@ -6747,13 +6761,14 @@ function applyRangeCustom() {
 // ¿Contiene el trace algún span del tipo pedido? Se resuelve con los agregados
 // por turno: todo trace tiene Prompt (request) y Response (generation) por
 // construcción (HAVING generations > 0); Tool/Result salen de la lista de tools,
-// Thinking de thinking_blocks y System de plan_blocks (peticiones de plan).
+// Thinking de thinking_blocks y System de system_spans (planes, notificaciones
+// de tareas, interrupciones y continuaciones).
 function turnHasSpanType(t, type) {
     if (!type) return true;
     if (type === 'request' || type === 'generation') return true;
     if (type === 'thinking') return Number(t.thinking_blocks) > 0;
     if (type === 'tool' || type === 'result') return String(t.tools || '').trim() !== '';
-    if (type === 'system') return Number(t.plan_blocks) > 0;
+    if (type === 'system') return Number(t.system_spans) > 0;
     return true;
 }
 
@@ -8457,8 +8472,11 @@ function buildExecutionRows(data = transcriptData, range = null) {
         // observaciones (la fórmula de la tabla no los cuenta): se omiten.
         if ((cl.category === 'user' || cl.category === 'skill') && !isTurnStart(cl)) continue;
         if (isTurnStart(cl)) {
-            // Span del trace: el prompt escrito o el cuerpo de la skill.
-            rows.push({ level: 0, type: 'request', title: textFromBlocks(cl.blocks).slice(0, 260) || 'Request', meta: formatTime(msg.ts), idx: i });
+            // Span del trace: el prompt escrito o el cuerpo de la skill. Las skills
+            // se etiquetan System (igual que su burbuja en el chat) pero siguen
+            // siendo el span raíz del trace, así que conservan número (traceSpan).
+            const type = cl.category === 'skill' ? 'system' : 'request';
+            rows.push({ level: 0, type, traceSpan: true, title: textFromBlocks(cl.blocks).slice(0, 260) || 'Request', meta: formatTime(msg.ts), idx: i });
         } else if (cl.category === 'plan') {
             rows.push({ level: 0, type: 'system', title: 'Plan request', meta: formatTime(msg.ts), idx: i });
         } else if (cl.category === 'assistant') {
@@ -8483,6 +8501,19 @@ function buildExecutionRows(data = transcriptData, range = null) {
             rows.push({ level: 3, type: 'result', title: textFromBlocks(cl.blocks).slice(0, 220) || 'Tool result', meta: formatTime(msg.ts), idx: i });
         } else if (cl.category === 'summary') {
             rows.push({ level: 0, type: 'system', title: msg.summary || 'Summary', meta: formatTime(msg.ts), idx: i });
+        } else if (cl.category === 'agent_notification' || cl.category === 'interrupt' || cl.category === 'continuation') {
+            // Mismos mensajes que el chat pinta con badge System: notificaciones de
+            // tareas, interrupciones y continuaciones. Sin número de observación
+            // (no cuentan en el modelo Langfuse), igual que los result.
+            const label = ({ agent_notification: 'Task notification', interrupt: 'Request interrupted', continuation: 'Session continuation' })[cl.category];
+            let text = textFromBlocks(cl.blocks);
+            if (cl.category === 'agent_notification') {
+                // El XML de la notificación lleva un <summary> legible; si no, se
+                // quitan las etiquetas para no ensuciar el título.
+                const sm = text.match(/<summary>([\s\S]*?)<\/summary>/);
+                text = sm ? sm[1].trim() : text.replace(/<[^>]*>/g, ' ');
+            }
+            rows.push({ level: 0, type: 'system', title: chatSummary(text) || label, meta: formatTime(msg.ts), idx: i });
         }
     }
     return rows.slice(0, 500);
@@ -8499,7 +8530,9 @@ function assignObsNumbers(rows, data = transcriptData) {
     for (const r of rows) {
         const k = r.type || r.kind;
         let counts = false;
-        if (k === 'request' || k === 'tool' || k === 'tool_call') {
+        // r.traceSpan cubre el arranque por skill: se pinta como System pero es
+        // el span raíz del trace y cuenta como observación igual que un request.
+        if (k === 'request' || k === 'tool' || k === 'tool_call' || r.traceSpan) {
             counts = true;
         } else if (k === 'generation') {
             const m = data && data[r.idx];
@@ -8741,12 +8774,17 @@ function buildFullTraceRows(range = null) {
         if (isTurnStart(cl) || cl.category === 'plan' || cl.category === 'tool_result') {
             rows.push({
                 ...base,
-                kind: isTurnStart(cl) ? 'request' : cl.category,
+                // Los arranques por skill se etiquetan system (como su burbuja en el
+                // chat) pero siguen siendo el span raíz del trace (traceSpan numera).
+                kind: isTurnStart(cl) ? (cl.category === 'skill' ? 'system' : 'request') : cl.category,
+                traceSpan: isTurnStart(cl),
                 tool: '',
                 preview: textFromBlocks(cl.blocks).slice(0, 320) || msg.summary || '',
             });
         } else if (cl.category === 'summary') {
             rows.push({ ...base, kind: 'summary', tool: '', preview: msg.summary || '' });
+        } else if (cl.category === 'agent_notification' || cl.category === 'interrupt' || cl.category === 'continuation') {
+            rows.push({ ...base, kind: 'system', tool: '', preview: textFromBlocks(cl.blocks).slice(0, 320) });
         } else if (cl.category === 'assistant') {
             let textPreview = '';
             let thinkingPreview = '';
@@ -11240,6 +11278,13 @@ function t2ViewerContent(cache, r, m) {
         const res = blocks.find(b => b.type === 'tool_result');
         const txt = res ? t2ResultText(res.content) : String(r.title || '');
         return `<div class="t2-ts-label out">▸ Tool result</div>${codeViewer({ name: 'result', lang: 'text', code: txt || '(empty)', ansi: true })}`;
+    }
+    if (r.type === 'system') {
+        // Contenido completo del span System: cuerpo de la skill, plan,
+        // notificación, interrupción o continuación.
+        const text = blocks.filter(b => b.type === 'text').map(b => b.text || '').join('\n').trim() || String(m.summary || '');
+        if (!text) return `<div class="t2-note">${escapeHtml(r.title || 'System')}</div>`;
+        return `<div class="t2-msg sys"><div class="t2-msg-hd"><span class="t2-msg-av sys">⚙</span><span class="t2-msg-role">System</span><span class="t2-msg-time">${escapeHtml(formatClock(m.ts))}</span></div><div class="t2-msg-body">${t2Markdown(text)}</div></div>`;
     }
     return `<div class="t2-note">${escapeHtml(r.title || '')}</div>`;
 }
