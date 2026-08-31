@@ -3138,6 +3138,17 @@ tbody td + td { border-left: 1px solid var(--line); }
     border-color: rgba(5, 66, 180, 0.22);
     color: #0542b4;
 }
+#session-table .session-meta-chip.entrypoint-claude-desktop {
+    background: #ede9fe;
+    border-color: #c4b5fd;
+    color: #5b21b6;
+}
+#session-table .session-meta-chip.entrypoint-sdk-cli,
+#session-table .session-meta-chip.entrypoint-sdk-py {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #047857;
+}
 
 #session-table .col-tags {
     text-align: center;
@@ -4700,6 +4711,7 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
                 </div>
                 <div class="filt-col">
                     <label class="filter-chip"><span class="filter-chip-label">Tool</span><select id="filter-tool-select"><option value="">All</option></select></label>
+                    <label class="filter-chip"><span class="filter-chip-label">Origin</span><select id="filter-entrypoint-select"><option value="">All</option></select></label>
                     <div class="filter-chip range-picker" id="range-picker">
                         <span class="filter-chip-label">Time range</span>
                         <button type="button" id="range-picker-btn" class="range-picker-btn" title="Time range">
@@ -5165,7 +5177,7 @@ let chatSpyEnabled = true;        // el panel sigue al elemento centrado al hace
 let transcriptData = null;
 let toolStats = [];
 let sessionToolRows = [];
-let sessionFilters = { project: '', model: '', tool: '', range: '7d', rangeFrom: null, rangeTo: null };
+let sessionFilters = { project: '', model: '', tool: '', entrypoint: '', range: '7d', rangeFrom: null, rangeTo: null };
 let turns = [];
 let turnsLoaded = false;
 let turnByKey = new Map();
@@ -5265,6 +5277,12 @@ function shortModel(m) {
     const match = m.match(/claude-(\w+)-(\d+)-(\d+)/);
     if (match) return `${match[1]}-${match[2]}.${match[3]}`;
     return m.replace('claude-', '');
+}
+
+const ENTRYPOINT_LABELS = { 'cli': 'CLI', 'claude-desktop': 'Desktop', 'sdk-cli': 'SDK CLI', 'sdk-py': 'SDK Py' };
+function entrypointLabel(ep) {
+    if (!ep) return 'unknown';
+    return ENTRYPOINT_LABELS[ep] || ep;
 }
 
 // MCP tool naming convention: mcp__<server>__<action>.
@@ -5750,6 +5768,7 @@ SELECT
     raw_agg.summary AS summary,
     raw_agg.model AS model,
     raw_agg.git_branch AS git_branch,
+    raw_agg.entrypoint AS entrypoint,
     raw_agg.first_question AS first_question,
     raw_agg.plan_count AS plan_count,
     raw_agg.compaction_count AS compaction_count,
@@ -5787,6 +5806,7 @@ FROM (
         anyIf(data.summary::String, data.type::String = 'summary' AND data.summary::String != '') AS summary,
         anyIf(data.message.model::String, data.type::String = 'assistant' AND data.message.model::String NOT IN ('', '<synthetic>')) AS model,
         anyIf(data.gitBranch::String, data.gitBranch::String != '') AS git_branch,
+        anyIf(data.entrypoint::String, data.entrypoint::String != '') AS entrypoint,
         argMinIf(
             multiIf(
                 dynamicType(data.message.content) = 'String', data.message.content::String,
@@ -6593,6 +6613,9 @@ function getFilteredSessions() {
     if (sessionFilters.model) {
         list = list.filter(s => shortModel(s.model) === sessionFilters.model);
     }
+    if (sessionFilters.entrypoint) {
+        list = list.filter(s => entrypointLabel(s.entrypoint) === sessionFilters.entrypoint);
+    }
     if (sessionFilters.tool) {
         list = list.filter(s => Array.isArray(s.tools) && s.tools.includes(sessionFilters.tool));
     }
@@ -6614,9 +6637,11 @@ function renderSessionFilters() {
     const projects = [...new Set(sessions.map(s => displayProject(s)).filter(Boolean))].sort();
     const models = [...new Set(sessions.map(s => shortModel(s.model)).filter(Boolean))].sort();
     const tools = [...new Set(sessions.flatMap(s => Array.isArray(s.tools) ? s.tools : []).filter(Boolean))].sort();
+    const origins = [...new Set(sessions.map(s => entrypointLabel(s.entrypoint)))].sort();
     setSelectOptions('filter-project-select', projects, sessionFilters.project);
     setSelectOptions('filter-model-select', models, sessionFilters.model);
     setSelectOptions('filter-tool-select', tools, sessionFilters.tool);
+    setSelectOptions('filter-entrypoint-select', origins, sessionFilters.entrypoint);
 }
 
 function applySessionFilters() {
@@ -6625,6 +6650,7 @@ function applySessionFilters() {
         project: document.getElementById('filter-project-select')?.value || '',
         model: document.getElementById('filter-model-select')?.value || '',
         tool: document.getElementById('filter-tool-select')?.value || '',
+        entrypoint: document.getElementById('filter-entrypoint-select')?.value || '',
     };
     refreshHomeViews();
 }
@@ -6702,6 +6728,11 @@ function getFilteredTurns() {
     if (sessionFilters.tool) {
         // turns guardan `tools` como cadena separada por comas (sessions usan array).
         list = list.filter(t => String(t.tools || '').split(',').map(s => s.trim()).includes(sessionFilters.tool));
+    }
+    if (sessionFilters.entrypoint) {
+        // Los turnos no llevan entrypoint; se resuelve por lookup sobre las sesiones.
+        const ids = new Set(sessions.filter(s => entrypointLabel(s.entrypoint) === sessionFilters.entrypoint).map(s => s.session_id));
+        list = list.filter(t => ids.has(t.session_id));
     }
     if (fullTextSessionIds) {
         list = list.filter(t => fullTextSessionIds.has(t.session_id));
@@ -6830,6 +6861,7 @@ function renderSessionList() {
         const metaParts = [
             projectLabel ? `<span class="session-meta-chip accent" title="${escapeHtml(projectLabel)}">${escapeHtml(projectLabel)}</span>` : '',
             branchLabel ? `<span class="session-meta-chip" title="${escapeHtml(branchLabel)}">${escapeHtml(branchLabel)}</span>` : '',
+            `<span class="session-meta-chip entrypoint-${escapeHtml(s.entrypoint || 'unknown')}" title="Origin: ${escapeHtml(s.entrypoint || 'unknown')}">${escapeHtml(entrypointLabel(s.entrypoint))}</span>`,
             `<span class="session-meta-chip">${formatNumber(Number(s.user_msgs) || 0)} prompts</span>`,
             Number(s.api_error_count) ? `<span class="session-meta-chip" title="API errors">${formatNumber(Number(s.api_error_count) || 0)} errors</span>` : '',
         ].filter(Boolean).join('');
@@ -7222,14 +7254,15 @@ document.querySelector('#session-table thead').addEventListener('click', e => {
     renderSessionList();
 });
 
-['filter-project-select', 'filter-model-select', 'filter-tool-select'].forEach(id => {
+['filter-project-select', 'filter-model-select', 'filter-tool-select', 'filter-entrypoint-select'].forEach(id => {
     document.getElementById(id).addEventListener('change', applySessionFilters);
 });
 document.getElementById('clear-session-filters').addEventListener('click', () => {
-    sessionFilters = { project: '', model: '', tool: '', range: '', rangeFrom: null, rangeTo: null };
+    sessionFilters = { project: '', model: '', tool: '', entrypoint: '', range: '', rangeFrom: null, rangeTo: null };
     document.getElementById('filter-project-select').value = '';
     document.getElementById('filter-model-select').value = '';
     document.getElementById('filter-tool-select').value = '';
+    document.getElementById('filter-entrypoint-select').value = '';
     document.getElementById('range-picker-from').value = '';
     document.getElementById('range-picker-to').value = '';
     document.getElementById('range-picker-popover').classList.add('hidden');
@@ -7811,6 +7844,7 @@ function renderTranscriptMeta(sessionId) {
         <span><span class="label">Duration: </span><span class="val">${formatDuration(session.total_duration_sec)}</span></span>
         <span><span class="label">API time: </span><span class="val">${formatMs(session.api_duration_ms)}</span></span>
         <span><span class="label">Model: </span><span class="val">${escapeHtml(shortModel(session.model))}</span></span>
+        <span><span class="label">Origin: </span><span class="val">${escapeHtml(entrypointLabel(session.entrypoint))}</span></span>
         ${tierBit}
         <span title="Input ${formatCost(bd.input)} \u00B7 Output ${formatCost(bd.output)} \u00B7 Cache R ${formatCost(bd.cacheRead)} \u00B7 Cache W 5m ${formatCost(bd.cacheCreation5m)} \u00B7 Cache W 1h ${formatCost(bd.cacheCreation1h)} \u00B7 Server tools ${formatCost(bd.serverTools)}"><span class="label">Cost: </span><span class="val">${formatCost(session.cost)}</span></span>
         <span title="Input / Output / Cache read / Cache create tokens${tokenMode === 'cc' ? ' \u00B7 Input/Output en modo \u00ABSame as Claude Code\u00BB (crudo)' : ''}"><span class="val">\u2193${tokenViewRow(session, 'input')} \u2191${tokenViewRow(session, 'output')} \u21CA${formatTokens(session.cache_read_tokens)} \u21C8${formatTokens(session.cache_creation_tokens)}</span></span>
