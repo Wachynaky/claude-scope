@@ -4531,6 +4531,11 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
 /* lista de observaciones personalizada por tipo */
 .t2-obs-head { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin: 2px 2px 7px; display: flex; align-items: center; gap: 8px; }
 .t2-obs-head .count { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; color: var(--text-soft); }
+/* Chips de filtro por tipo de span (Viewer y detalle de trace en la tabla) */
+.span-filter { display: inline-flex; gap: 4px; flex-wrap: wrap; margin-left: auto; }
+.span-filter button { border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 999px; padding: 2px 9px; font-size: 10px; font-weight: 600; letter-spacing: .02em; line-height: 1.5; cursor: pointer; text-transform: none; }
+.span-filter button:hover { color: var(--text-soft); border-color: var(--accent-dim, #c4185b); }
+.span-filter button.active { background: var(--accent-dim, #c4185b); border-color: var(--accent-dim, #c4185b); color: #fff; }
 .t2-obs-list { display: flex; flex-direction: column; gap: 6px; }
 .t2-obs { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--line-strong); border-radius: 9px; padding: 8px 11px; cursor: pointer; transition: box-shadow .13s, border-color .13s; }
 .t2-obs:hover { box-shadow: var(--shadow-hover); }
@@ -4716,6 +4721,15 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
                     <label class="filter-chip"><span class="filter-chip-label">Origin</span><select id="filter-entrypoint-select"><option value="">All</option></select></label>
                 </div>
                 <div class="filt-col">
+                    <label class="filter-chip" title="Only traces containing at least one span of this type"><span class="filter-chip-label">Span type</span><select id="filter-spantype-select">
+                        <option value="">All</option>
+                        <option value="request">Prompt</option>
+                        <option value="generation">Response</option>
+                        <option value="thinking">Thinking</option>
+                        <option value="tool">Tool</option>
+                        <option value="result">Result</option>
+                        <option value="system">System</option>
+                    </select></label>
                     <div class="filter-chip range-picker" id="range-picker">
                         <span class="filter-chip-label">Time range</span>
                         <button type="button" id="range-picker-btn" class="range-picker-btn" title="Time range">
@@ -4743,9 +4757,9 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
                             </div>
                         </div>
                     </div>
-                    <span class="filter-chip"><button id="clear-session-filters">Clear filters</button></span>
                 </div>
                 <div class="filt-col filt-col-actions">
+                    <span class="filter-chip"><button id="clear-session-filters">Clear filters</button></span>
                     <span class="filter-chip"><button type="button" id="dashboard-charts-toggle" class="charts-toggle-btn" title="Hide all dashboard charts">Hide all</button></span>
                 </div>
             </div>
@@ -5181,7 +5195,7 @@ let chatSpyEnabled = true;        // el panel sigue al elemento centrado al hace
 let transcriptData = null;
 let toolStats = [];
 let sessionToolRows = [];
-let sessionFilters = { project: '', model: '', tool: '', entrypoint: '', range: '7d', rangeFrom: null, rangeTo: null };
+let sessionFilters = { project: '', model: '', tool: '', entrypoint: '', spanType: '', range: '7d', rangeFrom: null, rangeTo: null };
 let turns = [];
 let turnsLoaded = false;
 let turnByKey = new Map();
@@ -5665,6 +5679,9 @@ SELECT
     ) AS observations,
     countIf(type = 'assistant' AND req_seq = 1 AND is_sidechain = true) AS sidechain_generations,
     sumIf(marked.thinking_blocks, type = 'assistant' AND req_seq = 1) AS thinking_blocks,
+    -- Spans "system" del trace: peticiones de plan (mismo patrón que excluye
+    -- is_turn_start). Alimenta el filtro general por tipo de span.
+    countIf(type = 'user' AND content LIKE 'Implement the following plan:%') AS plan_blocks,
     arrayStringConcat(arrayDistinct(arrayFlatten(groupArrayIf(tool_names, req_seq = 1))), ', ') AS tools
 FROM marked
 WHERE turn_no > 0
@@ -6623,6 +6640,14 @@ function getFilteredSessions() {
     if (sessionFilters.tool) {
         list = list.filter(s => Array.isArray(s.tools) && s.tools.includes(sessionFilters.tool));
     }
+    if (sessionFilters.spanType) {
+        if (turnsLoaded) {
+            const ids = new Set(turns.filter(t => turnHasSpanType(t, sessionFilters.spanType)).map(t => t.session_id));
+            list = list.filter(s => ids.has(s.session_id));
+        } else if (sessionFilters.spanType === 'tool' || sessionFilters.spanType === 'result') {
+            list = list.filter(s => Array.isArray(s.tools) && s.tools.length > 0);
+        }
+    }
     if (sessionFilters.range) {
         list = list.filter(withinRange);
     }
@@ -6655,6 +6680,7 @@ function applySessionFilters() {
         model: document.getElementById('filter-model-select')?.value || '',
         tool: document.getElementById('filter-tool-select')?.value || '',
         entrypoint: document.getElementById('filter-entrypoint-select')?.value || '',
+        spanType: document.getElementById('filter-spantype-select')?.value || '',
     };
     refreshHomeViews();
 }
@@ -6718,10 +6744,26 @@ function applyRangeCustom() {
     refreshHomeViews();
 }
 
+// ¿Contiene el trace algún span del tipo pedido? Se resuelve con los agregados
+// por turno: todo trace tiene Prompt (request) y Response (generation) por
+// construcción (HAVING generations > 0); Tool/Result salen de la lista de tools,
+// Thinking de thinking_blocks y System de plan_blocks (peticiones de plan).
+function turnHasSpanType(t, type) {
+    if (!type) return true;
+    if (type === 'request' || type === 'generation') return true;
+    if (type === 'thinking') return Number(t.thinking_blocks) > 0;
+    if (type === 'tool' || type === 'result') return String(t.tools || '').trim() !== '';
+    if (type === 'system') return Number(t.plan_blocks) > 0;
+    return true;
+}
+
 function getFilteredTurns() {
     let list = turns;
     if (sessionFilters.range) {
         list = list.filter(withinRange);
+    }
+    if (sessionFilters.spanType) {
+        list = list.filter(t => turnHasSpanType(t, sessionFilters.spanType));
     }
     if (sessionFilters.project) {
         list = list.filter(t => displayProject(t) === sessionFilters.project);
@@ -7258,15 +7300,16 @@ document.querySelector('#session-table thead').addEventListener('click', e => {
     renderSessionList();
 });
 
-['filter-project-select', 'filter-model-select', 'filter-tool-select', 'filter-entrypoint-select'].forEach(id => {
+['filter-project-select', 'filter-model-select', 'filter-tool-select', 'filter-entrypoint-select', 'filter-spantype-select'].forEach(id => {
     document.getElementById(id).addEventListener('change', applySessionFilters);
 });
 document.getElementById('clear-session-filters').addEventListener('click', () => {
-    sessionFilters = { project: '', model: '', tool: '', entrypoint: '', range: '', rangeFrom: null, rangeTo: null };
+    sessionFilters = { project: '', model: '', tool: '', entrypoint: '', spanType: '', range: '', rangeFrom: null, rangeTo: null };
     document.getElementById('filter-project-select').value = '';
     document.getElementById('filter-model-select').value = '';
     document.getElementById('filter-tool-select').value = '';
     document.getElementById('filter-entrypoint-select').value = '';
+    document.getElementById('filter-spantype-select').value = '';
     document.getElementById('range-picker-from').value = '';
     document.getElementById('range-picker-to').value = '';
     document.getElementById('range-picker-popover').classList.add('hidden');
@@ -8591,6 +8634,16 @@ function obsTypeLabel(type) {
     return ({ request: 'Prompt', thinking: 'Thinking', tool: 'Tool', generation: 'Response', result: 'Result', system: 'System' })[type] || type;
 }
 
+// Chips para filtrar una lista de observaciones por tipo de span. `attr` es el
+// data-attribute que identifica cada chip ante su manejador de click delegado.
+const SPAN_FILTER_TYPES = [['', 'All'], ['request', 'Prompt'], ['generation', 'Response'], ['thinking', 'Thinking'], ['tool', 'Tool'], ['result', 'Result'], ['system', 'System']];
+// El Viewer no lista los "result" (su contenido se pliega en el Output de la tool).
+const T2_SPAN_FILTER_TYPES = SPAN_FILTER_TYPES.filter(([v]) => v !== 'result');
+function spanFilterChips(attr, active, types = SPAN_FILTER_TYPES) {
+    return `<span class="span-filter">` + types.map(([v, lab]) =>
+        `<button type="button" ${attr}="${v}" class="${v === (active || '') ? 'active' : ''}">${lab}</button>`).join('') + `</span>`;
+}
+
 // Pinta las observaciones de un trace dentro de su fila desplegada (lazy: solo la
 // primera vez). El contenedor lleva data-obs-session / data-obs-turn.
 async function renderTurnObservations(container) {
@@ -8611,7 +8664,7 @@ async function renderTurnObservations(container) {
             return;
         }
         container.innerHTML = `
-            <div class="obs-head"><span>Observations</span><span class="muted">${obsTotal} observations · ${rows.length} steps</span></div>
+            <div class="obs-head"><span>Observations</span><span class="muted">${obsTotal} observations · ${rows.length} steps</span>${spanFilterChips('data-obs-filter', '')}</div>
             <div class="obs-list">
                 <div class="obs-row obs-row-head">
                     <span class="obs-n">#</span>
@@ -8622,14 +8675,30 @@ async function renderTurnObservations(container) {
                 ${rows.map((r) => {
                     const m = msgs[r.idx];
                     const time = m ? formatClock(m.ts) : '';
-                    return `<div class="obs-row level-${r.level}${r.obsNum == null ? ' obs-row-skip' : ''}" style="--indent:${r.level}">
+                    return `<div class="obs-row level-${r.level}${r.obsNum == null ? ' obs-row-skip' : ''}" style="--indent:${r.level}" data-obs-type="${escapeHtml(r.type)}">
                     <span class="obs-n">${r.obsNum != null ? r.obsNum : ''}</span>
                     <span class="execution-badge ${escapeHtml(r.type)}">${escapeHtml(obsTypeLabel(r.type))}</span>
                     <span class="obs-title" title="${escapeHtml(r.title)}">${escapeHtml(r.title)}</span>
                     <span class="obs-meta">${escapeHtml(time)}</span>
                 </div>`;
                 }).join('')}
+                <div class="obs-row obs-filter-empty hidden"><span class="obs-n"></span><span></span><span class="obs-title muted">No observations of this type in this trace.</span><span></span></div>
             </div>`;
+        // Filtro por tipo de span de ESTE trace: los chips ocultan las filas que no casan.
+        const chipsWrap = container.querySelector('.span-filter');
+        if (chipsWrap) chipsWrap.addEventListener('click', e => {
+            const b = e.target.closest('button[data-obs-filter]');
+            if (!b) return;
+            const f = b.dataset.obsFilter || '';
+            chipsWrap.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+            let shown = 0;
+            container.querySelectorAll('.obs-row[data-obs-type]').forEach(row => {
+                const hide = !!f && row.dataset.obsType !== f;
+                row.classList.toggle('hidden', hide);
+                if (!hide) shown++;
+            });
+            container.querySelector('.obs-filter-empty').classList.toggle('hidden', shown > 0);
+        });
     } catch (e) {
         container.dataset.loading = '';
         container.innerHTML = `<div class="obs-head"><span>Observations</span><span class="muted">error: ${escapeHtml(e.message)}</span></div>`;
@@ -10914,6 +10983,7 @@ let traceDesign = 'classic';
 let t2OpenTrace = null;        // "session:turn_no" del trace expandido
 let t2Sel = null;              // índice de observación seleccionada (en cache.rows)
 let t2SelTrace = null;         // clave del trace de la observación seleccionada
+let t2ObsFilter = '';          // tipo de span visible en la lista de observaciones ('' = todos)
 let t2ViewerW = 440;
 const t2ObsCache = new Map();  // key -> { msgs, rows, resultByUseId, trace }
 const T2_ICON = { request: '🧑', thinking: '💭', tool: '⌘', generation: '✦', result: '↩', system: '⚙' };
@@ -11021,7 +11091,7 @@ function renderTraceDesignNew() {
             </div>
             <div class="t2-detail-wrap"><div class="t2-detail-inner"><div class="t2-detail">
                 ${t2TraceStrip(t)}
-                <div class="t2-obs-head">Observations <span class="count">${Number(t.observations) || 0}</span></div>
+                <div class="t2-obs-head">Observations <span class="count">${Number(t.observations) || 0}</span>${spanFilterChips('data-t2-obs-filter', t2ObsFilter, T2_SPAN_FILTER_TYPES)}</div>
                 <div class="t2-obs-list" data-t2-obs="${escapeHtml(key)}"></div>
             </div></div></div>
         </div>`;
@@ -11062,7 +11132,11 @@ async function t2LoadObsInto(t) {
             return;
         }
     }
-    container.innerHTML = cache.rows.map((r, i) => t2ObsItem(cache, r, i)).join('') || `<div class="t2-obs-empty">No observations</div>`;
+    // Se pintan solo las del tipo filtrado, conservando el índice original de
+    // cada fila (selección y navegación siguen apuntando a cache.rows).
+    const visible = cache.rows.map((r, i) => ({ r, i })).filter(x => !t2ObsFilter || x.r.type === t2ObsFilter);
+    container.innerHTML = visible.map(x => t2ObsItem(cache, x.r, x.i)).join('')
+        || `<div class="t2-obs-empty">${t2ObsFilter ? `No ${escapeHtml(obsTypeLabel(t2ObsFilter))} observations in this trace` : 'No observations'}</div>`;
     // Rellena el contador de "Tool calls" de la card de métricas con el nº real.
     const detail = container.closest('.t2-detail');
     const tcEl = detail && detail.querySelector('[data-t2-tc]');
@@ -11086,6 +11160,11 @@ function t2ObsItem(cache, r, i) {
         </span>
         <span class="t2-obs-side"><span class="c">${formatCost(cost.total)}</span><span class="tk">${formatTokens(tok)} tok</span></span>
     </div>`;
+}
+
+// Índices (sobre cache.rows) de las observaciones visibles con el filtro actual.
+function t2VisibleIdx(cache) {
+    return cache.rows.map((r, i) => ({ r, i })).filter(x => !t2ObsFilter || x.r.type === t2ObsFilter).map(x => x.i);
 }
 
 function t2SelectObs(key, i) {
@@ -11188,13 +11267,18 @@ function t2RenderViewer() {
         { cls: 'out', color: 'var(--t2-cout)', label: 'Output', val: cost.output },
         ...cacheParts.map(p => ({ cls: p.cls, color: p.color, label: p.label, val: p.cost })),
     ];
-    const n = cache.rows.length;
+    // Prev/Next navegan solo por las observaciones visibles con el filtro activo.
+    const vis = t2VisibleIdx(cache);
+    const pos = vis.indexOf(t2Sel);
+    const hasPrev = vis.some(i => i < t2Sel);
+    const hasNext = vis.some(i => i > t2Sel);
+    const posLabel = pos >= 0 ? `obs ${pos + 1} / ${vis.length}` : `obs ${t2Sel + 1} / ${cache.rows.length}`;
     const headTitle = r.type === 'tool' ? (String(r.title).split(' ')[0] || 'Tool') : obsTypeLabel(r.type);
     v.innerHTML = `
         <div class="t2-vw-head">
             <div class="t2-vw-eyebrow"><span>session <b>${escapeHtml(String(t.session_id).slice(0, 8))}</b></span><span class="sep">/</span><span>trace <b>#${Number(t.turn_no) || ''}</b></span></div>
             <div class="t2-vw-titlerow"><span class="t2-vw-ic t-${r.type}">${T2_ICON[r.type] || '•'}</span><h2>${escapeHtml(headTitle)}</h2><span class="execution-badge ${escapeHtml(r.type)}">${escapeHtml(obsTypeLabel(r.type))}</span></div>
-            <div class="t2-vw-nav"><button data-t2-nav="prev"${t2Sel === 0 ? ' disabled' : ''}>▲ Prev</button><span class="pos">obs ${t2Sel + 1} / ${n}</span><button data-t2-nav="next"${t2Sel === n - 1 ? ' disabled' : ''}>Next ▼</button></div>
+            <div class="t2-vw-nav"><button data-t2-nav="prev"${hasPrev ? '' : ' disabled'}>▲ Prev</button><span class="pos">${posLabel}</span><button data-t2-nav="next"${hasNext ? '' : ' disabled'}>Next ▼</button></div>
             <div class="t2-vw-striplab">Tokens &amp; cost <span class="t2-vw-sec-note">estimated</span></div>
             <div class="t2-vw-strip">${t2MbCell('Tokens', totTok, tokParts, formatTokens, false)}${t2MbCell('Cost', cost.total, costParts, formatCost, true)}</div>
         </div>
@@ -11227,12 +11311,28 @@ function t2BindResizer() {
         if (nav) {
             if (t2SelTrace == null) return;
             const cache = t2ObsCache.get(t2SelTrace); if (!cache) return;
-            const j = nav.dataset.t2Nav === 'prev' ? t2Sel - 1 : t2Sel + 1;
-            if (j >= 0 && j < cache.rows.length) {
+            // Salta a la observación visible anterior/siguiente según el filtro de tipo.
+            const vis = t2VisibleIdx(cache);
+            const j = nav.dataset.t2Nav === 'prev'
+                ? vis.slice().reverse().find(i => i < t2Sel)
+                : vis.find(i => i > t2Sel);
+            if (j != null) {
                 t2SelectObs(t2SelTrace, j);
                 const el = [...document.querySelectorAll('.t2-obs')].find(x => x.dataset.t2ObsKey === t2SelTrace && Number(x.dataset.t2ObsI) === j);
                 if (el) el.scrollIntoView({ block: 'nearest' });
             }
+            return;
+        }
+        const fch = e.target.closest('button[data-t2-obs-filter]');
+        if (fch) {
+            t2ObsFilter = fch.dataset.t2ObsFilter || '';
+            document.querySelectorAll('button[data-t2-obs-filter]').forEach(b =>
+                b.classList.toggle('active', (b.dataset.t2ObsFilter || '') === t2ObsFilter));
+            if (t2OpenTrace) {
+                const t = getFilteredTurns().find(x => t2Key(x) === t2OpenTrace);
+                if (t) t2LoadObsInto(t);
+            }
+            t2RenderViewer();   // recalcula Prev/Next y el "obs X / N" con el filtro
             return;
         }
         const tog = e.target.closest('[data-t2-toggle]');
