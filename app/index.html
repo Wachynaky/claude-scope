@@ -3048,6 +3048,18 @@ tbody td + td { border-left: 1px solid var(--line); }
 /* Pasos que NO cuentan como observación (thinking, result…): atenuados. */
 .turn-obs .obs-row-skip { background: var(--surface-2); }
 .turn-obs .obs-row-skip .obs-title, .turn-obs .obs-row-skip .execution-badge { opacity: .6; }
+/* Filas de observación clicables: abren su contenido en el visor de la derecha. */
+.turn-obs .obs-row[data-ct-i] { cursor: pointer; transition: background .12s; }
+.turn-obs .obs-row[data-ct-i]:hover { background: var(--accent-soft); }
+.turn-obs .obs-row[data-ct-i].selected { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+.turn-obs .obs-row[data-ct-i].selected .obs-title { color: var(--text); }
+
+/* ── Layout de la tabla clásica con visor lateral (reusa .t2-layout/.t2-viewer).
+   El contenedor no aporta chrome propio: la card es el .table-wrap interior y el
+   visor lleva su borde/sombra para leerse como panel independiente. ── */
+#ct-layout { background: transparent; border: none; border-radius: 0; box-shadow: none; gap: 0; }
+#ct-layout .ct-main { min-width: 0; padding-right: 8px; }
+#ct-viewer { border: 1px solid var(--line); border-left: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--panel); box-shadow: var(--shadow-card); }
 
 /* Tabla principal de sesiones: densa, escaneable y aislada de las tablas desplegadas */
 #session-table {
@@ -4833,7 +4845,13 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
             <h2>Traces</h2>
             <span id="turn-table-summary">One row per trace (prompt) in the session</span>
         </div>
-        <div class="table-wrap hidden" id="turn-table-wrap">
+        <!-- Tabla clásica de Traces + visor de observación a la derecha (mismo
+             componente .t2-viewer que el diseño "Viewer"): al hacer click en una
+             observación de un trace desplegado, su contenido se muestra al lado. -->
+        <div class="hidden" id="turn-classic-wrap">
+            <div class="t2-layout ct-layout" id="ct-layout">
+                <div class="ct-main">
+        <div class="table-wrap" id="turn-table-wrap">
             <table id="turn-table">
                 <thead>
                     <tr>
@@ -4850,6 +4868,11 @@ html.chat-snap #chat-col .chat-tools.standalone { scroll-snap-align: start; }
                 </thead>
                 <tbody id="turn-tbody"></tbody>
             </table>
+        </div>
+                </div>
+                <div class="t2-resizer" id="ct-resizer"></div>
+                <aside class="t2-viewer" id="ct-viewer"></aside>
+            </div>
         </div>
         <!-- Diseño alternativo de la tabla de Traces: lista desplegable con métricas
              y observaciones + visor de observación a la derecha. Conmutable con el
@@ -6830,7 +6853,7 @@ function renderHomeView() {
     document.getElementById('session-table-title').classList.toggle('hidden', isTurns || isTraces);
     document.getElementById('session-table-wrap').classList.toggle('hidden', isTurns || isTraces);
     document.getElementById('turn-table-title').classList.toggle('hidden', !isTurns || newDesign);
-    document.getElementById('turn-table-wrap').classList.toggle('hidden', !isTurns || newDesign);
+    document.getElementById('turn-classic-wrap').classList.toggle('hidden', !isTurns || newDesign);
     document.getElementById('turn-design-new-wrap').classList.toggle('hidden', !newDesign);
     document.getElementById('trace-group-title').classList.toggle('hidden', !isTraces);
     document.getElementById('trace-group-wrap').classList.toggle('hidden', !isTraces);
@@ -6967,6 +6990,7 @@ function renderTurnList() {
     if (homeViewMode === 'turns' && traceDesign === 'new') renderTraceDesignNew();
     const tbody = document.getElementById('turn-tbody');
     if (!tbody) return;
+    ctRenderViewer();   // empty state del visor lateral, o la observación seleccionada
     if (!turnsLoaded) {
         tbody.innerHTML = `<tr><td colspan="9" class="empty-state">Loading traces...</td></tr>`;
         setText('turn-table-summary', 'Loading traces...');
@@ -7482,6 +7506,12 @@ document.getElementById('turn-tbody').addEventListener('click', e => {
     const openBtn = e.target.closest('.open-turn-session');
     if (openBtn) {
         navigateTo('session/' + openBtn.dataset.session);
+        return;
+    }
+    // Click en una observación del trace desplegado: la abre en el visor lateral.
+    const obsRow = e.target.closest('.obs-row[data-ct-i]');
+    if (obsRow) {
+        ctSelectObs(obsRow.dataset.ctKey, Number(obsRow.dataset.ctI));
         return;
     }
     const tr = e.target.closest('tr[data-session]');
@@ -8683,65 +8713,91 @@ function spanFilterChips(attr, active, types = SPAN_FILTER_TYPES) {
         `<button type="button" ${attr}="${v}" class="${v === (active || '') ? 'active' : ''}">${lab}</button>`).join('') + `</span>`;
 }
 
-// Pinta las observaciones de un trace dentro de su fila desplegada (lazy: solo la
-// primera vez). El contenedor lleva data-obs-session / data-obs-turn.
+// Pinta las observaciones de un trace dentro de su fila desplegada (lazy, con la
+// misma cache que alimenta el visor lateral). El contenedor lleva
+// data-obs-session / data-obs-turn. Cada fila es clicable: abre su contenido en
+// el visor de la derecha (#ct-viewer), igual que en el diseño "Viewer".
 async function renderTurnObservations(container) {
     if (!container || container.dataset.loaded === '1' || container.dataset.loading === '1') return;
     const sessionId = container.dataset.obsSession;
     const turnNo = container.dataset.obsTurn;
     if (!sessionId || !turnNo) return;
-    container.dataset.loading = '1';
-    container.innerHTML = `<div class="obs-head"><span>Observations</span><span class="muted">loading…</span></div>`;
-    try {
-        const msgs = await loadTurnObservations(sessionId, turnNo);
-        const rows = buildExecutionRows(msgs);
-        const obsTotal = assignObsNumbers(rows, msgs);
-        container.dataset.loaded = '1';
-        container.dataset.loading = '';
-        if (!rows.length) {
-            container.innerHTML = `<div class="obs-head"><span>Observations</span><span class="muted">none</span></div>`;
+    const key = String(sessionId) + ':' + String(turnNo);
+    let cache = ctObsCache.get(key);
+    if (!cache) {
+        container.dataset.loading = '1';
+        container.innerHTML = `<div class="obs-head"><span>Observations</span><span class="muted">loading…</span></div>`;
+        try {
+            const msgs = await loadTurnObservations(sessionId, turnNo);
+            const rows = buildExecutionRows(msgs);
+            const obsTotal = assignObsNumbers(rows, msgs);
+            // Mismo pipeline que el Viewer: índice de tool_result por tool_use_id y
+            // ordinal (_ord) del bloque dentro de su mensaje, para que el visor
+            // localice el bloque exacto (tool, thinking o result) de cada fila.
+            const resultByUseId = {};
+            msgs.forEach(m => parseContentBlocks(m.content).forEach(b => {
+                if (b.type === 'tool_result') { const id = b.tool_use_id || b.id; if (id) resultByUseId[id] = b; }
+            }));
+            const seen = {};
+            rows.forEach(r => { const k = r.idx + ':' + r.type; r._ord = (seen[k] = (seen[k] || 0)); seen[k]++; });
+            const trace = turns.find(x => String(x.session_id) === String(sessionId) && String(x.turn_no) === String(turnNo))
+                || { session_id: sessionId, turn_no: turnNo, started: (msgs[0] || {}).ts || '', model: (msgs.find(m => m.model) || {}).model || '' };
+            cache = { msgs, rows, resultByUseId, trace, obsTotal, filter: '' };
+            ctObsCache.set(key, cache);
+        } catch (e) {
+            container.dataset.loading = '';
+            container.innerHTML = `<div class="obs-head"><span>Observations</span><span class="muted">error: ${escapeHtml(e.message)}</span></div>`;
             return;
         }
-        container.innerHTML = `
-            <div class="obs-head"><span>Observations</span><span class="muted">${obsTotal} observations · ${rows.length} steps</span>${spanFilterChips('data-obs-filter', '')}</div>
-            <div class="obs-list">
-                <div class="obs-row obs-row-head">
-                    <span class="obs-n">#</span>
-                    <span>Type</span>
-                    <span>Detail</span>
-                    <span class="obs-meta">Time</span>
-                </div>
-                ${rows.map((r) => {
-                    const m = msgs[r.idx];
-                    const time = m ? formatClock(m.ts) : '';
-                    return `<div class="obs-row level-${r.level}${r.obsNum == null ? ' obs-row-skip' : ''}" style="--indent:${r.level}" data-obs-type="${escapeHtml(r.type)}">
-                    <span class="obs-n">${r.obsNum != null ? r.obsNum : ''}</span>
-                    <span class="execution-badge ${escapeHtml(r.type)}">${escapeHtml(obsTypeLabel(r.type))}</span>
-                    <span class="obs-title" title="${escapeHtml(r.title)}">${escapeHtml(r.title)}</span>
-                    <span class="obs-meta">${escapeHtml(time)}</span>
-                </div>`;
-                }).join('')}
-                <div class="obs-row obs-filter-empty hidden"><span class="obs-n"></span><span></span><span class="obs-title muted">No observations of this type in this trace.</span><span></span></div>
-            </div>`;
-        // Filtro por tipo de span de ESTE trace: los chips ocultan las filas que no casan.
-        const chipsWrap = container.querySelector('.span-filter');
-        if (chipsWrap) chipsWrap.addEventListener('click', e => {
-            const b = e.target.closest('button[data-obs-filter]');
-            if (!b) return;
-            const f = b.dataset.obsFilter || '';
-            chipsWrap.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
-            let shown = 0;
-            container.querySelectorAll('.obs-row[data-obs-type]').forEach(row => {
-                const hide = !!f && row.dataset.obsType !== f;
-                row.classList.toggle('hidden', hide);
-                if (!hide) shown++;
-            });
-            container.querySelector('.obs-filter-empty').classList.toggle('hidden', shown > 0);
-        });
-    } catch (e) {
         container.dataset.loading = '';
-        container.innerHTML = `<div class="obs-head"><span>Observations</span><span class="muted">error: ${escapeHtml(e.message)}</span></div>`;
     }
+    container.dataset.loaded = '1';
+    const { msgs, rows, obsTotal } = cache;
+    if (!rows.length) {
+        container.innerHTML = `<div class="obs-head"><span>Observations</span><span class="muted">none</span></div>`;
+        return;
+    }
+    container.innerHTML = `
+        <div class="obs-head"><span>Observations</span><span class="muted">${obsTotal} observations · ${rows.length} steps · click a row to inspect it</span>${spanFilterChips('data-obs-filter', cache.filter)}</div>
+        <div class="obs-list">
+            <div class="obs-row obs-row-head">
+                <span class="obs-n">#</span>
+                <span>Type</span>
+                <span>Detail</span>
+                <span class="obs-meta">Time</span>
+            </div>
+            ${rows.map((r, i) => {
+                const m = msgs[r.idx];
+                const time = m ? formatClock(m.ts) : '';
+                const hidden = cache.filter && r.type !== cache.filter ? ' hidden' : '';
+                const sel = (ctSelTrace === key && ctSel === i) ? ' selected' : '';
+                return `<div class="obs-row level-${r.level}${r.obsNum == null ? ' obs-row-skip' : ''}${hidden}${sel}" style="--indent:${r.level}" data-obs-type="${escapeHtml(r.type)}" data-ct-key="${escapeHtml(key)}" data-ct-i="${i}">
+                <span class="obs-n">${r.obsNum != null ? r.obsNum : ''}</span>
+                <span class="execution-badge ${escapeHtml(r.type)}">${escapeHtml(obsTypeLabel(r.type))}</span>
+                <span class="obs-title" title="${escapeHtml(r.title)}">${escapeHtml(r.title)}</span>
+                <span class="obs-meta">${escapeHtml(time)}</span>
+            </div>`;
+            }).join('')}
+            <div class="obs-row obs-filter-empty${cache.filter && !rows.some(r => r.type === cache.filter) ? '' : ' hidden'}"><span class="obs-n"></span><span></span><span class="obs-title muted">No observations of this type in this trace.</span><span></span></div>
+        </div>`;
+    // Filtro por tipo de span de ESTE trace: los chips ocultan las filas que no
+    // casan y acotan la navegación Prev/Next del visor lateral.
+    const chipsWrap = container.querySelector('.span-filter');
+    if (chipsWrap) chipsWrap.addEventListener('click', e => {
+        const b = e.target.closest('button[data-obs-filter]');
+        if (!b) return;
+        const f = b.dataset.obsFilter || '';
+        cache.filter = f;
+        chipsWrap.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+        let shown = 0;
+        container.querySelectorAll('.obs-row[data-obs-type]').forEach(row => {
+            const hide = !!f && row.dataset.obsType !== f;
+            row.classList.toggle('hidden', hide);
+            if (!hide) shown++;
+        });
+        container.querySelector('.obs-filter-empty').classList.toggle('hidden', shown > 0);
+        if (ctSelTrace === key) ctRenderViewer();   // recalcula Prev/Next y "obs X / N"
+    });
 }
 
 function buildFullTraceRows(range = null) {
@@ -11045,14 +11101,12 @@ function t2InitDesign() {
         const stored = localStorage.getItem('ccpanel-trace-design');
         if (q === 'new' || q === 'classic') traceDesign = q;
         else if (stored === 'new' || stored === 'classic') traceDesign = stored;
-        // Ancho del visor: persistente entre sesiones (se ajusta con el divisor).
+        // Ancho del visor: persistente entre sesiones (se ajusta con el divisor)
+        // y compartido por los dos layouts (Viewer y tabla clásica).
         const w = parseInt(localStorage.getItem('ccpanel-t2-viewer-w'), 10);
-        if (w && w >= 300) {
-            t2ViewerW = w;
-            const ly = document.getElementById('t2-layout');
-            if (ly) ly.style.setProperty('--t2-viewer-w', t2ViewerW + 'px');
-        }
+        if (w && w >= 300) t2SetViewerW(w);
     } catch (e) {}
+    t2BindResizer('ct-resizer');
     document.querySelectorAll('#trace-design-switcher button').forEach(b =>
         b.classList.toggle('active', b.dataset.traceDesign === traceDesign));
 }
@@ -11287,7 +11341,8 @@ function t2ViewerContent(cache, r, m) {
             : `<div class="t2-note">No reasoning text persisted (only the block signature). It used <b>${formatTokens(m.output_tokens)}</b> output tokens.</div>`;
     }
     if (r.type === 'result') {
-        const res = blocks.find(b => b.type === 'tool_result');
+        const rs = blocks.filter(b => b.type === 'tool_result');
+        const res = rs[r._ord] || rs[0];
         const txt = res ? t2ResultText(res.content) : String(r.title || '');
         return `<div class="t2-ts-label out">▸ Tool result</div>${codeViewer({ name: 'result', lang: 'text', code: txt || '(empty)', ansi: true })}`;
     }
@@ -11301,15 +11356,13 @@ function t2ViewerContent(cache, r, m) {
     return `<div class="t2-note">${escapeHtml(r.title || '')}</div>`;
 }
 
-function t2RenderViewer() {
-    const v = document.getElementById('t2-viewer');
-    if (!v) return;
-    if (t2SelTrace == null || t2Sel == null || !t2ObsCache.has(t2SelTrace)) {
-        v.innerHTML = `<div class="t2-vw-empty"><div class="ic">👁</div><div><b>Observation viewer</b><br>Select an observation to inspect its content, tokens and cost.</div></div>`;
-        return;
-    }
-    const cache = t2ObsCache.get(t2SelTrace);
-    const r = cache.rows[t2Sel], m = cache.msgs[r.idx] || {}, t = cache.trace;
+// HTML del visor de observación (cabecera + métricas + contenido). Compartido
+// por los dos diseños: "Viewer" (#t2-viewer) y tabla clásica (#ct-viewer).
+// `vis` son los índices visibles con el filtro activo y `navAttr` el
+// data-attribute de los botones Prev/Next (cada diseño enruta su navegación).
+const OBS_VIEWER_EMPTY = `<div class="t2-vw-empty"><div class="ic">👁</div><div><b>Observation viewer</b><br>Select an observation to inspect its content, tokens and cost.</div></div>`;
+function obsViewerHtml(cache, sel, vis, navAttr) {
+    const r = cache.rows[sel], m = cache.msgs[r.idx] || {}, t = cache.trace;
     const cost = t2ObsCost(m);
     const cacheParts = t2CacheParts(m, cost);
     const cacheTok = (Number(m.cache_read_tokens) || 0) + (Number(m.cache_creation_tokens) || 0);
@@ -11325,17 +11378,16 @@ function t2RenderViewer() {
         ...cacheParts.map(p => ({ cls: p.cls, color: p.color, label: p.label, val: p.cost })),
     ];
     // Prev/Next navegan solo por las observaciones visibles con el filtro activo.
-    const vis = t2VisibleIdx(cache);
-    const pos = vis.indexOf(t2Sel);
-    const hasPrev = vis.some(i => i < t2Sel);
-    const hasNext = vis.some(i => i > t2Sel);
-    const posLabel = pos >= 0 ? `obs ${pos + 1} / ${vis.length}` : `obs ${t2Sel + 1} / ${cache.rows.length}`;
+    const pos = vis.indexOf(sel);
+    const hasPrev = vis.some(i => i < sel);
+    const hasNext = vis.some(i => i > sel);
+    const posLabel = pos >= 0 ? `obs ${pos + 1} / ${vis.length}` : `obs ${sel + 1} / ${cache.rows.length}`;
     const headTitle = r.type === 'tool' ? (String(r.title).split(' ')[0] || 'Tool') : obsTypeLabel(r.type);
-    v.innerHTML = `
+    return `
         <div class="t2-vw-head">
             <div class="t2-vw-eyebrow"><span>session <b>${escapeHtml(String(t.session_id).slice(0, 8))}</b></span><span class="sep">/</span><span>trace <b>#${Number(t.turn_no) || ''}</b></span></div>
             <div class="t2-vw-titlerow"><span class="t2-vw-ic t-${r.type}">${T2_ICON[r.type] || '•'}</span><h2>${escapeHtml(headTitle)}</h2><span class="execution-badge ${escapeHtml(r.type)}">${escapeHtml(obsTypeLabel(r.type))}</span></div>
-            <div class="t2-vw-nav"><button data-t2-nav="prev"${hasPrev ? '' : ' disabled'}>▲ Prev</button><span class="pos">${posLabel}</span><button data-t2-nav="next"${hasNext ? '' : ' disabled'}>Next ▼</button></div>
+            <div class="t2-vw-nav"><button ${navAttr}="prev"${hasPrev ? '' : ' disabled'}>▲ Prev</button><span class="pos">${posLabel}</span><button ${navAttr}="next"${hasNext ? '' : ' disabled'}>Next ▼</button></div>
             <div class="t2-vw-striplab">Tokens &amp; cost <span class="t2-vw-sec-note">estimated</span></div>
             <div class="t2-vw-strip">${t2MbCell('Tokens', totTok, tokParts, formatTokens, false)}${t2MbCell('Cost', cost.total, costParts, formatCost, true)}</div>
         </div>
@@ -11345,14 +11397,83 @@ function t2RenderViewer() {
         </div>`;
 }
 
-function t2BindResizer() {
-    const rz = document.getElementById('t2-resizer'), layout = document.getElementById('t2-layout');
-    if (!rz || !layout || rz._t2bound) return;
+function t2RenderViewer() {
+    const v = document.getElementById('t2-viewer');
+    if (!v) return;
+    if (t2SelTrace == null || t2Sel == null || !t2ObsCache.has(t2SelTrace)) {
+        v.innerHTML = OBS_VIEWER_EMPTY;
+        return;
+    }
+    const cache = t2ObsCache.get(t2SelTrace);
+    v.innerHTML = obsViewerHtml(cache, t2Sel, t2VisibleIdx(cache), 'data-t2-nav');
+}
+
+// ── Visor lateral de la tabla clásica (#ct-viewer): misma cabecera, métricas,
+//    contenido y navegación que el del diseño "Viewer", sobre ctObsCache. ──
+let ctSel = null;              // índice de la observación seleccionada (en cache.rows)
+let ctSelTrace = null;         // clave "session:turn_no" de esa observación
+const ctObsCache = new Map();  // key -> { msgs, rows, resultByUseId, trace, obsTotal, filter }
+
+// Índices visibles con el filtro de tipo del propio trace (chips de su fila).
+function ctVisibleIdx(cache) {
+    return cache.rows.map((r, i) => ({ r, i })).filter(x => !cache.filter || x.r.type === cache.filter).map(x => x.i);
+}
+
+function ctSelectObs(key, i) {
+    ctSelTrace = key; ctSel = i;
+    document.querySelectorAll('#turn-table .obs-row[data-ct-i]').forEach(el =>
+        el.classList.toggle('selected', el.dataset.ctKey === key && Number(el.dataset.ctI) === i));
+    ctRenderViewer();
+}
+
+function ctRenderViewer() {
+    const v = document.getElementById('ct-viewer');
+    if (!v) return;
+    if (ctSelTrace == null || ctSel == null || !ctObsCache.has(ctSelTrace)) {
+        v.innerHTML = OBS_VIEWER_EMPTY;
+        return;
+    }
+    const cache = ctObsCache.get(ctSelTrace);
+    v.innerHTML = obsViewerHtml(cache, ctSel, ctVisibleIdx(cache), 'data-ct-nav');
+}
+
+// Prev/Next del visor clásico: saltan a la observación visible anterior o
+// siguiente según el filtro de tipo del trace seleccionado.
+document.getElementById('ct-viewer')?.addEventListener('click', e => {
+    const nav = e.target.closest('[data-ct-nav]');
+    if (!nav || ctSelTrace == null) return;
+    const cache = ctObsCache.get(ctSelTrace);
+    if (!cache) return;
+    const vis = ctVisibleIdx(cache);
+    const j = nav.dataset.ctNav === 'prev'
+        ? vis.slice().reverse().find(i => i < ctSel)
+        : vis.find(i => i > ctSel);
+    if (j != null) {
+        ctSelectObs(ctSelTrace, j);
+        const el = [...document.querySelectorAll('#turn-table .obs-row[data-ct-i]')]
+            .find(x => x.dataset.ctKey === ctSelTrace && Number(x.dataset.ctI) === j);
+        if (el) el.scrollIntoView({ block: 'nearest' });
+    }
+});
+
+// Aplica el ancho del visor a los dos layouts (Viewer y tabla clásica): ambos
+// comparten la variable, el divisor y la persistencia en localStorage.
+function t2SetViewerW(px) {
+    t2ViewerW = px;
+    ['t2-layout', 'ct-layout'].forEach(id => {
+        const ly = document.getElementById(id);
+        if (ly) ly.style.setProperty('--t2-viewer-w', px + 'px');
+    });
+}
+
+function t2BindResizer(rzId = 't2-resizer') {
+    const rz = document.getElementById(rzId);
+    if (!rz || rz._t2bound) return;
     rz._t2bound = true;
     rz.addEventListener('mousedown', e => {
         e.preventDefault(); document.body.classList.add('t2-resizing');
         const sx = e.clientX, sw = t2ViewerW;
-        const mv = ev => { t2ViewerW = Math.max(300, Math.min(window.innerWidth - 360, sw - (ev.clientX - sx))); layout.style.setProperty('--t2-viewer-w', t2ViewerW + 'px'); };
+        const mv = ev => t2SetViewerW(Math.max(300, Math.min(window.innerWidth - 360, sw - (ev.clientX - sx))));
         const up = () => { document.body.classList.remove('t2-resizing'); try { localStorage.setItem('ccpanel-t2-viewer-w', String(Math.round(t2ViewerW))); } catch (_) {} window.removeEventListener('mousemove', mv); window.removeEventListener('mouseup', up); };
         window.addEventListener('mousemove', mv); window.addEventListener('mouseup', up);
     });
