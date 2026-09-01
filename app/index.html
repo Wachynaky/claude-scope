@@ -6725,7 +6725,27 @@ function applySessionFilters() {
     refreshHomeViews();
 }
 
+// Al cambiar el selector "Span type" los chips de filtro de observaciones
+// (diseño Viewer y traces desplegados de la tabla) adoptan ese mismo tipo, de
+// modo que el trace abierto ya muestre solo esos spans. Después los chips se
+// pueden seguir cambiando a mano: solo se re-sincronizan si el selector cambia.
+let lastSyncedSpanType = '';
+function syncSpanTypeChips() {
+    const st = sessionFilters.spanType || '';
+    if (st === lastSyncedSpanType) return;
+    lastSyncedSpanType = st;
+    // El Viewer no lista los result (van plegados en el Output de su tool):
+    // para ese tipo su chip equivalente es All.
+    t2ObsFilter = st === 'result' ? '' : st;
+    ctObsCache.forEach(c => { c.filter = st; });
+    // Traces ya desplegados en la tabla clásica: repinta su lista con el filtro.
+    document.querySelectorAll('.turn-obs[data-obs-session]').forEach(el => {
+        if (el.dataset.loaded === '1') { el.dataset.loaded = ''; renderTurnObservations(el); }
+    });
+}
+
 function refreshHomeViews() {
+    syncSpanTypeChips();
     renderSessionList();
     renderTurnList();
     renderTraceGroupList();
@@ -8742,7 +8762,8 @@ async function renderTurnObservations(container) {
             rows.forEach(r => { const k = r.idx + ':' + r.type; r._ord = (seen[k] = (seen[k] || 0)); seen[k]++; });
             const trace = turns.find(x => String(x.session_id) === String(sessionId) && String(x.turn_no) === String(turnNo))
                 || { session_id: sessionId, turn_no: turnNo, started: (msgs[0] || {}).ts || '', model: (msgs.find(m => m.model) || {}).model || '' };
-            cache = { msgs, rows, resultByUseId, trace, obsTotal, filter: '' };
+            // El filtro inicial hereda el selector "Span type" del dashboard.
+            cache = { msgs, rows, resultByUseId, trace, obsTotal, filter: sessionFilters.spanType || '' };
             ctObsCache.set(key, cache);
         } catch (e) {
             container.dataset.loading = '';
