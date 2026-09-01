@@ -10174,14 +10174,18 @@ function renderTranscript() {
 
             if (msg.type === 'assistant') {
                 let bodyMd = '', rawText = '';
-                const extras = [];
+                const extras = [], thinkCards = [];
                 let hasThinking = false, hasTool = false, thinkCount = 0, thinkChars = 0;
                 for (const b of cl.blocks) {
                     if (b.type === 'thinking' || b.type === 'redacted_thinking') {
-                        // El thinking ya no es una card: su resumen se muestra en el .msg-head.
+                        // Resumen en el .msg-head (badge + chars) y, si hay texto
+                        // persistido, card desplegable con el razonamiento completo
+                        // (responde a Expand/Collapse all como las tools).
                         hasThinking = true;
                         thinkCount++;
-                        thinkChars += (b.thinking || '').trim().length;
+                        const ttxt = String(b.thinking || '').trim();
+                        thinkChars += ttxt.length;
+                        if (ttxt) thinkCards.push(`<details class="chat-tool thinking" open data-msg-idx="${mi}"><summary><span class="ux-chev">${CHEV_SVG}</span><span class="badge thinking" title="Model reasoning (extended thinking)">Thinking</span><span class="ct-name">Model reasoning</span><span class="ct-count">${formatNumber(ttxt.length)} chars</span></summary><div class="chat-tool-body">${chatClampWrap(`<div class="t2-think">${escapeHtml(ttxt)}</div>`)}</div></details>`);
                     } else if (b.type === 'text' && b.text && b.text.trim()) {
                         bodyMd += renderMd(b.text);
                         rawText += b.text + '\n';
@@ -10200,6 +10204,8 @@ function renderTranscript() {
                     ? `<span class="badge thinking" title="Model reasoning (extended thinking)">Thinking</span><span class="msg-think-meta">${thinkChars ? formatNumber(thinkChars) + ' chars' : 'no text'}${thinkCount > 1 ? ' · ' + thinkCount + ' blocks' : ''}</span>`
                     : '';
                 if (!bodyMd && !extras.length && !hasThinking) continue;
+                // El razonamiento precede a la respuesta y a las tools del mensaje.
+                if (thinkCards.length) parts.push(`<div class="chat-tools standalone" data-msg-idx="${mi}" data-turn="${turnIdx}">${thinkCards.join('')}</div>`);
                 // El texto del Response es una card de ancho limitado (izquierda); las tools
                 // van como cards aparte a ancho completo (más legibles para el código).
                 if (bodyMd || hasThinking) {
